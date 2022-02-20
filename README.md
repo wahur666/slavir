@@ -12,7 +12,7 @@ Open-Source Real Time Tactics game (CNC Rivals clone).
 
 ### Future plans
 
-+ AI programming API interface
++ AI programming API
 + Multiplayer via Websocket and/or WebRTC
   + 1v1 Multiplayer 
   + 2v2 Multiplayer
