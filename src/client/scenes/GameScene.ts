@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import Phaser from "phaser";
 import {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import {Images, Tilemaps} from "./PreloadScene";
@@ -23,15 +23,15 @@ export default class GameScene extends Phaser.Scene {
         const map = this.createMap();
         const layers = this.createLayers(map);
         this.input.on("pointerdown", (event: Pointer) => {
-            console.log(event.x, event.y, this.calcAxialCoord(event.x, event.y))
-        })
-        this.drawHexagons()
+            console.log(event.x, event.y, this.calcAxialCoord(event.x, event.y));
+        });
+        this.drawHexagons();
     }
 
     calcAxialCoord(x: number, y: number) {
-        const size = 16 * 3
-        var q = (Math.sqrt(3)/3 * x  -  1./3 * y) / size
-        var r = (                        2./3 * y) / size
+        const size = 16 * 3;
+        const q = (Math.sqrt(3) / 3 * x - 1. / 3 * y) / size;
+        const r = (2. / 3 * y) / size;
         return [Math.round(q), Math.round(r)];
     }
 
@@ -48,16 +48,16 @@ export default class GameScene extends Phaser.Scene {
         const base = map.createLayer(LAYERS.BASE, baseTileset, 0, 0)
             .setScale(3);
 
-        return {base}
+        return {base};
     }
 
     update(time: number, delta: number) {
     }
 
-    height = 42
-    halfHeight = this.height / 2
-    width = 32
-    halfWidth = this.width / 2
+    height = 42;
+    halfHeight = this.height / 2;
+    width = 32;
+    halfWidth = this.width / 2;
 
     drawHexagons() {
 
@@ -67,15 +67,15 @@ export default class GameScene extends Phaser.Scene {
             for (let j = 0; j < 5; j++) {
                 hex.beginPath();
                 hex.lineStyle(1, 0x00ff00, 1.0);
-                hex.moveTo(this.halfWidth + i * this.width,5 + this.height * j);
+                hex.moveTo(this.halfWidth + i * this.width, 5 + this.height * j);
                 hex.lineTo(i * this.width, 14 + this.height * j);
                 hex.lineTo(i * this.width, 26 + this.height * j);
-                hex.lineTo(this.halfWidth + i * this.width, 34 + this.height * j)
-                hex.lineTo((i + 1) * this.width, 26 + this.height * j)
-                hex.lineTo((i + 1) * this.width, 14 + this.height * j)
+                hex.lineTo(this.halfWidth + i * this.width, 34 + this.height * j);
+                hex.lineTo((i + 1) * this.width, 26 + this.height * j);
+                hex.lineTo((i + 1) * this.width, 14 + this.height * j);
                 hex.closePath();
-                hex.lineBetween(i * this.width, 14 + this.height * j, (i + 1) * this.width, 26 + this.height * j)
-                hex.lineBetween(i * this.width, 26 + this.height * j, (i + 1) * this.width, 14 + this.height * j)
+                hex.lineBetween(i * this.width, 14 + this.height * j, (i + 1) * this.width, 26 + this.height * j);
+                hex.lineBetween(i * this.width, 26 + this.height * j, (i + 1) * this.width, 14 + this.height * j);
                 hex.setScale(3);
                 hex.strokePath();
                 hex.fillCircle(this.halfWidth + i * this.width, this.halfHeight - 1 + this.height * j, 2);
