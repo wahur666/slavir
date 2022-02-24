@@ -2,7 +2,7 @@ import * as Phaser from "phaser";
 import {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import Hex_v01_grid from "../assets/Hex_v01_grid.png"
-import map1 from "../assets/map1.json";
+import map1 from "../assets/map2.json";
 
 export enum Images {
     HEX_GRID = "hex-grid"
