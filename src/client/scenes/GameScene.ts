@@ -41,7 +41,7 @@ export default class GameScene extends Phaser.Scene {
     width = 32;
     halfWidth = this.width / 2;
 
-    currentTile: GameTile
+    currentTile: GameTile;
 
     scaleFactor = 3;
     tiles: GameTile[];
@@ -62,20 +62,31 @@ export default class GameScene extends Phaser.Scene {
         this.input.on("pointerdown", (ev: Pointer) => {
             const target = this.pointToTile(ev.x, ev.y);
             if (target) {
-                const line = new Phaser.Geom.Line(target.centerX * this.scaleFactor, target.centerY * this.scaleFactor,
-                    this.currentTile.centerX * this.scaleFactor, this.currentTile.centerY * this.scaleFactor);
+                const angle = Number(target.centerX === this.currentTile.centerX);
+                const line = new Phaser.Geom.Line(
+                    this.currentTile.centerX * this.scaleFactor + angle, 
+                    this.currentTile.centerY * this.scaleFactor + angle,
+                    target.centerX * this.scaleFactor - angle, 
+                    target.centerY * this.scaleFactor - angle);
+                // console.log(line);
                 const hits = this.tiles.map( t => {
-                    let out: Phaser.Math.Vector4 = new Phaser.Math.Vector4();
+                    const out: Phaser.Math.Vector4 = new Phaser.Math.Vector4();
                     GetLineToPolygon(line, t.boundingPolygon, out);
                     return {t, out};
                 });
-                console.log(hits.filter(e => e.out.length()));
+                console.log(hits.filter(e => e.t.x === 4 && e.t.y === 5));
+                hits.filter(e => e.out.length() 
+                    && this.hexDistance(new Phaser.Math.Vector2(e.t.x, e.t.y), new Phaser.Math.Vector2(this.currentTile.x, this.currentTile.y)) <= 
+                     this.hexDistance(new Phaser.Math.Vector2(target.x, target.y), new Phaser.Math.Vector2(this.currentTile.x, this.currentTile.y)))
+                    .forEach(e => {
+                        this.debugHexPathFinding(e.t);
+                    });
             }
             if (target) {
-                const graphiics = this.add.graphics();
-                graphiics.lineStyle(1, 0, 1);
-                graphiics.lineBetween(target.centerX, target.centerY, this.currentTile.centerX, this.currentTile.centerY).setScale(this.scaleFactor);
-                graphiics.stroke();
+                const graphics = this.add.graphics();
+                graphics.lineStyle(1, 0, 1);
+                graphics.lineBetween(target.centerX, target.centerY, this.currentTile.centerX, this.currentTile.centerY).setScale(this.scaleFactor);
+                graphics.stroke();
             }
         });
         this.tiles = [];
