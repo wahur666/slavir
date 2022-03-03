@@ -4,16 +4,16 @@ import GameConfig = Phaser.Types.Core.GameConfig;
 import PreloadScene from "./scenes/PreloadScene";
 
 
-const scenes = [PreloadScene, GameScene]
-const createScene = scene => new scene(SHARED_CONFIG)
-const initScenes = () => scenes.map(createScene)
+const scenes = [PreloadScene, GameScene];
+const createScene = scene => new scene(SHARED_CONFIG);
+const initScenes = () => scenes.map(createScene);
 
 
 export const SHARED_CONFIG = {
     width: 1280,
     height: 720,
-    debug: false
-}
+    debug: true
+};
 
 const config: GameConfig = {
     ...SHARED_CONFIG,
@@ -23,20 +23,20 @@ const config: GameConfig = {
         pixelArt: true,
     },
     physics: {
-        default: 'arcade',
+        default: "arcade",
         arcade: {
             debug: SHARED_CONFIG.debug
         }
     },
     canvas: document.getElementById("cv1") as HTMLCanvasElement,
-}
+};
 
 let game: Phaser.Game;
 window.addEventListener("load", ev => {
     game = new Phaser.Game(config);
-})
+});
 
 
 window.addEventListener("beforeunload", ev => {
-    game.destroy(true, false)
-})
+    game.destroy(true, false);
+});
