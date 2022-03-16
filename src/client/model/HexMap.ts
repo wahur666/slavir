@@ -1,7 +1,10 @@
 import GameTile from "./GameTile";
-import Tile = Phaser.Tilemaps.Tile;
 import Phaser from "phaser";
-import GetLineToPolygon = Phaser.Geom.Intersects.GetLineToPolygon;
+import Tile = Phaser.Tilemaps.Tile;
+import Vector2 = Phaser.Math.Vector2;
+import Layout from "./Layout";
+import Point = Phaser.Geom.Point;
+import Hex from "./Hex";
 
 export enum Pathfinding {
     WATER,
@@ -10,12 +13,17 @@ export enum Pathfinding {
     OBSTACLE
 }
 
+function pointToArray(p: Point): [number, number] {
+    return [p.x, p.y];
+}
+
 export default class HexMap {
-    hexSize = 50;
+    hexSize = 16;
     hexWidth = Math.sqrt(3) * this.hexSize;
     hexHeight = 2 * this.hexSize;
     tiles: GameTile[] = [];
     layers;
+    layout: Layout;
 
     constructor(layers) {
         this.layers = layers;
@@ -23,57 +31,57 @@ export default class HexMap {
             const tile = new GameTile(value, this.hexSize);
             this.tiles.push(tile);
         });
+        this.layout = new Layout(Layout.layoutPointy, new Vector2(18.5, 14), new Vector2(16, 21));
     }
 
-    getTileHits(src: GameTile, target: GameTile) {
-        const angle = Number(target.regularX === src.regularX);
-        const line = new Phaser.Geom.Line(src.regularX + angle, src.regularY + angle, target.regularX-angle, target.regularY-angle);
-        return this.tiles.map(tile => {
-            const out: Phaser.Math.Vector4 = new Phaser.Math.Vector4();
-            GetLineToPolygon(line, tile.regularPolygon, out);
-            return {tile, out, distance: this.tileDistance(tile, src)};
-        }).filter(e => e.tile.tile.index !== -1 && e.out.length() && e.tile !== src && e.distance <= this.tileDistance(target, src));
+    getCenter(tile: GameTile): [number, number] {
+        return pointToArray(this.layout.hexToPixel(tile.hex));
     }
 
-    tileDistance(tile1: GameTile, tile2: GameTile) {
-        return this.hexDistance(tile1.coords, tile2.coords);
+    tileDistance(tile1: GameTile, tile2: GameTile):number {
+        return tile1.distance(tile2);
     }
 
-    /* https://answers.unity.com/questions/960064/hexagon-grid-distance.html */
-    hexDistance(start: Phaser.Math.Vector2, dest: Phaser.Math.Vector2): number {
-        const dx = dest.x - start.x;
-        const dy = dest.y - start.y;
-        const y = Math.abs(dy);
-        const x = Math.max(0, Math.abs(dx) - (y + Number(dx < 0) ^ (start.y % 2)) / 2);
-        return Math.ceil(x + y);
+    getTileHits(src: GameTile, target: GameTile): {tile: GameTile, distance: number}[] {
+        const hexes = src.hex.lineDraw(target.hex);
+        const res: {tile: GameTile, distance: number}[] = [];
+        for (const tile of this.tiles) {
+            if (tile.hex.equals(src.hex)) {
+                continue;
+            }
+            if (hexes.find(e => e.equals(tile.hex))) {
+                res.push({tile, distance: src.distance(tile)});
+            }
+        }
+        return res;
     }
 
-    visibleTiles(tile: GameTile, visionRadius: number): {tile: GameTile, visible: boolean}[] {
-        const tilesToCheck = this.tiles.filter(value => tile !== value
-            && this.tileDistance(value, tile) <= visionRadius );
+    visibleTiles(tile: GameTile, visionRadius: number, ignoreBlocking = false): {tile: GameTile, visible: boolean}[] {
+        const tilesToCheck = this.tiles.filter(value => this.tileDistance(value, tile) <= visionRadius );
+        if (ignoreBlocking) {
+            return tilesToCheck.map(value => ({tile: value, visible: true}))
+        }
         const visibleTiles: {tile: GameTile, visible: boolean}[] = tilesToCheck
             .filter(value => this.tileDistance(value, tile) === 1)
-            .map(value => {
-                return { tile: value, visible: true };
-            });
+            .map(value => ({tile: value, visible: true}));
 
         for (let i = 2; i <= visionRadius; i++) {
             const tiles = tilesToCheck.filter(value => this.tileDistance(value, tile) === i);
 
-            tiles.forEach(value => {
+            for (const value of tiles) {
                 const hits = this.getTileHits(tile, value).sort((a, b) => {
                     return a.distance - b.distance;
                 });
 
-                const groups: { [k: number]: {tile: GameTile, out: Phaser.Math.Vector4, distance: number}[] } = { };
-                hits.forEach(function(item){
+                const groups: { [k: number]: {tile: GameTile, distance: number}[] } = { };
+                for (const item of hits) {
                     const list = groups[item.distance];
                     if(list){
                         list.push(item);
                     } else{
                         groups[item.distance] = [item];
                     }
-                });
+                }
 
                 let blocked = false;
                 for (let j = 1; j <= i; j++) {
@@ -89,12 +97,24 @@ export default class HexMap {
                             }
                         }
                     }
-                    if (groupTiles.every(e => e.tile.pathfinding === Pathfinding.OBSTACLE )) {
+                    if (groupTiles.every(e => e.tile.vision === false)) {
                         blocked = true;
                     }
                 }
-            });
+            }
         }
         return visibleTiles;
+    }
+
+    pixelToTile(x: number, y: number): GameTile | undefined {
+        const hex = this.layout.pixelToHex(new Point(x, y));
+        return this.tiles.find(e => e.tile.index !== -1 && e.hex.equals(hex));
+    }
+
+    neighbours(tile: GameTile): GameTile[] {
+        const neighbourHexes: Hex[] = tile.hex.neighbours();
+        const res = this.tiles.filter(e => neighbourHexes.find(q => q.equals(e.hex)));
+        console.log("neighbourHexes", neighbourHexes);
+        return res;
     }
 }

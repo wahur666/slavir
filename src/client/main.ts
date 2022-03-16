@@ -2,9 +2,10 @@ import GameScene from "./scenes/GameScene";
 import Phaser from "phaser";
 import GameConfig = Phaser.Types.Core.GameConfig;
 import PreloadScene from "./scenes/PreloadScene";
+import HexTestScene from "./scenes/HexTestScene";
 
 
-const scenes = [PreloadScene, GameScene];
+const scenes = [PreloadScene, GameScene, HexTestScene];
 const createScene = scene => new scene(SHARED_CONFIG);
 const initScenes = () => scenes.map(createScene);
 

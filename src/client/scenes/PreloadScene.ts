@@ -24,11 +24,11 @@ export default class PreloadScene extends Phaser.Scene {
 
         this.load.once("complete", () => {
             this.startGame();
-        })
+        });
     }
 
     startGame() {
-        this.scene.start(SceneRegistry.GAME)
+        this.scene.start(SceneRegistry.GAME);
     }
 
 }

@@ -3,14 +3,16 @@ import {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import {Images, Tilemaps} from "./PreloadScene";
 import Pointer = Phaser.Input.Pointer;
-import Vector2 = Phaser.Math.Vector2;
 import HexMap from "../model/HexMap";
 import GameTile from "../model/GameTile";
 import Graphics = Phaser.GameObjects.Graphics;
+import Hex from "../model/Hex";
 
 enum LAYERS {
     BASE = "base"
 }
+
+const VisibilityColors = [0x545454, 0xFFFFFF];
 
 enum TILESETS {
     Hex_v01_grid = "Hex_v01_grid"
@@ -23,6 +25,8 @@ export default class GameScene extends Phaser.Scene {
     visionRadius = 3;
     hexMap: HexMap;
     graphics: Graphics;
+    texts: Phaser.GameObjects.Text[] = [];
+    hexes: Set<Hex>;
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -34,54 +38,69 @@ export default class GameScene extends Phaser.Scene {
         this.hexMap = new HexMap(layers);
         this.graphics = this.add.graphics();
         this.input.on("pointerdown", (ev: Pointer) => {
-            const target = this.pointToTile(ev.x, ev.y);
+            const target = this.pointToTile(ev.x / 3 | 0, ev.y / 3 | 0);
             if (target) {
-                const hits = this.hexMap.getTileHits(this.currentTile, target);
-                this.graphics.clear();
-                this.graphics.lineStyle(1, 0, 1);
-                this.graphics.lineBetween(target.centerX, target.centerY, this.currentTile.centerX, this.currentTile.centerY).setScale(this.scaleFactor);
-                this.graphics.stroke();
-                hits.forEach(e => {
-                    this.debugHexPathFinding(e.tile);
-                });
+                this.setCurrentTile(target);
+                this.drawVisibleTiles();
+                // this.drawTileDistance();
+                // const hits = this.hexMap.getTileHits(this.currentTile, target);
+                // this.graphics.clear();
+                // this.graphics.lineStyle(1, 0, 1);
+                // this.graphics.lineBetween(target.centerX, target.centerY, this.currentTile.centerX, this.currentTile.centerY).setScale(this.scaleFactor);
+                // this.graphics.stroke();
+                // hits.forEach(e => {
+                //     this.debugHexPathFinding(e.tile);
+                // });
             }
         });
+
+        this.createMapRepresentation();
+
+        for (const tile of this.hexMap.tiles) {
+            tile.tile.tint = 0x545454;
+        }
 
         for (const tile of this.hexMap.tiles) {
             if (tile.x === 4 && tile.y === 3) {
-                this.currentTile = tile;
+                this.setCurrentTile(tile);
+                console.log("neighbours", this.hexMap.neighbours(this.currentTile));
             }
         }
+        // this.drawHexes();
         this.debugFieldOfView();
         this.drawVisibleTiles();
+        // this.drawTileDistance();
         // this.logDistances();
     }
 
-
-
-    logDistances() {
-        this.hexMap.tiles.forEach(value => {
-            console.log(value.coords, this.hexMap.tileDistance(value, this.currentTile));
-        });
+    setCurrentTile(tile: GameTile): void {
+        this.currentTile = tile;
+        const colors = { blue: 0x0000FF, green: 0x00FF00, red: 0xFF0000};
+        this.graphics.clear();
+        this.graphics.lineStyle(1, colors.green, 1);
+        const [centerX, centerY] = this.hexMap.getCenter(tile);
+        this.graphics.strokeCircle(centerX, centerY, 5).setScale(this.scaleFactor);
     }
 
     drawVisibleTiles() {
         const visibleTiles = this.hexMap.visibleTiles(this.currentTile, this.visionRadius);
-
-        visibleTiles.forEach(value => {
-            this.debugHexVisibility(value.tile, value.visible);
-        });
+        for (const tile of this.hexMap.tiles) {
+            if(tile === this.currentTile) {
+                this.drawVisibility(this.currentTile, true);
+                continue;
+            }
+            const nearTile = visibleTiles.find(e => e.tile === tile);
+            if (nearTile) {
+                this.drawVisibility(nearTile.tile, nearTile.visible);
+            } else {
+                this.drawVisibility(tile, false);
+            }
+        }
     }
 
-    debugHexVisibility(tile: GameTile, visible: boolean) {
+    drawVisibility(tile: GameTile, visible: boolean) {
         if (tile.tile.index !== -1) {
-            const graphics = this.add.graphics();
-            const colors = {
-                red: 0xFF0000,
-                green: 0x00FF00
-            };
-            graphics.fillStyle(visible ? colors.green : colors.red, 1);
-            graphics.fillCircle(tile.centerX, tile.centerY, 5).setScale(this.scaleFactor);
+            tile.tile.tint = VisibilityColors[Number(visible)];
         }
     }
 
@@ -90,49 +109,36 @@ export default class GameScene extends Phaser.Scene {
             // console.log(tile.x, tile.y);
             const colors = [0x0000FF, 0x00FF00, 0x00FFFF, 0xFF0000];
             this.graphics.lineStyle(1, colors[tile.pathfinding], 1);
-            this.graphics.strokeCircle(tile.centerX, tile.centerY, 13).setScale(this.scaleFactor);
+            const [centerX, centerY] = this.hexMap.getCenter(tile);
+            this.graphics.strokeCircle(centerX, centerY, 13);
+        }
+    }
+
+    drawTileDistance() {
+        for (const text of this.texts) {
+            text.destroy(true);
+        }
+        for (const tile of this.hexMap.tiles) {
+            const [centerX, centerY] = this.hexMap.getCenter(tile);
+            this.texts.push(this.add.text(centerX * this.scaleFactor, centerY * this.scaleFactor, "" + this.hexMap.tileDistance(tile, this.currentTile), {
+                fontSize: "24px",
+                fontFamily: "Arial",
+                color: "red"
+            }));
         }
     }
 
     debugFieldOfView() {
-        const graphics = this.add.graphics();
-        const colors = { blue: 0x0000FF, green: 0x00FF00, red: 0xFF0000};
-
         for (const tile of this.hexMap.tiles) {
             if (tile.x === 4 && tile.y === 3) {
                 this.currentTile = tile;
-                graphics.lineStyle(1, colors.green, 1);
-                graphics.strokeCircle(tile.centerX, tile.centerY, 5).setScale(this.scaleFactor);
-            } else {
-                // this.add.text(tile.centerX * this.scaleFactor, tile.centerY * this.scaleFactor, "" + this.hexDistance(new Phaser.Math.Vector2(tile.x, tile.y), new Phaser.Math.Vector2(4, 3)), {
-                //     fontSize: "24px",
-                //     fontFamily: "Arial",
-                //     color: "red"
-                // });
+                return;
             }
         }
     }
 
-    pointToTile(x: number, y: number): GameTile | null {
-        let tile: GameTile | null = null;
-        let minDistance;
-
-        const pointer = new Vector2(x, y).scale(1 / this.scaleFactor);
-        this.hexMap.tiles.forEach(((value, index) => {
-            const distance = pointer.distanceSq(value.center);
-            if (index === 0) {
-                tile = value;
-                minDistance = distance;
-            } else {
-                if (minDistance > distance) {
-                    minDistance = distance;
-                    tile = value;
-                }
-            }
-        }));
-
-
-        return tile;
+    pointToTile(x: number, y: number): GameTile | undefined {
+        return this.hexMap.pixelToTile(x, y);
     }
 
     createMap(): Phaser.Tilemaps.Tilemap {
@@ -165,6 +171,37 @@ export default class GameScene extends Phaser.Scene {
 
     }
 
+    createMapRepresentation() {
+        this.hexes = new Set<Hex>();
+        const left = 0;
+        const right = 10;
+        const top = 0;
+        const bottom = 6;
+        this.createPointyRectangle(top, bottom, left, right);
+
+    }
+
+    private drawHexes() {
+        const graphics = this.add.graphics();
+        for (const hex of this.hexes) {
+            this.drawHex(graphics, hex);
+        }
+    }
+
+    private createPointyRectangle(top: number, bottom: number, left: number, right: number) {
+        for (let r = top; r <= bottom; r++) {
+            const rOffset = Math.floor(r / 2);
+            for (let q = left - rOffset; q <= right - rOffset; q++) {
+                this.hexes.add(new Hex(q, r));
+            }
+        }
+    }
+
+    drawHex(graphics: Graphics, hex: Hex): void {
+        const points = this.hexMap.layout.polygonCorners(hex);
+        graphics.lineStyle(1, 0xFF0000, 1);
+        graphics.strokePoints(points, true, true).setScale(this.scaleFactor);
+    }
 }
 
 

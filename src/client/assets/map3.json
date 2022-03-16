@@ -608,6 +608,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -617,6 +622,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":2
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -626,6 +636,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -635,6 +650,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -644,6 +664,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -653,6 +678,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -662,6 +692,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -671,6 +706,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -680,6 +720,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":0
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -689,6 +734,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -698,6 +748,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":2
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -707,6 +762,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -716,6 +776,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -725,6 +790,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -734,6 +804,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -743,6 +818,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -752,6 +832,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -761,6 +846,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":0
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -770,6 +860,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -779,6 +874,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":2
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -788,6 +888,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -797,6 +902,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -806,6 +916,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -815,6 +930,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -824,6 +944,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -833,6 +958,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -842,6 +972,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":0
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -851,6 +986,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -860,6 +1000,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":2
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -869,6 +1014,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -878,6 +1028,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -887,6 +1042,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -896,6 +1056,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -905,6 +1070,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -914,6 +1084,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -923,6 +1098,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":0
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -932,6 +1112,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -941,6 +1126,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":2
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -950,6 +1140,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -959,6 +1154,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -968,6 +1168,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -977,6 +1182,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -986,6 +1196,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -995,6 +1210,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1004,6 +1224,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":0
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1013,6 +1238,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1022,6 +1252,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":2
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1031,6 +1266,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1040,6 +1280,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1049,6 +1294,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1058,6 +1308,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1067,6 +1322,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":1
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1076,6 +1336,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1085,6 +1350,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":0
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1094,6 +1364,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1103,6 +1378,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1112,6 +1392,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1121,6 +1406,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1130,6 +1420,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1139,6 +1434,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1148,6 +1448,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1157,6 +1462,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1166,6 +1476,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1175,6 +1490,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1184,6 +1504,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1193,6 +1518,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1202,6 +1532,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1211,6 +1546,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1220,6 +1560,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1229,6 +1574,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1238,6 +1588,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1247,6 +1602,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1256,6 +1616,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1265,6 +1630,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1274,6 +1644,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1283,6 +1658,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1292,6 +1672,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1301,6 +1686,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1310,6 +1700,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1319,6 +1714,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1328,6 +1728,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":true
                         }]
                 }, 
                 {
@@ -1337,6 +1742,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1346,6 +1756,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1355,6 +1770,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1364,6 +1784,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1373,6 +1798,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1382,6 +1812,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1391,6 +1826,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1400,6 +1840,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1409,6 +1854,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1418,6 +1868,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1427,6 +1882,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1436,6 +1896,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1445,6 +1910,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1454,6 +1924,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1463,6 +1938,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1472,6 +1952,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1481,6 +1966,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1490,6 +1980,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1499,6 +1994,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1508,6 +2008,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1517,6 +2022,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1526,6 +2036,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1535,6 +2050,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1544,6 +2064,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1553,6 +2078,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1562,6 +2092,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }, 
                 {
@@ -1571,6 +2106,11 @@
                          "name":"Pathfinding",
                          "type":"int",
                          "value":3
+                        }, 
+                        {
+                         "name":"Vision",
+                         "type":"bool",
+                         "value":false
                         }]
                 }],
          "tilewidth":32
