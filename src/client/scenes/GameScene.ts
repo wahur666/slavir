@@ -80,16 +80,7 @@ export default class GameScene extends Phaser.Scene {
     drawVisibleTiles() {
         const visibleTiles = this.hexMap.visibleTiles(this.currentTile, this.visionRadius);
         for (const tile of this.hexMap.tiles) {
-            if(tile === this.currentTile) {
-                this.drawVisibility(this.currentTile, true);
-                continue;
-            }
-            const nearTile = visibleTiles.find(e => e.tile === tile);
-            if (nearTile) {
-                this.drawVisibility(nearTile.tile, nearTile.visible);
-            } else {
-                this.drawVisibility(tile, false);
-            }
+            this.drawVisibility(tile, visibleTiles.has(tile));
         }
     }
 
