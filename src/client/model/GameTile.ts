@@ -1,8 +1,7 @@
 import {Pathfinding} from "./HexMap";
 import Phaser from "phaser";
 import Tile = Phaser.Tilemaps.Tile;
-import Hex from "./Hex";
-import OffsetCoordinate from "./OffsetCoordinates";
+import {Hex, OffsetCoordinate} from "./hexgrid";
 
 export default class GameTile {
 
@@ -23,7 +22,7 @@ export default class GameTile {
 
     distance: (tile: GameTile) => number;
 
-    constructor(tile: Tile, private hexSize: number) {
+    constructor(tile: Tile) {
         this.tile = tile;
         this.x = tile.x;
         this.y = tile.y;

@@ -3,7 +3,7 @@ function lerp(a: number, b: number, t: number) {
 }
 
 
-export default class Hex {
+export class Hex {
     constructor(public q: number, public r: number, public s = -q-r) {
     }
 

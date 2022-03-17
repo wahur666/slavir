@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import Point = Phaser.Geom.Point;
-import Hex from "./Hex";
+import {Hex} from "./Hex";
 
 class Orientation {
     constructor(public f0: number,
@@ -17,7 +17,7 @@ class Orientation {
 
 const sqrt3 = Math.sqrt(3);
 
-export default class Layout {
+export class Layout {
 
     static layoutPointy = new Orientation(sqrt3, sqrt3 / 2, 0, 3/2, sqrt3/3, -1/3, 0, 2/3, 0.5);
     static layoutFlat = new Orientation(3/2, 0, sqrt3/2, sqrt3, 2/3, 0, -1/3, sqrt3/3, 0);

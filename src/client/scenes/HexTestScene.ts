@@ -1,12 +1,10 @@
 import Phaser from "phaser";
 import {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
-import Layout from "../model/Layout";
 import Vector2 = Phaser.Math.Vector2;
-import Hex from "../model/Hex";
 import Graphics = Phaser.GameObjects.Graphics;
 import Pointer = Phaser.Input.Pointer;
-import OffsetCoordinate from "../model/OffsetCoordinates";
+import {Hex, Layout, OffsetCoordinate} from "../model/hexgrid";
 
 
 export default class HexTestScene extends Phaser.Scene {

@@ -6,7 +6,8 @@ import Pointer = Phaser.Input.Pointer;
 import HexMap from "../model/HexMap";
 import GameTile from "../model/GameTile";
 import Graphics = Phaser.GameObjects.Graphics;
-import Hex from "../model/Hex";
+import {Hex} from "../model/hexgrid";
+import Vector2 = Phaser.Math.Vector2;
 
 enum LAYERS {
     BASE = "base"
@@ -38,11 +39,11 @@ export default class GameScene extends Phaser.Scene {
         this.hexMap = new HexMap(layers);
         this.graphics = this.add.graphics();
         this.input.on("pointerdown", (ev: Pointer) => {
-            const target = this.pointToTile(ev.x / 3 | 0, ev.y / 3 | 0);
+            const target = this.pointToTile(ev.x / this.scaleFactor | 0, ev.y / this.scaleFactor | 0);
             if (target) {
                 this.setCurrentTile(target);
                 this.drawVisibleTiles();
-                // this.drawTileDistance();
+                this.drawTileDistance();
                 // const hits = this.hexMap.getTileHits(this.currentTile, target);
                 // this.graphics.clear();
                 // this.graphics.lineStyle(1, 0, 1);
@@ -54,23 +55,17 @@ export default class GameScene extends Phaser.Scene {
             }
         });
 
-        this.createMapRepresentation();
+        this.createMapRepresentation(new Vector2(layers.base.tilemap.width, layers.base.tilemap.height));
 
         for (const tile of this.hexMap.tiles) {
             tile.tile.tint = 0x545454;
         }
 
-        for (const tile of this.hexMap.tiles) {
-            if (tile.x === 4 && tile.y === 3) {
-                this.setCurrentTile(tile);
-                console.log("neighbours", this.hexMap.neighbours(this.currentTile));
-            }
-        }
+        this.setCurrentTile(this.hexMap.coordsToTile(4, 3));
+
         // this.drawHexes();
-        this.debugFieldOfView();
         this.drawVisibleTiles();
-        // this.drawTileDistance();
-        // this.logDistances();
+        this.drawTileDistance();
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -115,24 +110,21 @@ export default class GameScene extends Phaser.Scene {
     }
 
     drawTileDistance() {
-        for (const text of this.texts) {
-            text.destroy(true);
-        }
-        for (const tile of this.hexMap.tiles) {
-            const [centerX, centerY] = this.hexMap.getCenter(tile);
-            this.texts.push(this.add.text(centerX * this.scaleFactor, centerY * this.scaleFactor, "" + this.hexMap.tileDistance(tile, this.currentTile), {
-                fontSize: "24px",
-                fontFamily: "Arial",
-                color: "red"
-            }));
-        }
-    }
-
-    debugFieldOfView() {
-        for (const tile of this.hexMap.tiles) {
-            if (tile.x === 4 && tile.y === 3) {
-                this.currentTile = tile;
-                return;
+        if (this.texts.length === 0) {
+            for (const tile of this.hexMap.tiles) {
+                const [centerX, centerY] = this.hexMap.getCenter(tile);
+                const text = tile.tile.index === -1 ? "" : this.hexMap.tileDistance(tile, this.currentTile) + "";
+                this.texts.push(this.add.text(centerX * this.scaleFactor, centerY * this.scaleFactor, text, {
+                    fontSize: "24px",
+                    fontFamily: "Arial",
+                    color: "red"
+                }));
+            }
+        } else {
+            for (let i = 0; i < this.texts.length; i++) {
+                const tile = this.hexMap.tiles[i];
+                const text = tile.tile.index === -1 ? "" : this.hexMap.tileDistance(tile, this.currentTile) + "";
+                this.texts[i].setText(text);
             }
         }
     }
@@ -171,14 +163,13 @@ export default class GameScene extends Phaser.Scene {
 
     }
 
-    createMapRepresentation() {
+    createMapRepresentation(mapSize: Vector2) {
         this.hexes = new Set<Hex>();
         const left = 0;
-        const right = 10;
+        const right = mapSize.x - 1;
         const top = 0;
-        const bottom = 6;
+        const bottom = mapSize.y - 1;
         this.createPointyRectangle(top, bottom, left, right);
-
     }
 
     private drawHexes() {

@@ -1,11 +1,11 @@
-import Hex from "./Hex";
+import {Hex} from "./Hex";
 
 const EVEN = 1;
 const ODD = -1;
 
 type Offset = typeof EVEN | typeof ODD
 
-export default class OffsetCoordinate {
+export class OffsetCoordinate {
 
     constructor(public col: number, public row: number) {}
 
@@ -14,6 +14,10 @@ export default class OffsetCoordinate {
         const col = hex.q;
         const row = hex.r + ((hex.q + offset * (hex.q & 1)) / 2 | 0);
         return new OffsetCoordinate(col, row);
+    }
+
+    toArray(): [number, number] {
+        return [this.col, this.row];
     }
 
     /** Flat top */
