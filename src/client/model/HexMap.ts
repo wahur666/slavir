@@ -101,7 +101,7 @@ export default class HexMap {
 
     pixelToTile(x: number, y: number): GameTile | undefined {
         const tile = this.coordsToTile(...OffsetCoordinate.rOffsetFromCube(this.layout.pixelToHex(new Point(x, y))).toArray());
-        return tile.tile.index !== -1 ? tile : undefined;
+        return tile && tile.tile.index !== -1 ? tile : undefined;
     }
 
     tileToIndex(tile: GameTile): number {
