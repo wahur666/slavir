@@ -71,9 +71,9 @@ export class Layout {
         const center = this.hexToPixel(hex);
         for (let i = 0; i < 6; i++) {
             const offset = this.hexCornerOffset2(i, scale);
-            corners.push(new Point(center.x + offset.x, center.y + offset.y));
+            corners.push(new Point(center.x + offset.x | 0, center.y + offset.y | 0));
         }
-        return corners;
+        return [...corners, corners[0]];
     }
 
 }

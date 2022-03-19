@@ -102,7 +102,7 @@ export default class HexMap {
     }
 
     hexToTile(hex: Hex): GameTile | undefined {
-        const tile = this.coordsToTile(...OffsetCoordinate.rOffsetFromCube(hex).toArray());
+        const tile = this.tiles.find(e => e.hex.equals(hex));
         return tile && tile.tile.index !== -1 ? tile : undefined;
     }
 
@@ -125,4 +125,10 @@ export default class HexMap {
     }
 
 
+    getFurthersPoints(scale: number): Vector2 {
+        const polys = this.tiles.map(e => this.layout.polygonCorners(e.hex).map(e => new Vector2(e.x, e.y))).flat();
+        const maxX = Math.max(...polys.map(e => e.x));
+        const maxY = Math.max(...polys.map(e => e.y));
+        return new Vector2(maxX, maxY).scale(scale);
+    }
 }

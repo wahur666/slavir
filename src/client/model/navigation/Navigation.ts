@@ -1,15 +1,15 @@
 import GameTile from "../GameTile";
-import HexMap, {Pathfinding} from "../HexMap";
+import HexMap from "../HexMap";
 import Heap from 'heap-js';
 import GetLineToPolygon = Phaser.Geom.Intersects.GetLineToPolygon;
 import Line = Phaser.Geom.Line;
 import Vector4 = Phaser.Math.Vector4;
-import Vector2 = Phaser.Math.Vector2;
 
 class Node {
     public parent: Node | undefined = undefined;
     public gCost: number;
     public hCost: number;
+
     constructor(public tile: GameTile,
                 public walkable: boolean,
                 start: GameTile,
@@ -22,7 +22,7 @@ class Node {
         return this.gCost + this.hCost;
     }
 
-    cost(tile: GameTile){
+    cost(tile: GameTile) {
         return this.tile.distance(tile);
     }
 
@@ -49,15 +49,19 @@ export class Navigation {
     }
 
     findPath(start: GameTile, end: GameTile, mask: number): GameTile[] {
-
+        if ((!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask))) {
+            return [];
+        }
         const open = new Heap<Node>((a, b) => {
             return a.fCost - b.fCost || a.hCost - b.hCost;
         });
         open.push(this.createNode(start, mask, start, end));
         const closed = new Set<Node>();
-
-        while (open.size() !== 0){
-            const current = open.pop()!;
+        while (open.size() !== 0) {
+            const current = open.pop();
+            if (!current) {
+                continue;
+            }
             closed.add(current);
             if (current.tile === end) {
                 return this.retracePath(start, current, mask);
@@ -77,9 +81,7 @@ export class Navigation {
                     }
                 }
             }
-
         }
-
         return [];
     }
 
@@ -91,7 +93,6 @@ export class Navigation {
         }
         path.unshift(start);
         if (path.length > 2) {
-            const navigationPolygons = this.hexMap.generateNavigationPolygons(mask);
             const tilesToRemove: Set<number> = new Set();
             let currentIndex = 0;
             let currentTile = path[currentIndex];
@@ -117,12 +118,10 @@ export class Navigation {
         const polygons = this.hexMap.generateNavigationPolygons(mask);
         const point1 = this.hexMap.layout.hexToPixel(currentTile.hex);
         const point2 = this.hexMap.layout.hexToPixel(tileToCheck.hex);
-        const q = polygons.filter(e => {
+        return polygons.filter(e => {
             let out: Vector4 = new Vector4();
             GetLineToPolygon(new Line(point1.x, point1.y, point2.x, point2.y), e, out);
-            return 0 < out.z && out.z <= 1 && out.length() > 0;
-        });
-        console.log(q);
-        return q.length === 0;
+            return out.length() > 0 && 0 < out.z && out.z <= 1;
+        }).length === 0;
     }
 }
