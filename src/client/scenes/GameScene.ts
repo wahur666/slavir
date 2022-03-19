@@ -2,11 +2,12 @@ import Phaser from "phaser";
 import {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import {Images, Tilemaps} from "./PreloadScene";
-import Pointer = Phaser.Input.Pointer;
-import HexMap from "../model/HexMap";
+import HexMap, {Pathfinding} from "../model/HexMap";
 import GameTile from "../model/GameTile";
-import Graphics = Phaser.GameObjects.Graphics;
 import {Hex} from "../model/hexgrid";
+import {Navigation} from "../model/navigation";
+import Pointer = Phaser.Input.Pointer;
+import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 
 enum LAYERS {
@@ -26,8 +27,10 @@ export default class GameScene extends Phaser.Scene {
     visionRadius = 3;
     hexMap: HexMap;
     graphics: Graphics;
+    graphics2: Graphics;
     texts: Phaser.GameObjects.Text[] = [];
     hexes: Set<Hex>;
+    navigation: Navigation;
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -37,13 +40,18 @@ export default class GameScene extends Phaser.Scene {
         const map = this.createMap();
         const layers = this.createLayers(map);
         this.hexMap = new HexMap(layers);
+        this.navigation = new Navigation(this.hexMap);
         this.graphics = this.add.graphics();
+        this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
         this.input.on("pointerdown", (ev: Pointer) => {
             const target = this.pointToTile(ev.x / this.scaleFactor | 0, ev.y / this.scaleFactor | 0);
             if (target) {
                 this.setCurrentTile(target);
                 this.drawVisibleTiles();
-                this.drawTileDistance();
+                this.drawTestNavigation(this.currentTile);
+                if (this.config.debug.distance) {
+                    this.drawTileDistance();
+                }
                 // const hits = this.hexMap.getTileHits(this.currentTile, target);
                 // this.graphics.clear();
                 // this.graphics.lineStyle(1, 0, 1);
@@ -60,12 +68,49 @@ export default class GameScene extends Phaser.Scene {
         for (const tile of this.hexMap.tiles) {
             tile.tile.tint = 0x545454;
         }
+        const startPoint = this.hexMap.coordsToTile(4, 3);
+        if (startPoint) {
+            this.setCurrentTile(startPoint);
+        }
 
-        this.setCurrentTile(this.hexMap.coordsToTile(4, 3));
-
-        // this.drawHexes();
+        if (this.config.debug.hexes) {
+            this.drawHexes();
+        }
         this.drawVisibleTiles();
-        this.drawTileDistance();
+        if (this.config.debug.distance) {
+            this.drawTileDistance();
+        }
+        this.drawTestNavigation(this.currentTile);
+    }
+
+    private drawTestNavigation(start: GameTile | undefined) {
+        const dest = this.hexMap.coordsToTile(6, 6);
+        if (start && dest) {
+            const path = this.navigation.findPath(start, dest, Pathfinding.GROUND);
+            // const optPath = this.optimalPath(path);
+            this.drawPath(path);
+            //this.drawPath([path[0], path[path.length - 1]]);
+        }
+    }
+
+    drawPath(tiles: GameTile[]): void {
+        if (tiles.length < 2) {
+            return;
+        }
+        this.graphics2.clear();
+        this.graphics2.lineStyle(3, 0xFF0000, 1);
+        const start = this.hexCenter(tiles[0].hex);
+        const end = this.hexCenter(tiles[tiles.length - 1].hex);
+        for (let i = 0; i < tiles.length - 1; i++) {
+            const point1 = this.hexCenter(tiles[i].hex);
+            const point2 = this.hexCenter(tiles[i + 1].hex);
+            this.graphics2.lineBetween(point1.x, point1.y, point2.x, point2.y);
+        }
+        this.graphics2.stroke();
+        this.graphics2.fillStyle(0xFF0000, 1);
+        this.graphics2.fillCircle(start.x, start.y, 5);
+        this.graphics2.fillStyle(0x00FF00, 1);
+        this.graphics2.fillCircle(end.x, end.y, 5);
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -120,6 +165,7 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    // Pixel to Tile
     pointToTile(x: number, y: number): GameTile | undefined {
         return this.hexMap.pixelToTile(x, y);
     }
@@ -184,6 +230,11 @@ export default class GameScene extends Phaser.Scene {
         graphics.lineStyle(1, 0xFF0000, 1);
         graphics.strokePoints(points, true, true).setScale(this.scaleFactor);
     }
+
+    hexCenter(hex: Hex) {
+        return this.hexMap.layout.hexToPixel(hex);
+    }
+
 }
 
 

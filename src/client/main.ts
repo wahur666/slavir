@@ -13,7 +13,11 @@ const initScenes = () => scenes.map(createScene);
 export const SHARED_CONFIG = {
     width: 1280,
     height: 720,
-    debug: true
+    debug: {
+        arcade: true,
+        hexes: false,
+        distance: false
+    }
 };
 
 const config: GameConfig = {
@@ -26,7 +30,7 @@ const config: GameConfig = {
     physics: {
         default: "arcade",
         arcade: {
-            debug: SHARED_CONFIG.debug
+            debug: SHARED_CONFIG.debug.arcade
         }
     },
     canvas: document.getElementById("cv1") as HTMLCanvasElement,

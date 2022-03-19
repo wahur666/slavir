@@ -49,6 +49,11 @@ export class Layout {
         return new Point(this.size.x * Math.cos(angle), this.size.y * Math.sin(angle));
     }
 
+    private hexCornerOffset2(corner: number, scale: number): Point {
+        const angle = 2 * Math.PI * (this.orientation.startAngle + corner) / 6;
+        return new Point(this.size.x * scale * Math.cos(angle), this.size.y * scale * Math.sin(angle));
+    }
+
     /** Returns the polygon corners */
     polygonCorners(hex: Hex): Point[] {
         const corners: Point[] = [];
@@ -56,6 +61,17 @@ export class Layout {
         for (let i = 0; i < 6; i++) {
           const offset = this.hexCornerOffset(i);
           corners.push(new Point(center.x + offset.x, center.y + offset.y));
+        }
+        return corners;
+    }
+
+    /** Returns the polygon corners with scale */
+    polygonCorners2(hex: Hex, scale: number): Point[] {
+        const corners: Point[] = [];
+        const center = this.hexToPixel(hex);
+        for (let i = 0; i < 6; i++) {
+            const offset = this.hexCornerOffset2(i, scale);
+            corners.push(new Point(center.x + offset.x, center.y + offset.y));
         }
         return corners;
     }

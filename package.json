@@ -28,6 +28,7 @@
   "homepage": "https://github.com/wahur666/slavir#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "heap-js": "^2.1.6",
     "phaser": "^3.55.2"
   },
   "devDependencies": {

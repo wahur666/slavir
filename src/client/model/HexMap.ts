@@ -1,15 +1,15 @@
 import GameTile from "./GameTile";
 import Phaser from "phaser";
-import {Layout, OffsetCoordinate} from "./hexgrid";
+import {Hex, Layout, OffsetCoordinate} from "./hexgrid";
 import Tile = Phaser.Tilemaps.Tile;
 import Vector2 = Phaser.Math.Vector2;
 import Point = Phaser.Geom.Point;
 
 export enum Pathfinding {
-    WATER,
-    GROUND,
-    HIGH_GROUND,
-    OBSTACLE
+    WATER = 1,
+    GROUND= 2,
+    HIGH_GROUND = 4,
+    OBSTACLE = 8
 }
 
 function pointToArray(p: Point): [number, number] {
@@ -58,7 +58,9 @@ export default class HexMap {
 
         for (const hex of hexes) {
             const tile = this.coordsToTile(...OffsetCoordinate.rOffsetFromCube(hex).toArray());
-            res.push({tile, distance: src.distance(tile)});
+            if (tile) {
+                res.push({tile, distance: src.distance(tile)});
+            }
         }
         return res;
     }
@@ -99,17 +101,28 @@ export default class HexMap {
         return visibleTiles;
     }
 
-    pixelToTile(x: number, y: number): GameTile | undefined {
-        const tile = this.coordsToTile(...OffsetCoordinate.rOffsetFromCube(this.layout.pixelToHex(new Point(x, y))).toArray());
+    hexToTile(hex: Hex): GameTile | undefined {
+        const tile = this.coordsToTile(...OffsetCoordinate.rOffsetFromCube(hex).toArray());
         return tile && tile.tile.index !== -1 ? tile : undefined;
+    }
+
+    pixelToTile(x: number, y: number): GameTile | undefined {
+        return this.hexToTile(this.layout.pixelToHex(new Point(x, y)));
     }
 
     tileToIndex(tile: GameTile): number {
         return tile.y * this.mapSize.x + tile.x;
     }
 
-    coordsToTile(col: number, row: number): GameTile {
-        return this.tiles[row * this.mapSize.x + col];
+    coordsToTile(col: number, row: number): GameTile | undefined{
+        const index = row * this.mapSize.x + col;
+        return index < this.tiles.length ? this.tiles[index] : undefined;
     }
+
+    generateNavigationPolygons(mask: number): Phaser.Geom.Polygon[] {
+        return this.tiles.filter(e => !(e.pathfinding & mask))
+            .map(value => new Phaser.Geom.Polygon(this.layout.polygonCorners2(value.hex, 1.33)));
+    }
+
 
 }
