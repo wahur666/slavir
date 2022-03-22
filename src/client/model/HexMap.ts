@@ -3,7 +3,6 @@ import Phaser from "phaser";
 import {Hex, Layout, OffsetCoordinate} from "./hexgrid";
 import Tile = Phaser.Tilemaps.Tile;
 import Vector2 = Phaser.Math.Vector2;
-import Point = Phaser.Geom.Point;
 
 export enum Pathfinding {
     WATER = 1,
@@ -12,7 +11,7 @@ export enum Pathfinding {
     OBSTACLE = 8
 }
 
-function pointToArray(p: Point): [number, number] {
+function vector2ToArray(p: Vector2): [number, number] {
     return [p.x, p.y];
 }
 
@@ -44,8 +43,8 @@ export default class HexMap {
         this.layout = new Layout(Layout.layoutPointy, this.tileSize, this.tileOrigin);
     }
 
-    getCenter(tile: GameTile): [number, number] {
-        return pointToArray(this.layout.hexToPixel(tile.hex));
+    getCenter(tile: GameTile): Phaser.Math.Vector2 {
+        return this.layout.hexToPixel(tile.hex);
     }
 
     tileDistance(tile1: GameTile, tile2: GameTile): number {
@@ -107,7 +106,7 @@ export default class HexMap {
     }
 
     pixelToTile(x: number, y: number): GameTile | undefined {
-        return this.hexToTile(this.layout.pixelToHex(new Point(x, y)));
+        return this.hexToTile(this.layout.pixelToHex(new Vector2(x, y)));
     }
 
     tileToIndex(tile: GameTile): number {

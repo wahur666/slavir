@@ -10,6 +10,7 @@ import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
+import Unit, {AnimationKeys} from "../entities/Unit";
 
 enum LAYERS {
     BASE = "base"
@@ -34,6 +35,7 @@ export default class GameScene extends Phaser.Scene {
     navigation: Navigation;
     baseOffset: Phaser.Math.Vector2;
     scaledBaseOffset: Phaser.Math.Vector2;
+    guard: Unit;
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -60,14 +62,7 @@ export default class GameScene extends Phaser.Scene {
                 if (this.config.debug.distance) {
                     this.drawTileDistance();
                 }
-                // const hits = this.hexMap.getTileHits(this.currentTile, target);
-                // this.graphics.clear();
-                // this.graphics.lineStyle(1, 0, 1);
-                // this.graphics.lineBetween(target.centerX, target.centerY, this.currentTile.centerX, this.currentTile.centerY).setScale(this.scaleFactor);
-                // this.graphics.stroke();
-                // hits.forEach(e => {
-                //     this.debugHexPathFinding(e.tile);
-                // });
+                this.moveGuard(this.currentTile.hex);
             }
         });
 
@@ -89,11 +84,13 @@ export default class GameScene extends Phaser.Scene {
             this.drawTileDistance();
         }
         this.drawTestNavigation(this.currentTile);
+
+        this.createGuard();
     }
 
     calculateBaseOffset(base: TilemapLayer) {
         const point = this.getFurthersPoints();
-        this.scaledBaseOffset = new Vector2((this.config.width - point.x) / 2 | 0, (this.config.height - point.y) / 2 | 0);
+        this.scaledBaseOffset = new Vector2((this.config.width - point.x) / 2 | 0, (this.config.height - point.y - 180));
         this.baseOffset = this.scaledBaseOffset.clone().scale(1 / this.scaleFactor);
         base.setX(this.scaledBaseOffset.x);
         base.setY(this.scaledBaseOffset.y);
@@ -113,19 +110,20 @@ export default class GameScene extends Phaser.Scene {
             return;
         }
         this.graphics2.lineStyle(3, 0xFF0000, 1);
-        const start = this.hexCenter(tiles[0].hex);
-        const end = this.hexCenter(tiles[tiles.length - 1].hex);
+        const start = this.hexCenter(tiles[0].hex).add(this.baseOffset);
+        const end = this.hexCenter(tiles[tiles.length - 1].hex).add(this.baseOffset);
+        const curve = new Phaser.Curves.Path(start.x, start.y);
         for (let i = 0; i < tiles.length - 1; i++) {
-            const point1 = this.hexCenter(tiles[i].hex);
-            const point2 = this.hexCenter(tiles[i + 1].hex);
-            this.graphics2.lineBetween(point1.x + this.baseOffset.x, point1.y + this.baseOffset.y,
-                point2.x + this.baseOffset.x, point2.y + this.baseOffset.y);
+            const point1 = this.hexCenter(tiles[i].hex).add(this.baseOffset);
+            const point2 = this.hexCenter(tiles[i + 1].hex).add(this.baseOffset);
+            curve.add(new Phaser.Curves.Line(point1, point2));
         }
+        curve.draw(this.graphics2, 64);
         this.graphics2.stroke();
         this.graphics2.fillStyle(0xFF0000, 1);
-        this.graphics2.fillCircle(start.x + this.baseOffset.x, start.y + this.baseOffset.y, 5);
+        this.graphics2.fillCircle(start.x, start.y, 5);
         this.graphics2.fillStyle(0x00FF00, 1);
-        this.graphics2.fillCircle(end.x + this.baseOffset.x, end.y + this.baseOffset.y, 5);
+        this.graphics2.fillCircle(end.x, end.y, 5);
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -133,8 +131,8 @@ export default class GameScene extends Phaser.Scene {
         const colors = { blue: 0x0000FF, green: 0x00FF00, red: 0xFF0000};
         this.graphics.clear();
         this.graphics.lineStyle(1, colors.green, 1);
-        const [centerX, centerY] = this.hexMap.getCenter(tile);
-        this.graphics.strokeCircle(centerX + this.baseOffset.x, centerY + this.baseOffset.y, 5).setScale(this.scaleFactor);
+        const center = this.hexMap.getCenter(tile).add(this.baseOffset);
+        this.graphics.strokeCircle(center.x, center.y, 5).setScale(this.scaleFactor);
     }
 
     drawVisibleTiles() {
@@ -152,20 +150,19 @@ export default class GameScene extends Phaser.Scene {
 
     debugHexPathFinding(tile: GameTile) {
         if (this.config.debug && tile.tile.index !== -1) {
-            // console.log(tile.x, tile.y);
             const colors = [0x0000FF, 0x00FF00, 0x00FFFF, 0xFF0000];
             this.graphics.lineStyle(1, colors[tile.pathfinding], 1);
-            const [centerX, centerY] = this.hexMap.getCenter(tile);
-            this.graphics.strokeCircle(centerX, centerY, 13);
+            const center = this.hexMap.getCenter(tile);
+            this.graphics.strokeCircle(center.x, center.y, 13);
         }
     }
 
     drawTileDistance() {
         if (this.texts.length === 0) {
             for (const tile of this.hexMap.tiles) {
-                const [centerX, centerY] = this.hexMap.getCenter(tile);
+                const center = this.hexMap.getCenter(tile);
                 const text = tile.tile.index === -1 ? "" : this.hexMap.tileDistance(tile, this.currentTile) + "";
-                this.texts.push(this.add.text(centerX * this.scaleFactor, centerY * this.scaleFactor, text, {
+                this.texts.push(this.add.text(center.x * this.scaleFactor, center.y * this.scaleFactor, text, {
                     fontSize: "24px",
                     fontFamily: "Arial",
                     color: "red"
@@ -249,7 +246,7 @@ export default class GameScene extends Phaser.Scene {
             .setScale(this.scaleFactor);
     }
 
-    hexCenter(hex: Hex) {
+    hexCenter(hex: Hex): Vector2 {
         return this.hexMap.layout.hexToPixel(hex);
     }
 
@@ -257,6 +254,20 @@ export default class GameScene extends Phaser.Scene {
         return this.hexMap.getFurthersPoints(this.scaleFactor);
     }
 
+    moveGuard(hex: Hex) {
+        const pos = this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
+        if (this.guard) {
+            this.guard.setX(pos.x);
+            this.guard.setY(pos.y);
+        }
+        return pos;
+    }
+
+    createGuard() {
+        const pos = this.moveGuard(this.currentTile.hex);
+        this.guard = new Unit(this, pos.x, pos.y);
+        this.guard.play(AnimationKeys.ATTACK);
+    }
 }
 
 

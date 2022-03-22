@@ -1,6 +1,6 @@
 import GameTile from "../GameTile";
 import HexMap from "../HexMap";
-import Heap from 'heap-js';
+import Heap from "heap-js";
 import GetLineToPolygon = Phaser.Geom.Intersects.GetLineToPolygon;
 import Line = Phaser.Geom.Line;
 import Vector4 = Phaser.Math.Vector4;
