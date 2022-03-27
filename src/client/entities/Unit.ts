@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import {Images} from "../scenes/PreloadScene";
+import Vector2 = Phaser.Math.Vector2;
 
 export enum AnimationKeys {
     IDLE = "unit-idle",
@@ -17,6 +18,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.setOrigin(0.5, 0.8);
         this.setCircle(35, this.width / 2 - 35, this.height - 65);
         this.generateAnimations();
+    }
+
+    get pos(): Vector2 {
+        return new Vector2(this.x, this.y);
     }
 
     generateAnimations() {

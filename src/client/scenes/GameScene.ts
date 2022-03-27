@@ -219,9 +219,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        console.log(this.guard, this.dest);
         if (this.guard && this.dest) {
-            if (this.guard.body.position.distance(this.dest) < 1) {
+            if (this.guard.pos.distance(this.dest) < 10) {
                 console.log("stopp")
                 this.guard.body.stop();
                 this.dest = undefined;
