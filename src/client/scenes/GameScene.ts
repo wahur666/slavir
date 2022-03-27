@@ -36,6 +36,8 @@ export default class GameScene extends Phaser.Scene {
     baseOffset: Phaser.Math.Vector2;
     scaledBaseOffset: Phaser.Math.Vector2;
     guard: Unit;
+    path: GameTile[] = [];
+    dest: Phaser.Math.Vector2 | undefined;
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -63,6 +65,14 @@ export default class GameScene extends Phaser.Scene {
                     this.drawTileDistance();
                 }
                 this.moveGuard(this.currentTile.hex);
+            }
+        });
+        this.input.keyboard.on("keydown-SPACE", ev => {
+            const end = this.path.at(-1);
+            if (end) {
+                this.dest = this.hexMap.getCenter(end).add(this.baseOffset).scale(this.scaleFactor);
+                console.log(this.dest);
+                this.physics.moveTo(this.guard, this.dest.x, this.dest.y, 200);
             }
         });
 
@@ -99,8 +109,8 @@ export default class GameScene extends Phaser.Scene {
     private drawTestNavigation(start: GameTile | undefined) {
         const dest = this.hexMap.coordsToTile(6, 6);
         if (start && dest) {
-            const path = this.navigation.findPath(start, dest, Pathfinding.GROUND);
-            this.drawPath(path);
+            this.path = this.navigation.findPath(start, dest, Pathfinding.GROUND);
+            this.drawPath(this.path);
         }
     }
 
@@ -209,7 +219,14 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-
+        console.log(this.guard, this.dest);
+        if (this.guard && this.dest) {
+            if (this.guard.body.position.distance(this.dest) < 1) {
+                console.log("stopp")
+                this.guard.body.stop();
+                this.dest = undefined;
+            }
+        }
     }
 
     createMapRepresentation(mapSize: Vector2) {
