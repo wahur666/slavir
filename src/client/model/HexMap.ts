@@ -119,8 +119,13 @@ export default class HexMap {
     }
 
     generateNavigationPolygons(mask: number): Phaser.Geom.Polygon[] {
-        return this.tiles.filter(e => !(e.pathfinding & mask))
+        return this.tiles.filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
             .map(value => new Phaser.Geom.Polygon(this.layout.polygonCorners2(value.hex, 1.33)));
+    }
+
+    generateNavigationPolygons2(mask: number): Vector2[][] {
+        return this.tiles.filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
+            .map(value => this.layout.polygonCorners2(value.hex, 1.33));
     }
 
 

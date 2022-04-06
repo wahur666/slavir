@@ -6,11 +6,11 @@ import HexMap, {Pathfinding} from "../model/HexMap";
 import GameTile from "../model/GameTile";
 import {Hex} from "../model/hexgrid";
 import {Navigation} from "../model/navigation";
+import Unit, {AnimationKeys} from "../entities/Unit";
 import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
-import Unit, {AnimationKeys} from "../entities/Unit";
 
 enum LAYERS {
     BASE = "base"
@@ -56,23 +56,19 @@ export default class GameScene extends Phaser.Scene {
                 || ev.y < this.scaledBaseOffset.y || ev.y > this.config.height - this.scaledBaseOffset.y) {
                 return;
             }
-            const target = this.pointToTile((ev.x / this.scaleFactor | 0) - this.baseOffset.x, (ev.y / this.scaleFactor | 0) - this.baseOffset.y);
+            const target = this.pointToTile(ev.x, ev.y);
             if (target) {
                 this.setCurrentTile(target);
-                this.drawVisibleTiles();
-                this.drawTestNavigation(this.currentTile);
+                const start = this.pointToTile(this.guard.pos.x, this.guard.pos.y);
+                if (start) {
+                    this.path = this.navigation.findPath(start, target, Pathfinding.GROUND);
+                    if (this.path.length > 0){
+                        this.guard.setNav(this.path.map(e => this.hexMap.getCenter(e).add(this.baseOffset).scale(this.scaleFactor)));
+                    }
+                }
                 if (this.config.debug.distance) {
                     this.drawTileDistance();
                 }
-                this.moveGuard(this.currentTile.hex);
-            }
-        });
-        this.input.keyboard.on("keydown-SPACE", ev => {
-            const end = this.path.at(-1);
-            if (end) {
-                this.dest = this.hexMap.getCenter(end).add(this.baseOffset).scale(this.scaleFactor);
-                console.log(this.dest);
-                this.physics.moveTo(this.guard, this.dest.x, this.dest.y, 200);
             }
         });
 
@@ -93,8 +89,9 @@ export default class GameScene extends Phaser.Scene {
         if (this.config.debug.distance) {
             this.drawTileDistance();
         }
-        this.drawTestNavigation(this.currentTile);
-
+        if (this.config.debug.navMesh) {
+            this.drawNavMesh();
+        }
         this.createGuard();
     }
 
@@ -146,9 +143,12 @@ export default class GameScene extends Phaser.Scene {
     }
 
     drawVisibleTiles() {
-        const visibleTiles = this.hexMap.visibleTiles(this.currentTile, this.visionRadius);
-        for (const tile of this.hexMap.tiles) {
-            this.drawVisibility(tile, visibleTiles.has(tile));
+        if (this.guard) {
+            const tile = this.pointToTile(this.guard.pos.x, this.guard.pos.y);
+            const visibleTiles = this.hexMap.visibleTiles(tile!, this.visionRadius);
+            for (const tile of this.hexMap.tiles) {
+                this.drawVisibility(tile, visibleTiles.has(tile));
+            }
         }
     }
 
@@ -172,7 +172,7 @@ export default class GameScene extends Phaser.Scene {
             for (const tile of this.hexMap.tiles) {
                 const center = this.hexMap.getCenter(tile);
                 const text = tile.tile.index === -1 ? "" : this.hexMap.tileDistance(tile, this.currentTile) + "";
-                this.texts.push(this.add.text(center.x * this.scaleFactor, center.y * this.scaleFactor, text, {
+                this.texts.push(this.add.text((center.x + this.baseOffset.x) * this.scaleFactor, (center.y + this.baseOffset.y) * this.scaleFactor, text, {
                     fontSize: "24px",
                     fontFamily: "Arial",
                     color: "red"
@@ -189,7 +189,9 @@ export default class GameScene extends Phaser.Scene {
 
     // Pixel to Tile
     pointToTile(x: number, y: number): GameTile | undefined {
-        return this.hexMap.pixelToTile(x, y);
+        const normalizedX = (x / this.scaleFactor | 0) - this.baseOffset.x;
+        const normalizedY = (y / this.scaleFactor | 0) - this.baseOffset.y;
+        return this.hexMap.pixelToTile(normalizedX, normalizedY);
     }
 
     createMap(): Phaser.Tilemaps.Tilemap {
@@ -219,12 +221,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        if (this.guard && this.dest) {
-            if (this.guard.pos.distance(this.dest) < 10) {
-                console.log("stopp")
-                this.guard.body.stop();
-                this.dest = undefined;
-            }
+        if (this.guard) {
+            this.guard.move();
+            this.drawVisibleTiles();
         }
     }
 
@@ -250,6 +249,17 @@ export default class GameScene extends Phaser.Scene {
             for (let q = left - rOffset; q <= right - rOffset; q++) {
                 this.hexes.add(new Hex(q, r));
             }
+        }
+    }
+
+    drawNavMesh() {
+        const polyiz = this.hexMap.generateNavigationPolygons(Pathfinding.GROUND);
+        for (const polygon of polyiz) {
+            this.graphics2.lineStyle(1, 0xFF0000, 1);
+            this.graphics2.strokePoints(polygon.points, true, true)
+                .setX(this.scaledBaseOffset.x)
+                .setY(this.scaledBaseOffset.y)
+                .setScale(this.scaleFactor);
         }
     }
 
@@ -282,7 +292,7 @@ export default class GameScene extends Phaser.Scene {
     createGuard() {
         const pos = this.moveGuard(this.currentTile.hex);
         this.guard = new Unit(this, pos.x, pos.y);
-        this.guard.play(AnimationKeys.ATTACK);
+        this.guard.play(AnimationKeys.IDLE);
     }
 }
 

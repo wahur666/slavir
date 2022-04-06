@@ -1,9 +1,7 @@
 import GameTile from "../GameTile";
 import HexMap from "../HexMap";
 import Heap from "heap-js";
-import GetLineToPolygon = Phaser.Geom.Intersects.GetLineToPolygon;
-import Line = Phaser.Geom.Line;
-import Vector4 = Phaser.Math.Vector4;
+import Vector2 = Phaser.Math.Vector2;
 
 class Node {
     public parent: Node | undefined = undefined;
@@ -94,19 +92,18 @@ export class Navigation {
         path.unshift(start);
         if (path.length > 2) {
             const tilesToRemove: Set<number> = new Set();
-            let currentIndex = 0;
-            let currentTile = path[currentIndex];
-            for (let i = 1; i < path.length; i++) {
-                if (i - currentIndex === 1) {
-                    continue;
-                }
-                const tileToCheck = path[i];
-                if (this.hexMap.getTileHits(currentTile, tileToCheck)
-                    .every(e => (e.tile.pathfinding & mask) && this.checkNavMesh(currentTile, tileToCheck, mask))) {
-                    tilesToRemove.add(i - 1);
+            let dest = path.length - 1;
+            for (let i = 0; i < dest;) {
+                const currentTile = path[i];
+                const destTile = path[dest];
+                if(this.hexMap.getTileHits(currentTile, destTile).every(e => (e.tile.pathfinding & mask) && this.checkNavMesh(currentTile, destTile, mask))) {
+                    for (let j = i + 1; j < dest; j++) {
+                        tilesToRemove.add(j);
+                    }
+                    dest = i;
+                    i = 0;
                 } else {
-                    currentIndex = i;
-                    currentTile = path[currentIndex];
+                    i++;
                 }
             }
             return path.filter((value, index) => !tilesToRemove.has(index));
@@ -114,14 +111,41 @@ export class Navigation {
         return path;
     }
 
+    // returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+    private intersects(a: number,b: number,c: number,d: number,p: number,q: number,r: number,s: number): boolean {
+        const det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det === 0) {
+            return false;
+        } else {
+            const lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+            const gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
+    }
+
+    private intersects2(start1: Vector2, end1: Vector2, start2: Vector2, end2: Vector2) {
+        return this.intersects(start1.x, start1.y, end1.x, end1.y, start2.x, start2.y, end2.x, end2.y);
+    }
+
     private checkNavMesh(currentTile: GameTile, tileToCheck: GameTile, mask: number): boolean {
-        const polygons = this.hexMap.generateNavigationPolygons(mask);
         const point1 = this.hexMap.layout.hexToPixel(currentTile.hex);
         const point2 = this.hexMap.layout.hexToPixel(tileToCheck.hex);
-        return polygons.filter(e => {
-            let out: Vector4 = new Vector4();
-            GetLineToPolygon(new Line(point1.x, point1.y, point2.x, point2.y), e, out);
-            return out.length() > 0 && 0 < out.z && out.z <= 1;
-        }).length === 0;
+        return this.checkNavMeshBetweenPoints(point1, point2, mask);
+    }
+
+    public checkNavMeshBetweenPoints(point1: Vector2, point2: Vector2, mask: number): boolean {
+        const polygons = this.hexMap.generateNavigationPolygons2(mask);
+        const intersections: Vector2[][] = [];
+        for (const polygon of polygons) {
+            for (let i = 0; i < polygon.length - 1; i++) {
+                const point3 = polygon[i];
+                const point4 = polygon[i+1];
+                if (this.intersects2(point1, point2, point3, point4)) {
+                    intersections.push(polygon);
+                    break;
+                }
+            }
+        }
+        return intersections.length === 0;
     }
 }

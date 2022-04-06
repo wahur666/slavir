@@ -13,9 +13,10 @@ export const SHARED_CONFIG = {
     width: 1280,
     height: 720,
     debug: {
-        arcade: true,
+        arcade: false,
         hexes: false,
-        distance: false
+        distance: false,
+        navMesh: false
     }
 };
 
