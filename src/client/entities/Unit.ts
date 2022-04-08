@@ -40,7 +40,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     setNav(points: Vector2[]): void {
-        this.navPoints = points.slice(1);
+        if (points.length > 1) {
+            this.navPoints = points.slice(1);
+        }
     }
 
     move() {
