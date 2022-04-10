@@ -3,6 +3,9 @@ import {Images} from "../scenes/PreloadScene";
 import {Pathfinding} from "../model/HexMap";
 import Vector2 = Phaser.Math.Vector2;
 import Graphics = Phaser.GameObjects.Graphics;
+import GetLineToCircle = Phaser.Geom.Intersects.GetLineToCircle;
+import Line = Phaser.Geom.Line;
+import Circle = Phaser.Geom.Circle;
 
 export enum AnimationKeys {
     IDLE = "unit-idle",
@@ -20,6 +23,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     pathfinding: Pathfinding;
     selected = false;
     radius = 35;
+    speed = 150;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y, Images.GUARD);
@@ -60,7 +64,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.graphics.clear();
                 }
             } else {
-                this.scene.physics.moveTo(this, this.navPoints[0].x, this.navPoints[0].y, 200);
+                this.scene.physics.moveTo(this, this.navPoints[0].x, this.navPoints[0].y, this.speed);
                 this.play(AnimationKeys.WALK, true);
             }
         }
@@ -81,15 +85,40 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     drawPath() {
-        if (this.navPoints.length === 0) {
+        this.graphics.clear();
+        // If there is nothing, of we are half on the tile dont draw anymore
+        if (this.navPoints.length === 0 || (this.selected && this.navPoints.length === 1 && this.pos.distance(this.navPoints[0]) < this.radius)) {
             return;
         }
-        this.graphics.clear();
-        this.graphics.lineStyle(3, 0xFF0000, 1);
+        this.graphics.lineStyle(3, 0xFFFFFF, 1);
         const curve = new Phaser.Curves.Path(this.x, this.y);
-        const points = [this.pos, ...this.navPoints];
+        let origin;
+        // If selected, we draw a circle around the unit, and the line goes from there, else the origin
+        if (this.selected) {
+            const angle = Phaser.Math.Angle.BetweenPoints(this.pos, this.navPoints[0]);
+            origin = new Vector2(this.pos.x + this.radius * Math.cos(angle), this.pos.y + this.radius * Math.sin(angle));
+        } else {
+            origin = this.pos;
+        }
+        const points = [origin, ...this.navPoints];
         for (let i = 0; i < points.length - 1; i++) {
-            curve.add(new Phaser.Curves.Line(points[i], points[i+1]));
+            let point1 = points[i];
+            let point2 = points[i + 1];
+            if (this.navPoints.length > 1) {
+                // If there is 3 points at least, and the unit is selected, we have to check if we are near to the next center,
+                // if yes, we modify the drawing not to draw the line between the next center, because it is inside already,
+                // rather than we draw a line to the next center, but also account for the selected circle indicator
+                // we have to do an intersection check between the circle and the inside center and the next center, then
+                // draw the line from the intersection point
+                if (this.selected && i === 0 && this.navPoints[0].distance(this.pos) < this.radius) {
+                    const out: any[] = [];
+                    point2 = points[i + 2];
+                    GetLineToCircle(new Line(points[i+1].x, points[i+1].y, point2.x, point2.y), new Circle(this.pos.x, this.pos.y, this.radius),out);
+                    point1 = new Vector2(Math.round(out[0].x), Math.round(out[0].y));
+                    i++;
+                }
+            }
+            curve.add(new Phaser.Curves.Line(point1, point2));
         }
         curve.draw(this.graphics, 64);
         this.graphics.stroke();
