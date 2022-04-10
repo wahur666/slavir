@@ -25,7 +25,7 @@ export default class HexMap {
      * tileWidth = sqrt(3) * size => size = tileWidth / sqrt(3)
      * tileHeight = 2 * size => size = tileHeight / 2, but because 1/3 of the tile is not used, needs to be cut off, so 2 + 1
      */
-    tileSize: Phaser.Math.Vector2;
+    tileSize: Vector2;
     // Number of columns and rows
     mapSize: Vector2;
 
@@ -43,7 +43,7 @@ export default class HexMap {
         this.layout = new Layout(Layout.layoutPointy, this.tileSize, this.tileOrigin);
     }
 
-    getCenter(tile: GameTile): Phaser.Math.Vector2 {
+    getCenter(tile: GameTile): Vector2 {
         return this.layout.hexToPixel(tile.hex);
     }
 

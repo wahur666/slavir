@@ -15,24 +15,29 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     navPoints: Vector2[] = [];
     graphics: Graphics;
+    selectedGraphics: Graphics;
     scene: Phaser.Scene;
     pathfinding: Pathfinding;
+    selected = false;
+    radius = 35;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y, Images.GUARD);
         scene.add.existing(this);
         scene.physics.add.existing(this);
+        this.setDepth(2);
         this.pathfinding = Pathfinding.GROUND;
         this.scene = scene;
         this.setupGraphics();
         this.setOrigin(0.5, 0.8);
-        this.setCircle(35, this.width / 2 - 35, this.height - 65);
+        this.setCircle(this.radius, this.width / 2 - this.radius, this.height - this.radius - 20);
         this.generateAnimations();
     }
 
     setupGraphics()  {
         this.graphics = this.scene.add.graphics();
         this.graphics.lineStyle(3, 0xFF0000, 1);
+        this.selectedGraphics = this.scene.add.graphics();
     }
 
     get pos(): Vector2 {
@@ -45,9 +50,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    move() {
+    update() {
         if (this.navPoints.length > 0) {
-            if (this.pos.distance(this.navPoints[0]) < 10) {
+            if (this.pos.distance(this.navPoints[0]) < 5) {
                 this.navPoints.shift();
                 if (this.navPoints.length === 0) {
                     this.body.stop();
@@ -60,6 +65,19 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             }
         }
         this.drawPath();
+        this.selectedGraphics.clear();
+        if (this.selected) {
+            this.drawSelectionRing();
+        }
+    }
+
+    pointInCircle(point: Vector2): boolean {
+        return this.pos.distance(point) < this.radius;
+    }
+
+    drawSelectionRing() {
+        this.selectedGraphics.lineStyle(5, 0xFFFFFF, 1);
+        this.selectedGraphics.strokeCircle(this.x, this.y, this.radius);
     }
 
     drawPath() {

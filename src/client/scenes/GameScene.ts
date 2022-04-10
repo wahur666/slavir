@@ -35,7 +35,10 @@ export default class GameScene extends Phaser.Scene {
     navigation: Navigation;
     baseOffset: Phaser.Math.Vector2;
     scaledBaseOffset: Phaser.Math.Vector2;
-    guard: Unit;
+    // guard: Unit;
+    // guard2: Unit;
+    selectedUnit: Unit | null = null;
+    player1Units: Unit[] = [];
     path: GameTile[] = [];
     dest: Phaser.Math.Vector2 | undefined;
 
@@ -51,23 +54,46 @@ export default class GameScene extends Phaser.Scene {
         this.calculateBaseOffset(layers.base);
         this.graphics = this.add.graphics();
         this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
+        this.input.mouse.disableContextMenu();
         this.input.on("pointerdown", (ev: Pointer) => {
-            if (ev.x < this.scaledBaseOffset.x || ev.x > this.config.width - this.scaledBaseOffset.x
-                || ev.y < this.scaledBaseOffset.y || ev.y > this.config.height - this.scaledBaseOffset.y) {
-                return;
-            }
-            const target = this.pointToTile(ev.x, ev.y);
-            if (target) {
-                this.setCurrentTile(target);
-                const start = this.pointToTile(this.guard.pos.x, this.guard.pos.y);
-                if (start) {
-                    this.path = this.navigation.findPath(start, target, Pathfinding.GROUND);
-                    if (this.path.length > 0){
-                        this.guard.setNav(this.path.map(e => this.hexMap.getCenter(e).add(this.baseOffset).scale(this.scaleFactor)));
-                    }
+            if (ev.rightButtonDown()) {
+                if (this.selectedUnit) {
+                    this.selectedUnit.selected = false;
+                    this.selectedUnit = null;
                 }
-                if (this.config.debug.distance) {
-                    this.drawTileDistance();
+            }
+            if (ev.leftButtonDown()) {
+                if (ev.x < this.scaledBaseOffset.x || ev.x > this.config.width - this.scaledBaseOffset.x
+                    || ev.y < this.scaledBaseOffset.y || ev.y > this.config.height - this.scaledBaseOffset.y) {
+                    return;
+                }
+                const unit = this.player1Units.find(e => e.pointInCircle(new Vector2(ev.x, ev.y)));
+                if (unit) {
+                    if (unit !== this.selectedUnit) {
+                        if (this.selectedUnit) {
+                            this.selectedUnit.selected = false;
+                        }
+                        this.selectedUnit = unit;
+                        this.selectedUnit.selected = true;
+                    }
+                } else {
+                    const target = this.pointToTile(ev.x, ev.y);
+                    if (target) {
+                        this.setCurrentTile(target);
+                        if (this.selectedUnit) {
+                            const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
+                            if (start) {
+                                this.path = this.navigation.findPath(start, target, Pathfinding.GROUND);
+                                if (this.path.length > 0) {
+                                    this.selectedUnit.setNav(this.path.map(e => this.hexMap.getCenter(e).add(this.baseOffset).scale(this.scaleFactor)));
+                                }
+                            }
+
+                        }
+                        if (this.config.debug.distance) {
+                            this.drawTileDistance();
+                        }
+                    }
                 }
             }
         });
@@ -85,14 +111,15 @@ export default class GameScene extends Phaser.Scene {
         if (this.config.debug.hexes) {
             this.drawHexes();
         }
-        this.drawVisibleTiles();
+        // this.drawVisibleTiles();
         if (this.config.debug.distance) {
             this.drawTileDistance();
         }
         if (this.config.debug.navMesh) {
             this.drawNavMesh();
         }
-        this.createGuard();
+        this.createPlayer1Units();
+
     }
 
     calculateBaseOffset(base: TilemapLayer) {
@@ -135,7 +162,7 @@ export default class GameScene extends Phaser.Scene {
 
     setCurrentTile(tile: GameTile): void {
         this.currentTile = tile;
-        const colors = { blue: 0x0000FF, green: 0x00FF00, red: 0xFF0000};
+        const colors = {blue: 0x0000FF, green: 0x00FF00, red: 0xFF0000};
         this.graphics.clear();
         this.graphics.lineStyle(1, colors.green, 1);
         const center = this.hexMap.getCenter(tile).add(this.baseOffset);
@@ -143,12 +170,17 @@ export default class GameScene extends Phaser.Scene {
     }
 
     drawVisibleTiles() {
-        if (this.guard) {
-            const tile = this.pointToTile(this.guard.pos.x, this.guard.pos.y);
-            const visibleTiles = this.hexMap.visibleTiles(tile!, this.visionRadius);
-            for (const tile of this.hexMap.tiles) {
-                this.drawVisibility(tile, visibleTiles.has(tile));
+        const visibleTiles = new Set<GameTile>();
+        for (const player1Unit of this.player1Units) {
+            const tile = this.pointToTile(player1Unit.pos.x, player1Unit.pos.y);
+            if (tile) {
+                for (const visibleTile of this.hexMap.visibleTiles(tile, this.visionRadius)) {
+                    visibleTiles.add(visibleTile);
+                }
             }
+        }
+        for (const tile of this.hexMap.tiles) {
+            this.drawVisibility(tile, visibleTiles.has(tile));
         }
     }
 
@@ -221,10 +253,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        if (this.guard) {
-            this.guard.move();
-            this.drawVisibleTiles();
+        for (const unit of this.player1Units) {
+            unit.update();
         }
+        this.drawVisibleTiles();
     }
 
     createMapRepresentation(mapSize: Vector2) {
@@ -280,19 +312,21 @@ export default class GameScene extends Phaser.Scene {
         return this.hexMap.getFurthersPoints(this.scaleFactor);
     }
 
-    moveGuard(hex: Hex) {
-        const pos = this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
-        if (this.guard) {
-            this.guard.setX(pos.x);
-            this.guard.setY(pos.y);
-        }
-        return pos;
+    hexToPos(hex: Hex): Vector2 {
+        return this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
     }
 
-    createGuard() {
-        const pos = this.moveGuard(this.currentTile.hex);
-        this.guard = new Unit(this, pos.x, pos.y);
-        this.guard.play(AnimationKeys.IDLE);
+    createUnit(hex: Hex): Unit {
+        const pos = this.hexToPos(hex);
+        return new Unit(this, pos.x, pos.y).play(AnimationKeys.IDLE);
+    }
+
+    private createPlayer1Units() {
+        [new Hex(4, 3), new Hex(2, 2)]
+            .map(e => this.createUnit(e))
+            .forEach(value => {
+                this.player1Units.push(value);
+            });
     }
 }
 
