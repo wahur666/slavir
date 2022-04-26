@@ -1,0 +1,10 @@
+{
+    "units": [
+        {
+            "texture": "female_archer"
+        },
+        {
+            "texture": "guard"
+        }
+    ]
+}

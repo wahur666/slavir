@@ -6,11 +6,13 @@ import HexMap, {Pathfinding} from "../model/HexMap";
 import GameTile from "../model/GameTile";
 import {Hex} from "../model/hexgrid";
 import {Navigation} from "../model/navigation";
-import Unit, {AnimationKeys} from "../entities/Unit";
+import Unit from "../entities/Unit";
 import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
+import Card from "../entities/Card";
+import units from "../assets/units.json";
 
 enum LAYERS {
     BASE = "base"
@@ -26,7 +28,6 @@ export default class GameScene extends Phaser.Scene {
 
     currentTile: GameTile;
     scaleFactor = 3;
-    visionRadius = 3;
     hexMap: HexMap;
     graphics: Graphics;
     graphics2: Graphics;
@@ -35,12 +36,9 @@ export default class GameScene extends Phaser.Scene {
     navigation: Navigation;
     baseOffset: Phaser.Math.Vector2;
     scaledBaseOffset: Phaser.Math.Vector2;
-    // guard: Unit;
-    // guard2: Unit;
     selectedUnit: Unit | null = null;
     player1Units: Unit[] = [];
     path: GameTile[] = [];
-    dest: Phaser.Math.Vector2 | undefined;
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -103,10 +101,10 @@ export default class GameScene extends Phaser.Scene {
         for (const tile of this.hexMap.tiles) {
             tile.tile.tint = 0x545454;
         }
-        const startPoint = this.hexMap.coordsToTile(4, 3);
-        if (startPoint) {
-            this.setCurrentTile(startPoint);
-        }
+        // const startPoint = this.hexMap.coordsToTile(4, 3);
+        // if (startPoint) {
+        //     this.setCurrentTile(startPoint);
+        // }
 
         if (this.config.debug.hexes) {
             this.drawHexes();
@@ -118,8 +116,8 @@ export default class GameScene extends Phaser.Scene {
         if (this.config.debug.navMesh) {
             this.drawNavMesh();
         }
-        this.createPlayer1Units();
-
+        // this.createPlayer1Units();
+        this.createCards();
     }
 
     calculateBaseOffset(base: TilemapLayer) {
@@ -174,7 +172,7 @@ export default class GameScene extends Phaser.Scene {
         for (const player1Unit of this.player1Units) {
             const tile = this.pointToTile(player1Unit.pos.x, player1Unit.pos.y);
             if (tile) {
-                for (const visibleTile of this.hexMap.visibleTiles(tile, this.visionRadius)) {
+                for (const visibleTile of this.hexMap.visibleTiles(tile, player1Unit.visionRadius)) {
                     visibleTiles.add(visibleTile);
                 }
             }
@@ -316,17 +314,27 @@ export default class GameScene extends Phaser.Scene {
         return this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
     }
 
-    createUnit(hex: Hex): Unit {
+    createUnit(hex: Hex, texture: string, stats: any): Unit {
         const pos = this.hexToPos(hex);
-        return new Unit(this, pos.x, pos.y).play(AnimationKeys.IDLE);
+        return new Unit(this, pos.x, pos.y, texture, stats).play(Unit.AnimationKeys.IDLE);
     }
 
-    private createPlayer1Units() {
-        [new Hex(4, 3), new Hex(2, 2)]
-            .map(e => this.createUnit(e))
-            .forEach(value => {
-                this.player1Units.push(value);
-            });
+    // private createPlayer1Units() {
+    //     [new Hex(4, 3), new Hex(2, 2)]
+    //         .map(e => this.createUnit(e))
+    //         .forEach(value => {
+    //             this.player1Units.push(value);
+    //         });
+    // }
+
+    private createCards() {
+        console.log(units);
+        const cards = units.units.map( (e, index) =>
+            new Card(this, 300 + index * 128, 600, e.texture, () => {
+                const unit = this.createUnit(new Hex(5, 5), e.texture, e);
+                this.player1Units.push(unit);
+            }));
+
     }
 }
 

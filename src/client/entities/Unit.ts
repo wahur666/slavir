@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import {Images} from "../scenes/PreloadScene";
 import {Pathfinding} from "../model/HexMap";
 import Vector2 = Phaser.Math.Vector2;
 import Graphics = Phaser.GameObjects.Graphics;
@@ -7,14 +6,15 @@ import GetLineToCircle = Phaser.Geom.Intersects.GetLineToCircle;
 import Line = Phaser.Geom.Line;
 import Circle = Phaser.Geom.Circle;
 
-export enum AnimationKeys {
-    IDLE = "unit-idle",
-    WALK = "unit-walk",
-    ATTACK = "unit-attack",
-    DIE = "unit-die"
-}
 
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
+
+    static AnimationKeys = {
+        IDLE: "unit-idle",
+        WALK: "unit-walk",
+        ATTACK: "unit-attack",
+        DIE: "unit-die"
+    };
 
     navPoints: Vector2[] = [];
     graphics: Graphics;
@@ -23,10 +23,24 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     pathfinding: Pathfinding;
     selected = false;
     radius = 35;
-    speed = 150;
 
-    constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, Images.GUARD);
+    speed = 150;
+    flying: boolean;
+    levitating: boolean;
+    canAttackAir: boolean;
+    canAttackGround: boolean;
+    canShootOverObstacle: boolean;
+    hp: number;
+    damageAgainstLightArmor: number;
+    damageAgainstHeavyArmor: number;
+    damageAgainstAir: number;
+    cost: number;
+    textureName: string;
+    visionRadius = 2;
+
+    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, stats: any) {
+        super(scene, x, y, texture);
+        this.textureName = texture;
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setDepth(2);
@@ -38,7 +52,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.generateAnimations();
     }
 
-    setupGraphics()  {
+    setupGraphics() {
         this.graphics = this.scene.add.graphics();
         this.graphics.lineStyle(3, 0xFF0000, 1);
         this.selectedGraphics = this.scene.add.graphics();
@@ -60,12 +74,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.navPoints.shift();
                 if (this.navPoints.length === 0) {
                     this.body.stop();
-                    this.play(AnimationKeys.IDLE, true);
+                    this.play(Unit.AnimationKeys.IDLE, true);
                     this.graphics.clear();
                 }
             } else {
                 this.scene.physics.moveTo(this, this.navPoints[0].x, this.navPoints[0].y, this.speed);
-                this.play(AnimationKeys.WALK, true);
+                this.play(Unit.AnimationKeys.WALK, true);
             }
         }
         this.drawPath();
@@ -113,7 +127,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 if (this.selected && i === 0 && this.navPoints[0].distance(this.pos) < this.radius) {
                     const out: any[] = [];
                     point2 = points[i + 2];
-                    GetLineToCircle(new Line(points[i+1].x, points[i+1].y, point2.x, point2.y), new Circle(this.pos.x, this.pos.y, this.radius),out);
+                    GetLineToCircle(new Line(points[i + 1].x, points[i + 1].y, point2.x, point2.y), new Circle(this.pos.x, this.pos.y, this.radius), out);
                     point1 = new Vector2(Math.round(out[0].x), Math.round(out[0].y));
                     i++;
                 }
@@ -126,36 +140,36 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     generateAnimations() {
         this.anims.create({
-            key: AnimationKeys.IDLE,
-            frames: this.anims.generateFrameNames(Images.GUARD, {frames: [0, 1, 2, 3]}),
+            key: Unit.AnimationKeys.IDLE,
+            frames: this.anims.generateFrameNames(this.textureName, {frames: [0, 1, 2, 3]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
-            key: AnimationKeys.WALK,
-            frames: this.anims.generateFrameNames(Images.GUARD, {frames: [4, 5, 6, 7]}),
+            key: Unit.AnimationKeys.WALK,
+            frames: this.anims.generateFrameNames(this.textureName, {frames: [4, 5, 6, 7]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
-            key: AnimationKeys.ATTACK,
-            frames: this.anims.generateFrameNames(Images.GUARD, {frames: [8, 9, 10, 11]}),
+            key: Unit.AnimationKeys.ATTACK,
+            frames: this.anims.generateFrameNames(this.textureName, {frames: [8, 9, 10, 11]}),
             frameRate: 8,
             repeat: 0,
         });
 
         this.anims.create({
-            key: AnimationKeys.DIE,
-            frames: this.anims.generateFrameNames(Images.GUARD, {frames: [12, 13, 14, 15]}),
+            key: Unit.AnimationKeys.DIE,
+            frames: this.anims.generateFrameNames(this.textureName, {frames: [12, 13, 14, 15]}),
             frameRate: 4,
             repeat: -1
         });
 
         this.on("animationcomplete", e => {
-            if (e.key === AnimationKeys.ATTACK) {
-                this.play(AnimationKeys.IDLE, true);
+            if (e.key === Unit.AnimationKeys.ATTACK) {
+                this.play(Unit.AnimationKeys.IDLE, true);
             }
         });
     }
