@@ -40,6 +40,8 @@ export default class GameScene extends Phaser.Scene {
     player1Units: Unit[] = [];
     path: GameTile[] = [];
 
+    player1Castle: GameTile | undefined
+
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
     }
@@ -118,6 +120,7 @@ export default class GameScene extends Phaser.Scene {
         }
         // this.createPlayer1Units();
         this.createCards();
+        this.createCastle();
     }
 
     calculateBaseOffset(base: TilemapLayer) {
@@ -175,6 +178,11 @@ export default class GameScene extends Phaser.Scene {
                 for (const visibleTile of this.hexMap.visibleTiles(tile, player1Unit.visionRadius)) {
                     visibleTiles.add(visibleTile);
                 }
+            }
+        }
+        if (this.player1Castle) {
+            for (const visibleTile of this.hexMap.visibleTiles(this.player1Castle, 3, true)) {
+                visibleTiles.add(visibleTile);
             }
         }
         for (const tile of this.hexMap.tiles) {
@@ -316,16 +324,8 @@ export default class GameScene extends Phaser.Scene {
 
     createUnit(hex: Hex, texture: string, stats: any): Unit {
         const pos = this.hexToPos(hex);
-        return new Unit(this, pos.x, pos.y, texture, stats).play(Unit.AnimationKeys.IDLE);
+        return new Unit(this, pos.x, pos.y, texture, stats).play(Unit.AnimationKeys.IDLE_DOWN);
     }
-
-    // private createPlayer1Units() {
-    //     [new Hex(4, 3), new Hex(2, 2)]
-    //         .map(e => this.createUnit(e))
-    //         .forEach(value => {
-    //             this.player1Units.push(value);
-    //         });
-    // }
 
     private createCards() {
         console.log(units);
@@ -335,6 +335,15 @@ export default class GameScene extends Phaser.Scene {
                 this.player1Units.push(unit);
             }));
 
+    }
+
+    private createCastle() {
+        const hex = this.hexMap.coordsToTile(0, 5)?.hex;
+        if (hex) {
+            const pos = this.hexToPos(hex);
+            this.player1Castle = this.hexMap.tiles.find(e => e.hex.equals(hex));
+            this.add.image(pos.x, pos.y, Images.CASTLE).setScale(0.8).setOrigin(0.5, 0.6);
+        }
     }
 }
 
