@@ -112,9 +112,7 @@ export class Navigation {
                         for (let start = i; start < bestForwardPosition; start++) {
                             const point1 = this.hexMap.layout.hexToPixel(path[start].hex);
                             const point2 = this.hexMap.layout.hexToPixel(path[start + 1].hex);
-                            console.log("from", start, "to", start+1);
                             sumOfBetweenPoints += point1.distance(point2);
-                            console.log(sumOfBetweenPoints);
                         }
 
                         const currentDistance = point1.distance(point2);
