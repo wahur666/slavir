@@ -84,29 +84,53 @@ export class Navigation {
     }
 
     retracePath(start: GameTile, current: Node, mask: number): GameTile[] {
-        const path: GameTile[] = [];
+        let path: GameTile[] = [];
         while (current.parent) {
             path.unshift(current.tile);
             current = current.parent;
         }
         path.unshift(start);
         if (path.length > 2) {
-            const tilesToRemove: Set<number> = new Set();
-            let dest = path.length - 1;
-            for (let i = 0; i < dest;) {
-                const currentTile = path[i];
-                const destTile = path[dest];
-                if(this.hexMap.getTileHits(currentTile, destTile).every(e => (e.tile.pathfinding & mask) && this.checkNavMesh(currentTile, destTile, mask))) {
-                    for (let j = i + 1; j < dest; j++) {
-                        tilesToRemove.add(j);
+            while (true) {
+                const tilesToRemove: Set<number> = new Set();
+                for (let i = 0; i < path.length - 1; i++) {
+                    let bestForwardPosition = -1;
+                    for (let j = i + 1; j < path.length; j++) {
+                        const currentTile = path[i];
+                        const destTile = path[j];
+                        if (this.hexMap.getTileHits(currentTile, destTile).every(e => (e.tile.pathfinding & mask)
+                            && this.checkNavMesh(currentTile, destTile, mask))) {
+                            bestForwardPosition = j;
+                        } else {
+                            break;
+                        }
                     }
-                    dest = i;
-                    i = 0;
+                    if (bestForwardPosition !== -1) {
+                        const point1 = this.hexMap.layout.hexToPixel(path[i].hex);
+                        const point2 = this.hexMap.layout.hexToPixel(path[bestForwardPosition].hex);
+                        let sumOfBetweenPoints = 0;
+                        for (let start = i; start < bestForwardPosition; start++) {
+                            const point1 = this.hexMap.layout.hexToPixel(path[start].hex);
+                            const point2 = this.hexMap.layout.hexToPixel(path[start + 1].hex);
+                            console.log("from", start, "to", start+1);
+                            sumOfBetweenPoints += point1.distance(point2);
+                            console.log(sumOfBetweenPoints);
+                        }
+
+                        const currentDistance = point1.distance(point2);
+                        if (currentDistance < sumOfBetweenPoints) {
+                            for (let c = i + 1; c < bestForwardPosition; c++) {
+                                tilesToRemove.add(c);
+                            }
+                        }
+                    }
+                }
+                if (tilesToRemove.size > 0) {
+                    path = path.filter((value, index) => !tilesToRemove.has(index));
                 } else {
-                    i++;
+                    break;
                 }
             }
-            return path.filter((value, index) => !tilesToRemove.has(index));
         }
         return path;
     }
