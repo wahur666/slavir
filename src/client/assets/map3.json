@@ -307,6 +307,12 @@
                  "id":39,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":3
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -319,6 +325,12 @@
                  "id":40,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":2
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -331,6 +343,12 @@
                  "id":41,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":0
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -343,6 +361,12 @@
                  "id":42,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":4
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -355,6 +379,12 @@
                  "id":43,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":1
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -367,6 +397,12 @@
                  "id":45,
                  "name":"Spawn",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":5
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -390,6 +426,12 @@
                  "id":47,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":4
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -402,6 +444,12 @@
                  "id":48,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":1
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -414,6 +462,12 @@
                  "id":49,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":0
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -426,6 +480,12 @@
                  "id":50,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":2
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -438,6 +498,12 @@
                  "id":51,
                  "name":"",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":3
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -450,6 +516,12 @@
                  "id":52,
                  "name":"Spawn",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"int",
+                         "value":5
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,

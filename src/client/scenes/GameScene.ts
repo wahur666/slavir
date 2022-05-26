@@ -7,12 +7,12 @@ import GameTile from "../model/GameTile";
 import {Hex} from "../model/hexgrid";
 import {Navigation} from "../model/navigation";
 import Unit from "../entities/Unit";
+import Card from "../entities/Card";
+import units from "../assets/units.json";
 import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
-import Card from "../entities/Card";
-import units from "../assets/units.json";
 
 enum LAYERS {
     BASE = "base"
@@ -22,6 +22,15 @@ const VisibilityColors = [0x545454, 0xFFFFFF];
 
 enum TILESETS {
     Hex_v01_grid = "Hex_v01_grid"
+}
+
+enum Buildings {
+    CASTLE,
+    BARRACK,
+    FACTORY,
+    HANGAR,
+    TECH,
+    SPAWN
 }
 
 export default class GameScene extends Phaser.Scene {
@@ -40,7 +49,37 @@ export default class GameScene extends Phaser.Scene {
     player1Units: Unit[] = [];
     path: GameTile[] = [];
 
-    player1Castle: GameTile | undefined
+    player1Building: {
+        CASTLE?: GameTile,
+        BARRACK?: GameTile,
+        FACTORY?: GameTile,
+        HANGAR?: GameTile,
+        TECH?: GameTile,
+        SPAWN?: GameTile
+    } = {};
+
+    player2Building: {
+        CASTLE?: GameTile,
+        BARRACK?: GameTile,
+        FACTORY?: GameTile,
+        HANGAR?: GameTile,
+        TECH?: GameTile,
+        SPAWN?: GameTile
+    } = {};
+
+    layers: {
+        obsticle: Phaser.Tilemaps.ObjectLayer;
+        nuke: Phaser.Tilemaps.ObjectLayer;
+        base1: Phaser.Tilemaps.ObjectLayer;
+        base2: Phaser.Tilemaps.ObjectLayer;
+        pad3: Phaser.Tilemaps.ObjectLayer;
+        resources: Phaser.Tilemaps.ObjectLayer;
+        pad1: Phaser.Tilemaps.ObjectLayer;
+        pad2: Phaser.Tilemaps.ObjectLayer;
+        water: Phaser.Tilemaps.ObjectLayer;
+        terrain: Phaser.Tilemaps.ObjectLayer;
+        base: Phaser.Tilemaps.TilemapLayer
+    };
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -48,10 +87,10 @@ export default class GameScene extends Phaser.Scene {
 
     create() {
         const map = this.createMap();
-        const layers = this.createLayers(map);
-        this.hexMap = new HexMap(layers);
+        this.layers = this.createLayers(map);
+        this.hexMap = new HexMap(this.layers);
         this.navigation = new Navigation(this.hexMap);
-        this.calculateBaseOffset(layers.base);
+        this.calculateBaseOffset(this.layers.base);
         this.graphics = this.add.graphics();
         this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
         this.input.mouse.disableContextMenu();
@@ -98,7 +137,7 @@ export default class GameScene extends Phaser.Scene {
             }
         });
 
-        this.createMapRepresentation(new Vector2(layers.base.tilemap.width, layers.base.tilemap.height));
+        this.createMapRepresentation(new Vector2(this.layers.base.tilemap.width, this.layers.base.tilemap.height));
 
         for (const tile of this.hexMap.tiles) {
             tile.tile.tint = 0x545454;
@@ -120,7 +159,8 @@ export default class GameScene extends Phaser.Scene {
         }
         // this.createPlayer1Units();
         this.createCards();
-        this.createCastle();
+        this.createAllPlayerBuildings(1);
+        this.createAllPlayerBuildings(2);
     }
 
     calculateBaseOffset(base: TilemapLayer) {
@@ -180,8 +220,8 @@ export default class GameScene extends Phaser.Scene {
                 }
             }
         }
-        if (this.player1Castle) {
-            for (const visibleTile of this.hexMap.visibleTiles(this.player1Castle, 3, true)) {
+        if (this.player1Building.CASTLE) {
+            for (const visibleTile of this.hexMap.visibleTiles(this.player1Building.CASTLE, 3, true)) {
                 visibleTiles.add(visibleTile);
             }
         }
@@ -329,22 +369,59 @@ export default class GameScene extends Phaser.Scene {
 
     private createCards() {
         console.log(units);
-        const cards = units.units.map( (e, index) =>
-            new Card(this, 300 + index * 128, 600, e.texture, () => {
-                const unit = this.createUnit(new Hex(5, 5), e.texture, e);
-                this.player1Units.push(unit);
-            }));
+        const cards = units.units.map((e, index) =>
+            new Card(this, 300 + index * 128, 600, e.texture, () => this.playerCreateUnit(1, e)));
 
     }
 
-    private createCastle() {
-        const hex = this.hexMap.coordsToTile(0, 5)?.hex;
-        if (hex) {
-            const pos = this.hexToPos(hex);
-            this.player1Castle = this.hexMap.tiles.find(e => e.hex.equals(hex));
-            this.add.image(pos.x, pos.y, Images.CASTLE).setScale(0.8).setOrigin(0.5, 0.6);
+    playerCreateUnit(player: 1 | 2, e: any) {
+        const alreadyOccupiedPositions: GameTile[] = [...this.player1Units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
+        const possibleTiles: { distance: number; tile: GameTile }[] = this.hexMap.tiles.filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
+            .map(tile => ({
+                tile,
+                distance: this.hexMap.tileDistance(tile, this.player1Building.CASTLE!) + this.hexMap.tileDistance(tile, this.player1Building.SPAWN!)
+            }))
+            .sort((a, b) => a.distance - b.distance);
+        if (possibleTiles.length > 0) {
+            const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e);
+            this[`player${player}Units`].push(unit);
         }
     }
+
+    findObjectByProperty(objects: Phaser.Types.Tilemaps.TiledObject[], property: string, value: any): Phaser.Types.Tilemaps.TiledObject | undefined {
+        for (const object of objects) {
+            for (const property1 of object.properties) {
+                if (property1.name === property && property1.value === value) {
+                    return object;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    createAllPlayerBuildings(player: 1 | 2) {
+        this.createBuilding(player, Buildings.CASTLE, new Vector2(0.8), new Vector2(0.5, 0.6));
+        this.createBuilding(player, Buildings.BARRACK, new Vector2(0.8));
+        this.createBuilding(player, Buildings.FACTORY, new Vector2(0.8));
+        this.createBuilding(player, Buildings.HANGAR, new Vector2(0.8));
+        this.createBuilding(player, Buildings.TECH, new Vector2(0.8));
+        this.createBuilding(player, Buildings.SPAWN, new Vector2(1.1), new Vector2(0.5, 0.45));
+    }
+
+    createBuilding(player: 1 | 2, building: Buildings, scale = new Vector2(1), origin = new Vector2(0.5)) {
+        const baseTile = this.findObjectByProperty(this.layers["base" + player].objects, "id", building);
+        let a;
+        if (baseTile && baseTile.x && baseTile.y) {
+            a = this.hexMap.pixelToTile(baseTile.x, baseTile.y);
+        }
+        const hex = a?.hex;
+        if (hex) {
+            const pos = this.hexToPos(hex);
+            this[`player${player}Building`][Buildings[building]] = this.hexMap.tiles.find(e => e.hex.equals(hex));
+            this.add.image(pos.x, pos.y, Images[Buildings[building]]).setScale(scale.x, scale.y).setOrigin(origin.x, origin.y);
+        }
+    }
+
 }
 
 
