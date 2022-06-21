@@ -284,19 +284,18 @@ export default class GameScene extends Phaser.Scene {
         const baseTileset = map.getTileset(TILESETS.Hex_v01_grid);
         const base = map.createLayer(LAYERS.BASE, baseTileset, 0, 0)
             .setScale(this.scaleFactor);
-        const bases = map.getObjectLayer("Bases");
-        const pad1 = map.getObjectLayer("Pad1");
-        const pad2 = map.getObjectLayer("Pad2");
-        const pad3 = map.getObjectLayer("Pad3");
+        const base1 = map.getObjectLayer("Bases/Base1");
+        const base2 = map.getObjectLayer("Bases/Base2");
+        const pad1 = map.getObjectLayer("Pads/Pad1");
+        const pad2 = map.getObjectLayer("Pads/Pad2");
+        const pad3 = map.getObjectLayer("Pads/Pad3");
         const nuke = map.getObjectLayer("Nuke");
-        const base1 = map.getObjectLayer("Base1");
-        const base2 = map.getObjectLayer("Base2");
         const water = map.getObjectLayer("Water");
         const terrain = map.getObjectLayer("Terrain");
         const obstacle = map.getObjectLayer("Obsticle");
         const resources = map.getObjectLayer("Resources");
 
-        return {base, pad1, pad2, pad3, nuke, base1, base2, water, terrain, obsticle: obstacle, resources, bases};
+        return {base, pad1, pad2, pad3, nuke, base1, base2, water, terrain, obsticle: obstacle, resources};
     }
 
     update(time: number, delta: number) {
