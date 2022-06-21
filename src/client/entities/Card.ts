@@ -26,7 +26,7 @@ export default class Card extends Phaser.GameObjects.Sprite {
         this.setInteractive();
         this.input.hitArea.setTo(this.areaRect.x, this.areaRect.y, this.width + this.areaRect.width, this.height+this.areaRect.height);
         // const hitArea = new Rectangle(0, 0, this.width, this.rectHeight * 2 );
-        this.on("pointerdown", (ev) => {
+        this.on("pointerdown", (_ev) => {
             this.onCLick();
             // console.log(ev);
         });

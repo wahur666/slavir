@@ -1,5 +1,5 @@
-import GameTile from "../GameTile";
-import HexMap from "../HexMap";
+import type GameTile from "../GameTile";
+import type HexMap from "../HexMap";
 import Heap from "heap-js";
 import Vector2 = Phaser.Math.Vector2;
 
@@ -124,7 +124,7 @@ export class Navigation {
                     }
                 }
                 if (tilesToRemove.size > 0) {
-                    path = path.filter((value, index) => !tilesToRemove.has(index));
+                    path = path.filter((_value, index) => !tilesToRemove.has(index));
                 } else {
                     break;
                 }

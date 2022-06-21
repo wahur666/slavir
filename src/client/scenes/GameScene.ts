@@ -1,9 +1,9 @@
+import type {SHARED_CONFIG} from "../main";
+import type GameTile from "../model/GameTile";
 import Phaser from "phaser";
-import {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import {Images, Tilemaps} from "./PreloadScene";
 import HexMap, {Pathfinding} from "../model/HexMap";
-import GameTile from "../model/GameTile";
 import {Hex} from "../model/hexgrid";
 import {Navigation} from "../model/navigation";
 import Unit from "../entities/Unit";
@@ -68,7 +68,7 @@ export default class GameScene extends Phaser.Scene {
     } = {};
 
     layers: {
-        obsticle: Phaser.Tilemaps.ObjectLayer;
+        obstacle: Phaser.Tilemaps.ObjectLayer;
         nuke: Phaser.Tilemaps.ObjectLayer;
         base1: Phaser.Tilemaps.ObjectLayer;
         base2: Phaser.Tilemaps.ObjectLayer;
@@ -292,13 +292,13 @@ export default class GameScene extends Phaser.Scene {
         const nuke = map.getObjectLayer("Nuke");
         const water = map.getObjectLayer("Water");
         const terrain = map.getObjectLayer("Terrain");
-        const obstacle = map.getObjectLayer("Obsticle");
+        const obstacle = map.getObjectLayer("Obstacle");
         const resources = map.getObjectLayer("Resources");
 
-        return {base, pad1, pad2, pad3, nuke, base1, base2, water, terrain, obsticle: obstacle, resources};
+        return {base, pad1, pad2, pad3, nuke, base1, base2, water, terrain, obstacle: obstacle, resources};
     }
 
-    update(time: number, delta: number) {
+    update(_time: number, _delta: number) {
         for (const unit of this.player1Units) {
             unit.update();
         }

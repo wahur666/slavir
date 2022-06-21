@@ -1,4 +1,4 @@
-import {Pathfinding} from "./HexMap";
+import type {Pathfinding} from "./HexMap";
 import Phaser from "phaser";
 import Tile = Phaser.Tilemaps.Tile;
 import {Hex, OffsetCoordinate} from "./hexgrid";

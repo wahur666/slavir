@@ -5,6 +5,9 @@
         },
         {
             "texture": "guard"
+        },
+        {
+            "texture": "male_engineer"
         }
     ]
 }

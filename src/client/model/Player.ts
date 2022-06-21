@@ -1,11 +1,11 @@
-import Unit from "../entities/Unit";
-import GameTile from "./GameTile";
+import type Unit from "../entities/Unit";
+import type GameTile from "./GameTile";
 
 
 export class Player {
 
     units: Unit[];
-    buildings: GameTile[]
+    buildings: GameTile[];
 
     constructor() {
     }
