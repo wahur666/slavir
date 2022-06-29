@@ -20,6 +20,8 @@ export default class GameTile {
     // Shorthand for tilemap position
     coords: Phaser.Math.Vector2;
 
+    shadeIndex = 0;
+
     distance: (tile: GameTile) => number;
 
     constructor(tile: Tile) {

@@ -13,12 +13,24 @@ import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
+import Player from "../model/Player";
 
 enum LAYERS {
     BASE = "base"
 }
 
-const VisibilityColors = [0x545454, 0xFFFFFF];
+const grey = 0x808080;
+const white = 0xFFFFFF;
+
+const c1 = Phaser.Display.Color.ValueToColor(grey);
+const c2 = Phaser.Display.Color.ValueToColor(white);
+const shadeSteps = 45;
+
+const range = (num: number): number[] => [...Array(num).keys()];
+
+const shadeValues = range(shadeSteps)
+    .map(value => Phaser.Display.Color.Interpolate.ColorWithColor(c1, c2, shadeSteps, value))
+    .map(value => Phaser.Display.Color.GetColor(value.r, value.g, value.b));
 
 enum TILESETS {
     Hex_v01_grid = "Hex_v01_grid"
@@ -46,26 +58,10 @@ export default class GameScene extends Phaser.Scene {
     baseOffset: Phaser.Math.Vector2;
     scaledBaseOffset: Phaser.Math.Vector2;
     selectedUnit: Unit | null = null;
-    player1Units: Unit[] = [];
     path: GameTile[] = [];
 
-    player1Building: {
-        CASTLE?: GameTile,
-        BARRACK?: GameTile,
-        FACTORY?: GameTile,
-        HANGAR?: GameTile,
-        TECH?: GameTile,
-        SPAWN?: GameTile
-    } = {};
-
-    player2Building: {
-        CASTLE?: GameTile,
-        BARRACK?: GameTile,
-        FACTORY?: GameTile,
-        HANGAR?: GameTile,
-        TECH?: GameTile,
-        SPAWN?: GameTile
-    } = {};
+    player1: Player;
+    player2: Player;
 
     layers: {
         obstacle: Phaser.Tilemaps.ObjectLayer;
@@ -94,6 +90,8 @@ export default class GameScene extends Phaser.Scene {
         this.graphics = this.add.graphics();
         this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
         this.input.mouse.disableContextMenu();
+        this.player1 = new Player(1);
+        this.player2 = new Player(2);
         this.input.on("pointerdown", (ev: Pointer) => {
             if (ev.rightButtonDown()) {
                 if (this.selectedUnit) {
@@ -106,7 +104,7 @@ export default class GameScene extends Phaser.Scene {
                     || ev.y < this.scaledBaseOffset.y || ev.y > this.config.height - this.scaledBaseOffset.y) {
                     return;
                 }
-                const unit = this.player1Units.find(e => e.pointInCircle(new Vector2(ev.x, ev.y)));
+                const unit = this.player1.units.find(e => e.pointInCircle(new Vector2(ev.x, ev.y)));
                 if (unit) {
                     if (unit !== this.selectedUnit) {
                         if (this.selectedUnit) {
@@ -159,8 +157,8 @@ export default class GameScene extends Phaser.Scene {
         }
         // this.createPlayer1Units();
         this.createCards();
-        this.createAllPlayerBuildings(1);
-        this.createAllPlayerBuildings(2);
+        this.createAllPlayerBuildings(this.player1);
+        this.createAllPlayerBuildings(this.player2);
     }
 
     calculateBaseOffset(base: TilemapLayer) {
@@ -212,7 +210,7 @@ export default class GameScene extends Phaser.Scene {
 
     drawVisibleTiles() {
         const visibleTiles = new Set<GameTile>();
-        for (const player1Unit of this.player1Units) {
+        for (const player1Unit of this.player1.units) {
             const tile = this.pointToTile(player1Unit.pos.x, player1Unit.pos.y);
             if (tile) {
                 for (const visibleTile of this.hexMap.visibleTiles(tile, player1Unit.visionRadius)) {
@@ -220,8 +218,8 @@ export default class GameScene extends Phaser.Scene {
                 }
             }
         }
-        if (this.player1Building.CASTLE) {
-            for (const visibleTile of this.hexMap.visibleTiles(this.player1Building.CASTLE, 3, true)) {
+        if (this.player1.buildings.CASTLE) {
+            for (const visibleTile of this.hexMap.visibleTiles(this.player1.buildings.CASTLE, 3, true)) {
                 visibleTiles.add(visibleTile);
             }
         }
@@ -232,7 +230,12 @@ export default class GameScene extends Phaser.Scene {
 
     drawVisibility(tile: GameTile, visible: boolean) {
         if (tile.tile.index !== -1) {
-            tile.tile.tint = VisibilityColors[Number(visible)];
+            if (visible) {
+                tile.shadeIndex = Math.min(shadeSteps - 1, tile.shadeIndex + 1);
+            } else {
+                tile.shadeIndex = Math.max(0, tile.shadeIndex - 1);
+            }
+            tile.tile.tint = shadeValues[tile.shadeIndex];
         }
     }
 
@@ -370,21 +373,21 @@ export default class GameScene extends Phaser.Scene {
     private createCards() {
         console.log(units);
         const cards = units.units.map((e, index) =>
-            new Card(this, 300 + index * 128, 600, e.texture, () => this.playerCreateUnit(1, e)));
+            new Card(this, 300 + index * 128, 600, e.texture, () => this.playerCreateUnit(this.player1, e)));
 
     }
 
-    playerCreateUnit(player: 1 | 2, e: any) {
-        const alreadyOccupiedPositions: GameTile[] = [...this.player1Units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
+    playerCreateUnit(player: Player, e: any) {
+        const alreadyOccupiedPositions: GameTile[] = [...this.player1.units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
         const possibleTiles: { distance: number; tile: GameTile }[] = this.hexMap.tiles.filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({
                 tile,
-                distance: this.hexMap.tileDistance(tile, this.player1Building.CASTLE!) + this.hexMap.tileDistance(tile, this.player1Building.SPAWN!)
+                distance: this.hexMap.tileDistance(tile, this.player1.buildings.CASTLE!) + this.hexMap.tileDistance(tile, this.player1.buildings.SPAWN!)
             }))
             .sort((a, b) => a.distance - b.distance);
         if (possibleTiles.length > 0) {
             const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e);
-            this[`player${player}Units`].push(unit);
+            player.units.push(unit);
         }
     }
 
@@ -399,7 +402,7 @@ export default class GameScene extends Phaser.Scene {
         return undefined;
     }
 
-    createAllPlayerBuildings(player: 1 | 2) {
+    createAllPlayerBuildings(player: Player) {
         this.createBuilding(player, Buildings.CASTLE, new Vector2(0.8), new Vector2(0.5, 0.6));
         this.createBuilding(player, Buildings.BARRACK, new Vector2(0.8));
         this.createBuilding(player, Buildings.FACTORY, new Vector2(0.8));
@@ -408,8 +411,8 @@ export default class GameScene extends Phaser.Scene {
         this.createBuilding(player, Buildings.SPAWN, new Vector2(1.1), new Vector2(0.5, 0.45));
     }
 
-    createBuilding(player: 1 | 2, building: Buildings, scale = new Vector2(1), origin = new Vector2(0.5)) {
-        const baseTile = this.findObjectByProperty(this.layers["base" + player].objects, "id", building);
+    createBuilding(player: Player, building: Buildings, scale = new Vector2(1), origin = new Vector2(0.5)) {
+        const baseTile = this.findObjectByProperty(this.layers["base" + player.index].objects, "id", building);
         let a;
         if (baseTile && baseTile.x && baseTile.y) {
             a = this.hexMap.pixelToTile(baseTile.x, baseTile.y);
@@ -417,7 +420,7 @@ export default class GameScene extends Phaser.Scene {
         const hex = a?.hex;
         if (hex) {
             const pos = this.hexToPos(hex);
-            this[`player${player}Building`][Buildings[building]] = this.hexMap.tiles.find(e => e.hex.equals(hex));
+            player.buildings[Buildings[building]] = this.hexMap.tiles.find(e => e.hex.equals(hex));
             this.add.image(pos.x, pos.y, Images[Buildings[building]]).setScale(scale.x, scale.y).setOrigin(origin.x, origin.y);
         }
     }

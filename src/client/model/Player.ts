@@ -2,12 +2,19 @@ import type Unit from "../entities/Unit";
 import type GameTile from "./GameTile";
 
 
-export class Player {
+export default class Player {
 
-    units: Unit[];
-    buildings: GameTile[];
+    units: Unit[] = [];
+    buildings: {
+        CASTLE?: GameTile,
+        BARRACK?: GameTile,
+        FACTORY?: GameTile,
+        HANGAR?: GameTile,
+        TECH?: GameTile,
+        SPAWN?: GameTile
+    } = {};
 
-    constructor() {
+    constructor(public index: number) {
     }
 
 }
