@@ -32,7 +32,7 @@ export enum Tilemaps {
 
 export default class PreloadScene extends Phaser.Scene {
 
-    constructor(_config: typeof SHARED_CONFIG) {
+    constructor(config: typeof SHARED_CONFIG) {
         super(SceneRegistry.PRELOAD);
     }
 

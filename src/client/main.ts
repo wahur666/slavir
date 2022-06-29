@@ -37,11 +37,11 @@ const config: GameConfig = {
 };
 
 let game: Phaser.Game;
-window.addEventListener("load", _ev => {
+window.addEventListener("load", ev => {
     game = new Phaser.Game(config);
 });
 
 
-window.addEventListener("beforeunload", _ev => {
+window.addEventListener("beforeunload", ev => {
     game.destroy(true, false);
 });

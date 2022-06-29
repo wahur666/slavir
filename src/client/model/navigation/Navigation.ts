@@ -124,7 +124,7 @@ export class Navigation {
                     }
                 }
                 if (tilesToRemove.size > 0) {
-                    path = path.filter((_value, index) => !tilesToRemove.has(index));
+                    path = path.filter((value, index) => !tilesToRemove.has(index));
                 } else {
                     break;
                 }

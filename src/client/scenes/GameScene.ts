@@ -298,8 +298,8 @@ export default class GameScene extends Phaser.Scene {
         return {base, pad1, pad2, pad3, nuke, base1, base2, water, terrain, obstacle: obstacle, resources};
     }
 
-    update(_time: number, _delta: number) {
-        for (const unit of this.player1Units) {
+    update(time: number, delta: number) {
+        for (const unit of this.player1.units) {
             unit.update();
         }
         this.drawVisibleTiles();

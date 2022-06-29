@@ -54,7 +54,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     textureName: string;
     visionRadius = 2;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, _stats: any) {
+    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, stats: any) {
         super(scene, x, y, texture);
         this.textureName = texture;
         scene.add.existing(this);
