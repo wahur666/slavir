@@ -24,7 +24,7 @@ const white = 0xFFFFFF;
 
 const c1 = Phaser.Display.Color.ValueToColor(grey);
 const c2 = Phaser.Display.Color.ValueToColor(white);
-const shadeSteps = 45;
+const shadeSteps = 60;
 
 const range = (num: number): number[] => [...Array(num).keys()];
 
@@ -231,7 +231,7 @@ export default class GameScene extends Phaser.Scene {
     drawVisibility(tile: GameTile, visible: boolean) {
         if (tile.tile.index !== -1) {
             if (visible) {
-                tile.shadeIndex = Math.min(shadeSteps - 1, tile.shadeIndex + 1);
+                tile.shadeIndex = Math.min(shadeSteps - 1, tile.shadeIndex + 3);
             } else {
                 tile.shadeIndex = Math.max(0, tile.shadeIndex - 1);
             }
