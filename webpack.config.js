@@ -17,7 +17,10 @@ module.exports = {
     port: 8081
   },
   output: {
-    libraryTarget: "umd",
+    library: {
+      type: "var",
+      name: "Slavir"
+    },
     globalObject: "this",
     path: path.resolve(__dirname, "public"),
   },
