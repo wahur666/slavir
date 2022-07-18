@@ -9,7 +9,6 @@ module.exports = {
   devtool: "source-map",
   entry: {
     main: "./src/main.ts",
-    style: "./src/style.css"
   },
   devServer: {
     static: {

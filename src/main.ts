@@ -2,6 +2,7 @@ import GameScene from "./scenes/GameScene";
 import Phaser from "phaser";
 import GameConfig = Phaser.Types.Core.GameConfig;
 import PreloadScene from "./scenes/PreloadScene";
+import "./style.css";
 
 
 const scenes = [PreloadScene, GameScene];
