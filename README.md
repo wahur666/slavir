@@ -1,24 +1,11 @@
 # Slavir
 
-Open-Source Real Time Tactics game (CNC Rivals clone).
+Open-Source Real Time Tactics game inspired by CNC Rivals.
 
 ## Project goals:
 
-### First iteration
-
 + Implement basic mechanics of the game.
-+ No lootbox, no micro transaction, no levels, just fun gameplay, zero pay-2-win mechanics.
 + Single player against bots
-
-### Future plans
-
-+ AI programming API
-+ Multiplayer via Websocket and/or WebRTC
-  + 1v1 Multiplayer 
-  + 2v2 Multiplayer
-  + Ladder
-  + Observer mode
-  + Automated tournaments
 
 ## Tech Stack
 
@@ -35,8 +22,3 @@ Open-Source Real Time Tactics game (CNC Rivals clone).
 
 + [Express](https://expressjs.com/)
 + Typescript
-
-### Native client (Future) 
-
-+ [Electron](https://www.electronjs.org/) OR
-+ [Tauri](https://tauri.studio/)
