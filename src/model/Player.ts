@@ -15,6 +15,11 @@ export default class Player {
     } = {};
 
     constructor(public index: number) {
+        this.setupHandlers();
+    }
+
+    setupHandlers() {
+
     }
 
 }

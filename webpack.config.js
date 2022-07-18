@@ -8,14 +8,19 @@ module.exports = {
   mode: "development",
   devtool: "source-map",
   entry: {
-    main: "./src/client/main.ts",
-    style: "./src/client/style.css"
+    main: "./src/main.ts",
+    style: "./src/style.css"
+  },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, "public")
+    },
+    port: 8081
   },
   output: {
-    filename: "[name].js",
     libraryTarget: "umd",
     globalObject: "this",
-    path: path.resolve(__dirname, "out/dist"),
+    path: path.resolve(__dirname, "public"),
   },
   module: {
     rules: [
@@ -24,7 +29,7 @@ module.exports = {
         exclude: [/node_modules/],
         loader: "ts-loader",
         options: {
-          configFile: path.resolve(__dirname, "tsconfig.frontend.json"),
+          configFile: path.resolve(__dirname, "tsconfig.json"),
         },
       },
       {
@@ -49,17 +54,18 @@ module.exports = {
       }
     ],
   },
-  // optimization: {
-  //   minimize: true,
-  //   minimizer: [new TerserPlugin()],
-  // },
+  optimization: {
+    // minimize: true,
+    // minimizer: [new TerserPlugin()],
+    runtimeChunk: "single"
+  },
   resolve: {
     extensions: [".ts", ".js"],
   },
   plugins: [
     new WebpackBar(),
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, "src", "client", "index.html"),
+      template: path.resolve(__dirname, "src", "index.html"),
     }),
     new webpack.DefinePlugin({
       CANVAS_RENDERER: JSON.stringify(true),

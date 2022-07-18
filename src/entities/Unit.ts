@@ -141,9 +141,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    pointInCircle(point: Vector2): boolean {
-        return this.pos.distance(point) < this.radius;
-    }
 
     drawSelectionRing() {
         this.selectedGraphics.lineStyle(5, 0xFFFFFF, 1);

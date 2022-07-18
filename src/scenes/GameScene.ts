@@ -14,6 +14,7 @@ import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 import Player from "../model/Player";
+import {findObjectByProperty} from "../helpers/tilemap.helper";
 
 enum LAYERS {
     BASE = "base"
@@ -104,7 +105,8 @@ export default class GameScene extends Phaser.Scene {
                     || ev.y < this.scaledBaseOffset.y || ev.y > this.config.height - this.scaledBaseOffset.y) {
                     return;
                 }
-                const unit = this.player1.units.find(e => e.pointInCircle(new Vector2(ev.x, ev.y)));
+                const target = this.pointToTile(ev.x, ev.y);
+                const unit = this.player1.units.find(e => this.pointToTile(e.pos.x, e.pos.y) === target);
                 if (unit) {
                     if (unit !== this.selectedUnit) {
                         if (this.selectedUnit) {
@@ -114,7 +116,6 @@ export default class GameScene extends Phaser.Scene {
                         this.selectedUnit.selected = true;
                     }
                 } else {
-                    const target = this.pointToTile(ev.x, ev.y);
                     if (target) {
                         this.setCurrentTile(target);
                         if (this.selectedUnit) {
@@ -140,10 +141,6 @@ export default class GameScene extends Phaser.Scene {
         for (const tile of this.hexMap.tiles) {
             tile.tile.tint = 0x545454;
         }
-        // const startPoint = this.hexMap.coordsToTile(4, 3);
-        // if (startPoint) {
-        //     this.setCurrentTile(startPoint);
-        // }
 
         if (this.config.debug.hexes) {
             this.drawHexes();
@@ -391,17 +388,6 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    findObjectByProperty(objects: Phaser.Types.Tilemaps.TiledObject[], property: string, value: any): Phaser.Types.Tilemaps.TiledObject | undefined {
-        for (const object of objects) {
-            for (const property1 of object.properties) {
-                if (property1.name === property && property1.value === value) {
-                    return object;
-                }
-            }
-        }
-        return undefined;
-    }
-
     createAllPlayerBuildings(player: Player) {
         this.createBuilding(player, Buildings.CASTLE, new Vector2(0.8), new Vector2(0.5, 0.6));
         this.createBuilding(player, Buildings.BARRACK, new Vector2(0.8));
@@ -412,7 +398,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createBuilding(player: Player, building: Buildings, scale = new Vector2(1), origin = new Vector2(0.5)) {
-        const baseTile = this.findObjectByProperty(this.layers["base" + player.index].objects, "id", building);
+        const baseTile = findObjectByProperty(this.layers["base" + player.index].objects, "id", building);
         let a;
         if (baseTile && baseTile.x && baseTile.y) {
             a = this.hexMap.pixelToTile(baseTile.x, baseTile.y);
