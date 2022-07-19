@@ -2,7 +2,7 @@ import type Unit from "../entities/Unit";
 import type GameTile from "./GameTile";
 
 
-export default class Player {
+export default abstract class Player {
 
     units: Unit[] = [];
     buildings: {
@@ -15,11 +15,6 @@ export default class Player {
     } = {};
 
     constructor(public index: number) {
-        this.setupHandlers();
-    }
-
-    setupHandlers() {
-
     }
 
 }

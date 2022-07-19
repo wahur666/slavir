@@ -13,8 +13,10 @@ import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
-import Player from "../model/Player";
+import type Player from "../model/Player";
 import {findObjectByProperty} from "../helpers/tilemap.helper";
+import HumanPlayer from "../model/HumanPlayer";
+import BotPlayer from "../model/BotPlayer";
 
 enum LAYERS {
     BASE = "base"
@@ -61,8 +63,8 @@ export default class GameScene extends Phaser.Scene {
     selectedUnit: Unit | null = null;
     path: GameTile[] = [];
 
-    player1: Player;
-    player2: Player;
+    player1: HumanPlayer;
+    player2: BotPlayer;
 
     layers: {
         obstacle: Phaser.Tilemaps.ObjectLayer;
@@ -91,13 +93,33 @@ export default class GameScene extends Phaser.Scene {
         this.graphics = this.add.graphics();
         this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
         this.input.mouse.disableContextMenu();
-        this.player1 = new Player(1);
-        this.player2 = new Player(2);
+        this.player1 = new HumanPlayer(1, this);
+        this.player2 = new BotPlayer(2);
         this.input.on("pointerdown", (ev: Pointer) => {
             if (ev.rightButtonDown()) {
-                if (this.selectedUnit) {
-                    this.selectedUnit.selected = false;
-                    this.selectedUnit = null;
+                // this.deselectUnit();
+                if (ev.x < this.scaledBaseOffset.x || ev.x > this.config.width - this.scaledBaseOffset.x
+                    || ev.y < this.scaledBaseOffset.y || ev.y > this.config.height - this.scaledBaseOffset.y) {
+                    return;
+                }
+                const target = this.pointToTile(ev.x, ev.y);
+                const unit = this.player1.units.find(e => this.pointToTile(e.pos.x, e.pos.y) === target);
+                if (unit) {
+                    if (target) {
+                        this.setCurrentTile(target);
+                        if (this.selectedUnit) {
+                            const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
+                            if (start) {
+                                this.path = this.navigation.findPath(start, target, Pathfinding.GROUND, true);
+                                if (this.path.length > 0) {
+                                    this.selectedUnit.setNav(this.path.map(e => this.calculateNavPoint(e)), unit);
+                                }
+                            }
+                        }
+                        if (this.config.debug.distance) {
+                            this.drawTileDistance();
+                        }
+                    }
                 }
             }
             if (ev.leftButtonDown()) {
@@ -108,13 +130,7 @@ export default class GameScene extends Phaser.Scene {
                 const target = this.pointToTile(ev.x, ev.y);
                 const unit = this.player1.units.find(e => this.pointToTile(e.pos.x, e.pos.y) === target);
                 if (unit) {
-                    if (unit !== this.selectedUnit) {
-                        if (this.selectedUnit) {
-                            this.selectedUnit.selected = false;
-                        }
-                        this.selectedUnit = unit;
-                        this.selectedUnit.selected = true;
-                    }
+                    this.selectUnit(unit);
                 } else {
                     if (target) {
                         this.setCurrentTile(target);
@@ -156,6 +172,25 @@ export default class GameScene extends Phaser.Scene {
         this.createCards();
         this.createAllPlayerBuildings(this.player1);
         this.createAllPlayerBuildings(this.player2);
+    }
+
+    calculateNavPoint(gameTile: GameTile): Vector2 {
+        return this.hexMap.getCenter(gameTile).add(this.baseOffset).scale(this.scaleFactor);
+    }
+
+    selectUnit(unit: Unit) {
+        if (this.selectedUnit && unit !== this.selectedUnit) {
+            this.selectedUnit.selected = false;
+        }
+        this.selectedUnit = unit;
+        this.selectedUnit.selected = true;
+    }
+
+    deselectUnit() {
+        if (this.selectedUnit) {
+            this.selectedUnit.selected = false;
+            this.selectedUnit = null;
+        }
     }
 
     calculateBaseOffset(base: TilemapLayer) {
@@ -385,6 +420,7 @@ export default class GameScene extends Phaser.Scene {
         if (possibleTiles.length > 0) {
             const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e);
             player.units.push(unit);
+            this.selectUnit(unit);
         }
     }
 

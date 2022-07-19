@@ -5,6 +5,8 @@ import Graphics = Phaser.GameObjects.Graphics;
 import GetLineToCircle = Phaser.Geom.Intersects.GetLineToCircle;
 import Line = Phaser.Geom.Line;
 import Circle = Phaser.Geom.Circle;
+import type GameTile from "../model/GameTile";
+import type GameScene from "../scenes/GameScene";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -33,12 +35,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     navPoints: Vector2[] = [];
     graphics: Graphics;
     selectedGraphics: Graphics;
-    scene: Phaser.Scene;
+    scene: GameScene;
     pathfinding: Pathfinding;
     selected = false;
     radius = 35;
     lastDirection: Direction = "down";
-
+    target: Unit | null;
 
     speed = 150;
     flying: boolean;
@@ -53,8 +55,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     cost: number;
     textureName: string;
     visionRadius = 2;
+    moving = false;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, stats: any) {
+    constructor(scene: GameScene, x: number, y: number, texture: string, stats: any) {
         super(scene, x, y, texture);
         this.textureName = texture;
         scene.add.existing(this);
@@ -79,10 +82,15 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         return new Vector2(this.x, this.y);
     }
 
-    setNav(points: Vector2[]): void {
+    setNav(points: Vector2[], target: Unit | null = null): void {
         if (points.length > 1) {
             this.navPoints = points.slice(1);
         }
+        this.target = target;
+    }
+
+    gameTile(): GameTile {
+        return this.scene.pointToTile(this.x, this.y)!;
     }
 
     update() {
@@ -93,8 +101,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 if (this.navPoints.length === 0) {
                     this.body.stop();
                     this.graphics.clear();
+                    this.moving = false;
                 }
             } else {
+                this.moving = true;
                 this.scene.physics.moveTo(this, this.navPoints[0].x, this.navPoints[0].y, this.speed);
             }
         }
@@ -102,6 +112,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.selectedGraphics.clear();
         if (this.selected) {
             this.drawSelectionRing();
+        }
+        if (!this.moving && this.target) {
+            const neighbours = [...this.gameTile().hex.neighbours(), this.gameTile().hex];
+            if (!neighbours.find(e => e.equals(this.target!.gameTile().hex))) {
+                this.target = null;
+            }
         }
     }
 
@@ -150,7 +166,15 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     drawPath() {
         this.graphics.clear();
         // If there is nothing, of we are half on the tile dont draw anymore
-        if (this.navPoints.length === 0 || (this.selected && this.navPoints.length === 1 && this.pos.distance(this.navPoints[0]) < this.radius)) {
+        if ((this.navPoints.length === 0 && !this.target) || (this.selected && this.navPoints.length === 1 && this.pos.distance(this.navPoints[0]) < this.radius) && !this.target) {
+            return;
+        }
+        if (this.navPoints.length === 0 && this.target) {
+            this.graphics.lineStyle(3, 0xFF0000, 1);
+            const curve = new Phaser.Curves.Path(this.x, this.y);
+            curve.add(new Phaser.Curves.Line(this.pos, this.target.pos));
+            curve.draw(this.graphics, 64);
+            this.graphics.stroke();
             return;
         }
         this.graphics.lineStyle(3, 0xFFFFFF, 1);
@@ -164,6 +188,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             origin = this.pos;
         }
         const points = [origin, ...this.navPoints];
+        if (this.target) {
+            points.push(this.target.pos);
+        }
         for (let i = 0; i < points.length - 1; i++) {
             let point1 = points[i];
             let point2 = points[i + 1];

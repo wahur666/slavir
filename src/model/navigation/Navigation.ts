@@ -46,7 +46,7 @@ export class Navigation {
         return neighbours;
     }
 
-    findPath(start: GameTile, end: GameTile, mask: number): GameTile[] {
+    findPath(start: GameTile, end: GameTile, mask: number, nearestFree = false): GameTile[] {
         if ((!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask))) {
             return [];
         }
@@ -62,7 +62,7 @@ export class Navigation {
             }
             closed.add(current);
             if (current.tile === end) {
-                return this.retracePath(start, current, mask);
+                return this.retracePath(start, current, mask, nearestFree);
             }
 
             for (const node of this.nodeNeighbours(current, mask, start, end)) {
@@ -83,13 +83,16 @@ export class Navigation {
         return [];
     }
 
-    retracePath(start: GameTile, current: Node, mask: number): GameTile[] {
+    retracePath(start: GameTile, current: Node, mask: number, nearestFree: boolean): GameTile[] {
         let path: GameTile[] = [];
         while (current.parent) {
             path.unshift(current.tile);
             current = current.parent;
         }
         path.unshift(start);
+        if (nearestFree) {
+            path.pop();
+        }
         if (path.length > 2) {
             while (true) {
                 const tilesToRemove: Set<number> = new Set();
