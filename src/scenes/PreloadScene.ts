@@ -3,15 +3,13 @@ import type {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import Hex_v01_grid from "../assets/Hex_v01_grid.png";
 import map1 from "../assets/map2.json";
-import guard from "../assets/guard.png";
-import female_archer from "../assets/female_archer.png";
-import male_engineer from "../assets/male_engineer.png";
 import castle from "../assets/castle_large.png";
 import hangar from "../assets/hangar.png";
 import barrack from "../assets/militaryTent.png";
 import factory from "../assets/shop.png";
 import tech from "../assets/saloon.png";
 import spawn from "../assets/tileDirt_tile.png";
+import assets from "../assets/assets.json";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -32,11 +30,20 @@ export enum Tilemaps {
 
 export default class PreloadScene extends Phaser.Scene {
 
+    assets: { name: string, data: string }[];
+
     constructor(config: typeof SHARED_CONFIG) {
         super(SceneRegistry.PRELOAD);
+        this.assets = assets.map(x => ({name: x.name, data: "data:image/png;base64, " + x.data}));
     }
 
     preload() {
+        const waitForLoad = new Promise<void>(resolve => {
+            this.textures.once("addtexture", (ev) => {
+                console.log(ev);
+                resolve();
+            });
+        });
         this.load.image(Images.HEX_GRID, Hex_v01_grid);
         this.load.image(Images.CASTLE, castle);
         this.load.image(Images.BARRACK, barrack);
@@ -44,24 +51,23 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image(Images.HANGAR, hangar);
         this.load.image(Images.TECH, tech);
         this.load.image(Images.SPAWN, spawn);
-
-        this.load.spritesheet(Images.GUARD, guard, {
-            frameWidth: 128,
-            frameHeight: 128,
-        });
-        this.load.spritesheet(Images.FEMALE_ARCHER, female_archer, {
-            frameWidth: 128,
-            frameHeight: 128,
-        });
-        this.load.spritesheet(Images.MALE_ENGINEER, male_engineer, {
-            frameWidth: 128,
-            frameHeight: 128
-        });
-
         this.load.tilemapTiledJSON(Tilemaps.MAP1, map1);
 
+        for (const asset of this.assets) {
+            const img = new Image();
+            img.src = asset.data;
+            this.textures.addSpriteSheet(asset.name, img, {
+                frameWidth: 128,
+                frameHeight: 128
+            });
+        }
+
+
+
         this.load.once("complete", () => {
-            this.startGame();
+            waitForLoad.then(() => {
+                this.startGame();
+            });
         });
     }
 

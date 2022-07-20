@@ -48,7 +48,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     canAttackAir: boolean;
     canAttackGround: boolean;
     canShootOverObstacle: boolean;
-    hp: number;
+    health: number;
     damageAgainstLightArmor: number;
     damageAgainstHeavyArmor: number;
     damageAgainstAir: number;
