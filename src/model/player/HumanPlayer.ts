@@ -1,5 +1,5 @@
 import Player from "./Player";
-import type GameScene from "../scenes/GameScene";
+import type GameScene from "../../scenes/GameScene";
 import Pointer = Phaser.Input.Pointer;
 
 

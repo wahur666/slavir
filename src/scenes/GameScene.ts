@@ -13,10 +13,11 @@ import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
-import type Player from "../model/Player";
+import type Player from "../model/player/Player";
 import {findObjectByProperty} from "../helpers/tilemap.helper";
-import HumanPlayer from "../model/HumanPlayer";
-import BotPlayer from "../model/BotPlayer";
+import HumanPlayer from "../model/player/HumanPlayer";
+import AiPlayer from "../model/player/AiPlayer";
+import {range} from "../helpers/utils";
 
 enum LAYERS {
     BASE = "base"
@@ -27,10 +28,11 @@ const white = 0xFFFFFF;
 
 const c1 = Phaser.Display.Color.ValueToColor(grey);
 const c2 = Phaser.Display.Color.ValueToColor(white);
+
+/** Number of steps when changing tile visibility */
 const shadeSteps = 60;
 
-const range = (num: number): number[] => [...Array(num).keys()];
-
+/** Shade values to apply as tint */
 const shadeValues = range(shadeSteps)
     .map(value => Phaser.Display.Color.Interpolate.ColorWithColor(c1, c2, shadeSteps, value))
     .map(value => Phaser.Display.Color.GetColor(value.r, value.g, value.b));
@@ -64,7 +66,7 @@ export default class GameScene extends Phaser.Scene {
     path: GameTile[] = [];
 
     player1: HumanPlayer;
-    player2: BotPlayer;
+    player2: AiPlayer;
 
     layers: {
         obstacle: Phaser.Tilemaps.ObjectLayer;
@@ -94,7 +96,7 @@ export default class GameScene extends Phaser.Scene {
         this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
         this.input.mouse.disableContextMenu();
         this.player1 = new HumanPlayer(1, this);
-        this.player2 = new BotPlayer(2);
+        this.player2 = new AiPlayer(2);
         this.input.on("pointerdown", (ev: Pointer) => {
             if (ev.rightButtonDown()) {
                 // this.deselectUnit();
@@ -173,6 +175,7 @@ export default class GameScene extends Phaser.Scene {
         this.createAllPlayerBuildings(this.player1);
         this.createAllPlayerBuildings(this.player2);
     }
+
 
     calculateNavPoint(gameTile: GameTile): Vector2 {
         return this.hexMap.getCenter(gameTile).add(this.baseOffset).scale(this.scaleFactor);
@@ -300,7 +303,7 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // Pixel to Tile
+    // Pixel to tile on scaled and moved values
     pointToTile(x: number, y: number): GameTile | undefined {
         const normalizedX = (x / this.scaleFactor | 0) - this.baseOffset.x;
         const normalizedY = (y / this.scaleFactor | 0) - this.baseOffset.y;
@@ -365,6 +368,7 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    /** Draws non walkable paths */
     drawNavMesh() {
         const polyiz = this.hexMap.generateNavigationPolygons(Pathfinding.GROUND);
         for (const polygon of polyiz) {
@@ -385,14 +389,17 @@ export default class GameScene extends Phaser.Scene {
             .setScale(this.scaleFactor);
     }
 
+    /** Returns the unscaled values of hex center position */
     hexCenter(hex: Hex): Vector2 {
         return this.hexMap.layout.hexToPixel(hex);
     }
 
+    /** Returns the furthers of map scaled */
     getFurthersPoints(): Vector2 {
         return this.hexMap.getFurthersPoints(this.scaleFactor);
     }
 
+    /** Returns the scaled hext  */
     hexToPos(hex: Hex): Vector2 {
         return this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
     }

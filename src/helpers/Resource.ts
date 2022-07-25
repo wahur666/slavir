@@ -9,7 +9,6 @@ export default class Resource {
         this.name = name;
         this.promise = new Promise<void>(resolve1 => {
            this.resolve = resolve1;
-           this.resolved = true;
         });
     }
 }

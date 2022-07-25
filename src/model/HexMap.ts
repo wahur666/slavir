@@ -11,10 +11,6 @@ export enum Pathfinding {
     OBSTACLE = 8
 }
 
-function vector2ToArray(p: Vector2): [number, number] {
-    return [p.x, p.y];
-}
-
 export default class HexMap {
     tiles: GameTile[] = [];
     layers;
@@ -43,14 +39,27 @@ export default class HexMap {
         this.layout = new Layout(Layout.layoutPointy, this.tileSize, this.tileOrigin);
     }
 
+    /** Returns center of tile unscaled
+     *  @param tile
+     */
     getCenter(tile: GameTile): Vector2 {
         return this.layout.hexToPixel(tile.hex);
     }
 
+    /**
+     * Calculates distance between two GameTiles
+     * @param tile1
+     * @param tile2
+     */
     tileDistance(tile1: GameTile, tile2: GameTile): number {
         return tile1.distance(tile2);
     }
 
+    /**
+     * Draw line between source and target, returns intersecting GameTiles with distance
+     * @param src - Start tile
+     * @param target - End tile
+     */
     getTileHits(src: GameTile, target: GameTile): { tile: GameTile, distance: number }[] {
         const hexes = src.hex.lineDraw(target.hex);
         const res: { tile: GameTile, distance: number }[] = [];
@@ -64,6 +73,12 @@ export default class HexMap {
         return res;
     }
 
+    /**
+     * Calculates the visible tiles from position
+     * @param tile - Start position
+     * @param visionRadius - Radius how many tiles are viable to check
+     * @param ignoreBlocking - If true, returns everything regardless if visible or not
+     */
     visibleTiles(tile: GameTile, visionRadius: number, ignoreBlocking = false): Set<GameTile> {
         const tilesToCheck = this.tiles.filter(value => this.tileDistance(value, tile) <= visionRadius);
         if (ignoreBlocking) {
@@ -91,7 +106,7 @@ export default class HexMap {
                     for (const tileWithDistance of groupTiles) {
                         visibleTiles.add(tileWithDistance.tile);
                     }
-                    if (groupTiles.every(e => e.tile.vision === false)) {
+                    if (groupTiles.every(e => !e.tile.vision)) {
                         break;
                     }
                 }
@@ -100,35 +115,42 @@ export default class HexMap {
         return visibleTiles;
     }
 
+    /** Return the GameTile with has the given hexagon */
     hexToTile(hex: Hex): GameTile | undefined {
         const tile = this.tiles.find(e => e.hex.equals(hex));
         return tile && tile.tile.index !== -1 ? tile : undefined;
     }
 
+    /** Calculates the unscaled pixel to tile value on the map */
     pixelToTile(x: number, y: number): GameTile | undefined {
         return this.hexToTile(this.layout.pixelToHex(new Vector2(x, y)));
     }
 
-    tileToIndex(tile: GameTile): number {
-        return tile.y * this.mapSize.x + tile.x;
-    }
-
+    /** Converts coordinates to GameTile */
     coordsToTile(col: number, row: number): GameTile | undefined{
         const index = row * this.mapSize.x + col;
         return index < this.tiles.length ? this.tiles[index] : undefined;
     }
 
+    /** Calculates the navigation polygons which are unwalkable based on the mask used for drawing
+     * @param mask - Walkable mask
+     */
     generateNavigationPolygons(mask: number): Phaser.Geom.Polygon[] {
         return this.tiles.filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
             .map(value => new Phaser.Geom.Polygon(this.layout.polygonCorners2(value.hex, 1.33)));
     }
 
+    /** Calculates the navigation polygons which are unwalkable based on the mask used for checking pathfinding
+     * @param mask - Walkable mask
+     */
     generateNavigationPolygons2(mask: number): Vector2[][] {
         return this.tiles.filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
             .map(value => this.layout.polygonCorners2(value.hex, 1.33));
     }
 
 
+    /** Finds the boundaries of the map multiplied with scale
+     * @param scale - scale factor */
     getFurthersPoints(scale: number): Vector2 {
         const polys = this.tiles.map(e => this.layout.polygonCorners(e.hex).map(e => new Vector2(e.x, e.y))).flat();
         const maxX = Math.max(...polys.map(e => e.x));

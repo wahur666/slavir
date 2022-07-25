@@ -53,8 +53,13 @@ export default class PreloadScene extends Phaser.Scene {
         const resourcesLoaded = Promise.all([...resources.values()].map(e => e.promise));
         this.textures.on("addtexture", (ev: string) => {
             if (resources.has(ev)) {
-                console.log(`Resource ${ev} loaded!`);
-                resources.get(ev)!.resolve();
+                const item = resources.get(ev);
+                if (item) {
+                    console.log(`Resource ${ev} loaded!`);
+                    item.resolve();
+                    item.resolved = true;
+                }
+                // console.log([...resources.values()].map(e => ({n: e.name, p: e.resolved})).filter(e => !e.p))
             }
         });
 
