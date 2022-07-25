@@ -10,6 +10,7 @@ import factory from "../assets/shop.png";
 import tech from "../assets/saloon.png";
 import spawn from "../assets/tileDirt_tile.png";
 import assets from "../assets/assets.json";
+import Resource from "../helpers/Resource";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -37,13 +38,26 @@ export default class PreloadScene extends Phaser.Scene {
         this.assets = assets.map(x => ({name: x.name, data: "data:image/png;base64, " + x.data}));
     }
 
+    prepareResourcesToLoad() {
+        return [
+            ...Object.values(Images),
+            ...assets.map(e => e.name)
+        ].reduce((acc, item) => {
+            acc.set(item, new Resource(item));
+            return acc;
+        }, new Map<string, Resource>());
+    }
+
     preload() {
-        const waitForLoad = new Promise<void>(resolve => {
-            this.textures.once("addtexture", (ev) => {
-                console.log(ev);
-                resolve();
-            });
+        const resources = this.prepareResourcesToLoad();
+        const resourcesLoaded = Promise.all([...resources.values()].map(e => e.promise));
+        this.textures.on("addtexture", (ev: string) => {
+            if (resources.has(ev)) {
+                console.log(`Resource ${ev} loaded!`);
+                resources.get(ev)!.resolve();
+            }
         });
+
         this.load.image(Images.HEX_GRID, Hex_v01_grid);
         this.load.image(Images.CASTLE, castle);
         this.load.image(Images.BARRACK, barrack);
@@ -62,10 +76,8 @@ export default class PreloadScene extends Phaser.Scene {
             });
         }
 
-
-
         this.load.once("complete", () => {
-            waitForLoad.then(() => {
+            resourcesLoaded.then(() => {
                 this.startGame();
             });
         });
