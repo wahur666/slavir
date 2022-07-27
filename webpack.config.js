@@ -76,7 +76,7 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        {from: "./src/assets/assets.bin", to: "./assets"}
+        {from: "./src/assets/assets.json.gz", to: "./assets"}
       ]
     })
   ],

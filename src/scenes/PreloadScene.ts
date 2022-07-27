@@ -40,7 +40,7 @@ export default class PreloadScene extends Phaser.Scene {
 
     constructor(config: typeof SHARED_CONFIG) {
         super(SceneRegistry.PRELOAD);
-        this.compressedAssetsLoaded = fetch(assetLoc("/assets.bin")).then(e => e.arrayBuffer()).then(e => {
+        this.compressedAssetsLoaded = fetch(assetLoc("/assets.json.gz")).then(e => e.arrayBuffer()).then(e => {
             return new Promise<Uint8Array>((resolve, reject) => {
                 return ff.decompress(new Uint8Array(e), ((err, data) => {
                     if (err) {
