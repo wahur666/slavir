@@ -24,12 +24,14 @@
   },
   "homepage": "https://github.com/wahur666/slavir#readme",
   "dependencies": {
+    "fflate": "^0.7.3",
     "heap-js": "^2.1.6",
     "phaser": "^3.55.2"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
     "eslint": "^8.9.0",
     "file-loader": "^6.2.0",

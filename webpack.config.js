@@ -3,6 +3,7 @@ const WebpackBar = require("webpackbar");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const TerserPlugin = require("terser-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: "development",
@@ -73,5 +74,10 @@ module.exports = {
       CANVAS_RENDERER: JSON.stringify(true),
       WEBGL_RENDERER: JSON.stringify(true)
     }),
+    new CopyPlugin({
+      patterns: [
+        {from: "./src/assets/assets.bin", to: "./assets"}
+      ]
+    })
   ],
 };

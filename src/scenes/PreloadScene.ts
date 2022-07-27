@@ -9,8 +9,9 @@ import barrack from "../assets/militaryTent.png";
 import factory from "../assets/shop.png";
 import tech from "../assets/saloon.png";
 import spawn from "../assets/tileDirt_tile.png";
-import assets from "../assets/assets.json";
+// import assets from "../assets/assets.json";
 import Resource from "../helpers/Resource";
+import * as ff from "fflate";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -29,19 +30,35 @@ export enum Tilemaps {
     MAP1 = "map1"
 }
 
+const assetLoc = (name) => "/assets/" + name;
+
 export default class PreloadScene extends Phaser.Scene {
 
     assets: { name: string, data: string }[];
 
+    compressedAssetsLoaded: Promise<void>;
+
     constructor(config: typeof SHARED_CONFIG) {
         super(SceneRegistry.PRELOAD);
-        this.assets = assets.map(x => ({name: x.name, data: "data:image/png;base64, " + x.data}));
+        this.compressedAssetsLoaded = fetch(assetLoc("/assets.bin")).then(e => e.arrayBuffer()).then(e => {
+            return new Promise<Uint8Array>((resolve, reject) => {
+                return ff.decompress(new Uint8Array(e), ((err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data);
+                    }
+                }));
+            });
+        }).then(assets => {
+            const dec = new TextDecoder();
+            this.assets = JSON.parse(dec.decode(assets)).map(x => ({name: x.name, data: "data:image/png;base64, " + x.data}));
+        });
     }
 
     prepareResourcesToLoad() {
         return [
-            ...Object.values(Images),
-            ...assets.map(e => e.name)
+            ...this.assets.map(e => e.name)
         ].reduce((acc, item) => {
             acc.set(item, new Resource(item));
             return acc;
@@ -49,8 +66,26 @@ export default class PreloadScene extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image(Images.HEX_GRID, Hex_v01_grid);
+        this.load.image(Images.CASTLE, castle);
+        this.load.image(Images.BARRACK, barrack);
+        this.load.image(Images.FACTORY, factory);
+        this.load.image(Images.HANGAR, hangar);
+        this.load.image(Images.TECH, tech);
+        this.load.image(Images.SPAWN, spawn);
+        this.load.tilemapTiledJSON(Tilemaps.MAP1, map1);
+        this.load.once("complete", () => {
+            this.compressedAssetsLoaded.then(() => this.processCompressedAssets());
+        });
+    }
+
+    processCompressedAssets() {
         const resources = this.prepareResourcesToLoad();
-        const resourcesLoaded = Promise.all([...resources.values()].map(e => e.promise));
+
+        Promise.all([...resources.values()].map(e => e.promise)).then(() => {
+            this.startGame();
+        });
+
         this.textures.on("addtexture", (ev: string) => {
             if (resources.has(ev)) {
                 const item = resources.get(ev);
@@ -63,15 +98,6 @@ export default class PreloadScene extends Phaser.Scene {
             }
         });
 
-        this.load.image(Images.HEX_GRID, Hex_v01_grid);
-        this.load.image(Images.CASTLE, castle);
-        this.load.image(Images.BARRACK, barrack);
-        this.load.image(Images.FACTORY, factory);
-        this.load.image(Images.HANGAR, hangar);
-        this.load.image(Images.TECH, tech);
-        this.load.image(Images.SPAWN, spawn);
-        this.load.tilemapTiledJSON(Tilemaps.MAP1, map1);
-
         for (const asset of this.assets) {
             const img = new Image();
             img.src = asset.data;
@@ -81,11 +107,6 @@ export default class PreloadScene extends Phaser.Scene {
             });
         }
 
-        this.load.once("complete", () => {
-            resourcesLoaded.then(() => {
-                this.startGame();
-            });
-        });
     }
 
     startGame() {
