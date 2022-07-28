@@ -12,6 +12,10 @@ import barrack from "../assets/militaryTent.png";
 import factory from "../assets/shop.png";
 import tech from "../assets/saloon.png";
 import spawn from "../assets/tileDirt_tile.png";
+import black_dragon from "../assets/blackDragon.png";
+import robot5 from "../assets/robot-5.png";
+import fantasy8 from "../assets/fantasy-8.png";
+import demon_dragon from "../assets/demondragon.png";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -23,7 +27,11 @@ export enum Images {
     HANGAR = "hangar",
     TECH = "tech",
     SPAWN = "spawn",
-    MALE_ENGINEER = "male_engineer"
+    MALE_ENGINEER = "male_engineer",
+    BLACK_DRAGON = "black_dragon",
+    ROBOT5 = "robot5",
+    FANTASY8 = "fantasy8",
+    DEMON_DRAGON = "demon_dragon"
 }
 
 export enum Tilemaps {
@@ -49,6 +57,24 @@ export default class PreloadScene extends Phaser.Scene {
             frameWidth: 128,
             frameHeight: 128,
         });
+
+        this.load.spritesheet(Images.BLACK_DRAGON, black_dragon, {
+            frameWidth: 128,
+            frameHeight: 128,
+        });
+        this.load.spritesheet(Images.ROBOT5, robot5, {
+            frameWidth: 128,
+            frameHeight: 128,
+        });
+        this.load.spritesheet(Images.FANTASY8, fantasy8, {
+            frameWidth: 128,
+            frameHeight: 128,
+        });
+        this.load.spritesheet(Images.DEMON_DRAGON, demon_dragon, {
+            frameWidth: 128,
+            frameHeight: 128,
+        });
+
         this.load.spritesheet(Images.FEMALE_ARCHER, female_archer, {
             frameWidth: 128,
             frameHeight: 128,

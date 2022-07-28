@@ -411,8 +411,8 @@ export default class GameScene extends Phaser.Scene {
 
     private createCards() {
         console.log(units);
-        const cards = units.units.map((e, index) =>
-            new Card(this, 300 + index * 128, 600, e.texture, () => this.playerCreateUnit(this.player1, e)));
+        const cards = units.units.map((e, index, arr) =>
+            new Card(this, (this.config.width - arr.length * 90 + 45) / 2 + index * 90, 600, e.texture, () => this.playerCreateUnit(this.player1, e)));
 
     }
 

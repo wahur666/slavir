@@ -18,7 +18,8 @@ export default class Card extends Phaser.GameObjects.Sprite {
         super(scene, x, y, texture, 1);
         scene.add.existing(this);
         this.setDepth(2);
-        this.setCrop(28, 0, 100, 100);
+        this.setCrop(28, 0, 72, 100);
+        this.setOrigin(0.54, 0.58);
         this.graphics = scene.add.graphics();
         const shape = new Rectangle(x-this.width/2 + this.areaRect.x, y-this.rectHeight + this.areaRect.y, this.width + this.areaRect.width, this.rectHeight * 2 + this.areaRect.height);
         this.graphics.fillStyle(0x545454,1);
