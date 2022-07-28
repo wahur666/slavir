@@ -23,15 +23,8 @@ export default class Card extends Phaser.GameObjects.Sprite {
         const shape = new Rectangle(x-this.width/2 + this.areaRect.x, y-this.rectHeight + this.areaRect.y, this.width + this.areaRect.width, this.rectHeight * 2 + this.areaRect.height);
         this.graphics.fillStyle(0x545454,1);
         this.graphics.fillRectShape(shape);
-        this.setInteractive();
-        this.input.hitArea.setTo(this.areaRect.x, this.areaRect.y, this.width + this.areaRect.width, this.height+this.areaRect.height);
-        // const hitArea = new Rectangle(0, 0, this.width, this.rectHeight * 2 );
-        this.on("pointerdown", (ev) => {
-            this.onCLick();
-            // console.log(ev);
-        });
-
-        // this.setInteractive(shape, (ev) => console.log(ev));
+        this.setInteractive(new Rectangle(this.areaRect.x, this.areaRect.y, this.width + this.areaRect.width, this.height + this.areaRect.height), Phaser.Geom.Rectangle.Contains);
+        this.on("pointerdown", (ev) => this.onCLick());
     }
 
 

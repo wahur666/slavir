@@ -3,7 +3,6 @@ const WebpackBar = require("webpackbar");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const TerserPlugin = require("terser-webpack-plugin");
-const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: "development",
@@ -22,6 +21,7 @@ module.exports = {
       type: "var",
       name: "Slavir"
     },
+    clean: true,
     globalObject: "this",
     path: path.resolve(__dirname, "public"),
   },
@@ -37,7 +37,7 @@ module.exports = {
       },
       {
         test: [/\.vert$/, /\.frag$/],
-        use: "raw-loader"
+        type: "asset/source",
       },
       {
         test: /\.css$/i,
@@ -45,15 +45,11 @@ module.exports = {
       },
       {
         test: /\.(png|jpe?g|gif|xml|svg)$/i,
-        use: [
-          {
-            loader: "file-loader",
-          },
-        ],
+        type: "asset/resource",
       },
       {
         test: /\.(mp3|wav|mpe?g|ogg)$/i,
-        use: 'file-loader'
+        type: "asset/resource",
       }
     ],
   },
@@ -74,10 +70,5 @@ module.exports = {
       CANVAS_RENDERER: JSON.stringify(true),
       WEBGL_RENDERER: JSON.stringify(true)
     }),
-    new CopyPlugin({
-      patterns: [
-        {from: "./src/assets/assets.json.gz", to: "./assets"}
-      ]
-    })
   ],
 };
