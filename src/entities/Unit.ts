@@ -7,6 +7,7 @@ import Line = Phaser.Geom.Line;
 import Circle = Phaser.Geom.Circle;
 import type GameTile from "../model/GameTile";
 import type GameScene from "../scenes/GameScene";
+import type {UnitStat} from "./UnitsStats";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -42,24 +43,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     lastDirection: Direction = "down";
     target: Unit | null;
 
-    speed = 150;
-    flying: boolean;
-    levitating: boolean;
-    canAttackAir: boolean;
-    canAttackGround: boolean;
-    canShootOverObstacle: boolean;
-    health: number;
-    damageAgainstLightArmor: number;
-    damageAgainstHeavyArmor: number;
-    damageAgainstAir: number;
-    cost: number;
-    textureName: string;
-    visionRadius = 2;
+    stat: UnitStat;
     moving = false;
 
-    constructor(scene: GameScene, x: number, y: number, texture: string, stats: any) {
+    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat) {
         super(scene, x, y, texture);
-        this.textureName = texture;
+        this.stat = stat;
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setDepth(2);
@@ -105,7 +94,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 }
             } else {
                 this.moving = true;
-                this.scene.physics.moveTo(this, this.navPoints[0].x, this.navPoints[0].y, this.speed);
+                this.scene.physics.moveTo(this, this.navPoints[0].x, this.navPoints[0].y, this.stat.speed);
             }
         }
         this.drawPath();
@@ -217,112 +206,112 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     generateAnimations() {
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_DOWN,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [0, 1, 2, 3]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [0, 1, 2, 3]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_DOWN,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [4, 5, 6, 7]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [4, 5, 6, 7]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.ATTACK_DOWN,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [8, 9, 10, 11]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [8, 9, 10, 11]}),
             frameRate: 8,
             repeat: 0,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.DIE_DOWN,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [12, 13, 14, 15]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [12, 13, 14, 15]}),
             frameRate: 4,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_UP,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [16, 17, 18, 19]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [16, 17, 18, 19]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_UP,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [20, 21, 22, 23]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [20, 21, 22, 23]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.ATTACK_UP,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [24, 25, 26, 27]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [24, 25, 26, 27]}),
             frameRate: 8,
             repeat: 0,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.DIE_UP,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [28, 29, 30, 31]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [28, 29, 30, 31]}),
             frameRate: 4,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_LEFT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [32, 33, 34, 35]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [32, 33, 34, 35]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_LEFT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [36, 37, 38, 39]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [36, 37, 38, 39]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.ATTACK_LEFT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [40, 41, 42, 43]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [40, 41, 42, 43]}),
             frameRate: 8,
             repeat: 0,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.DIE_LEFT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [44, 45, 46, 47]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [44, 45, 46, 47]}),
             frameRate: 4,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_RIGHT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [48, 49, 50, 51]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [48, 49, 50, 51]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_RIGHT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [52, 53, 54, 55]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [52, 53, 54, 55]}),
             frameRate: 5,
             repeat: -1
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.ATTACK_RIGHT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [56, 57, 58, 59]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [56, 57, 58, 59]}),
             frameRate: 8,
             repeat: 0,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.DIE_RIGHT,
-            frames: this.anims.generateFrameNames(this.textureName, {frames: [60, 61, 62, 63]}),
+            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [60, 61, 62, 63]}),
             frameRate: 4,
             repeat: -1
         });

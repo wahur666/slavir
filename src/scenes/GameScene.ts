@@ -8,7 +8,7 @@ import {Hex} from "../model/hexgrid";
 import {Navigation} from "../model/navigation";
 import Unit from "../entities/Unit";
 import Card from "../entities/Card";
-import units from "../assets/units.json";
+import {stats} from "../entities/UnitsStats";
 import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
@@ -248,7 +248,7 @@ export default class GameScene extends Phaser.Scene {
         for (const player1Unit of this.player1.units) {
             const tile = this.pointToTile(player1Unit.pos.x, player1Unit.pos.y);
             if (tile) {
-                for (const visibleTile of this.hexMap.visibleTiles(tile, player1Unit.visionRadius)) {
+                for (const visibleTile of this.hexMap.visibleTiles(tile, player1Unit.stat.visionRadius)) {
                     visibleTiles.add(visibleTile);
                 }
             }
@@ -410,15 +410,16 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private createCards() {
-        console.log(units);
-        const cards = units.units.map((e, index, arr) =>
-            new Card(this, (this.config.width - arr.length * 90 + 45) / 2 + index * 90, 600, e.texture, () => this.playerCreateUnit(this.player1, e)));
+        console.log(stats);
+        const cards = [...stats.values()].map((e, index, arr) =>
+            new Card(this, (this.config.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, () => this.playerCreateUnit(this.player1, e)));
 
     }
 
     playerCreateUnit(player: Player, e: any) {
         const alreadyOccupiedPositions: GameTile[] = [...this.player1.units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
-        const possibleTiles: { distance: number; tile: GameTile }[] = this.hexMap.tiles.filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
+        const possibleTiles: { distance: number; tile: GameTile }[] = this.hexMap.tiles
+            .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({
                 tile,
                 distance: this.hexMap.tileDistance(tile, this.player1.buildings.CASTLE!) + this.hexMap.tileDistance(tile, this.player1.buildings.SPAWN!)

@@ -2,7 +2,7 @@ import * as Phaser from "phaser";
 import type {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import Hex_v01_grid from "../assets/Hex_v01_grid.png";
-import map1 from "../assets/map2.json";
+import map1 from "../maps/map2.json";
 import guard from "../assets/guard.png";
 import female_archer from "../assets/female_archer.png";
 import male_engineer from "../assets/male_engineer.png";
