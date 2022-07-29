@@ -97,6 +97,11 @@ export default class GameScene extends Phaser.Scene {
         this.input.mouse.disableContextMenu();
         this.player1 = new HumanPlayer(1, this);
         this.player2 = new AiPlayer(2);
+        this.input.keyboard.on("keyup-F", () => {
+           if (this.selectedUnit) {
+               this.freeHandler(this.selectedUnit);
+           }
+        });
         this.input.on("pointerdown", (ev: Pointer) => {
             if (ev.rightButtonDown()) {
                 // this.deselectUnit();
@@ -406,7 +411,18 @@ export default class GameScene extends Phaser.Scene {
 
     createUnit(hex: Hex, texture: string, stats: any): Unit {
         const pos = this.hexToPos(hex);
-        return new Unit(this, pos.x, pos.y, texture, stats).play(Unit.AnimationKeys.IDLE_DOWN);
+        return new Unit(this, pos.x, pos.y, texture, stats, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
+    }
+
+    async freeHandler(unit: Unit) {
+        const unitToFreeInd = this.player1.units.indexOf(unit);
+        if (this.selectedUnit === unit) {
+            this.deselectUnit();
+            await unit.prepForDestroy();
+        }
+        unit.destroy();
+        this.player1.units.splice(unitToFreeInd, 1);
+        console.log(this.player1.units);
     }
 
     private createCards() {

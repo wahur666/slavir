@@ -1,5 +1,6 @@
 export interface UnitStat {
     armored: boolean;
+    building: "castle" | "barrack" | "factory" | "hangar"
     attackRange: 1 | 2;
     canAttack: boolean,
     canAttackAir: boolean;
@@ -8,6 +9,7 @@ export interface UnitStat {
     damageAgainstLightArmor: number;
     flying: boolean;
     health: number;
+    limit: number;
     rateOfFire: number;
     speed: number;
     texture: string;
@@ -19,6 +21,7 @@ export const stats: Map<string, UnitStat> = new Map([
     ["fantasy8", {
         armored: true,
         attackRange: 1,
+        building: "barrack",
         canAttack: true,
         canAttackAir: false,
         cost: 20,
@@ -26,6 +29,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstLightArmor: 20,
         flying: false,
         health: 150,
+        limit: -1,
         rateOfFire: 0.6,
         speed: 120,
         texture: "fantasy8",
@@ -34,6 +38,7 @@ export const stats: Map<string, UnitStat> = new Map([
     ["female_archer", {
         armored: false,
         attackRange: 2,
+        building: "barrack",
         canAttack: true,
         canAttackAir: true,
         cost: 30,
@@ -41,6 +46,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstLightArmor: 15,
         flying: false,
         health: 120,
+        limit: -1,
         rateOfFire: 1,
         speed: 100,
         texture: "female_archer",
@@ -49,6 +55,7 @@ export const stats: Map<string, UnitStat> = new Map([
     ["robot5", {
         armored: false,
         attackRange: 1,
+        building: "factory",
         canAttack: true,
         canAttackAir: true,
         cost: 40,
@@ -56,6 +63,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstLightArmor: 25,
         flying: false,
         health: 200,
+        limit: -1,
         rateOfFire: 0.8,
         speed: 120,
         texture: "robot5",
@@ -64,6 +72,7 @@ export const stats: Map<string, UnitStat> = new Map([
     ["guard", {
         armored: true,
         attackRange: 1,
+        building: "factory",
         canAttack: true,
         canAttackAir: false,
         cost: 60,
@@ -71,6 +80,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstLightArmor: 15,
         flying: false,
         health: 250,
+        limit: -1,
         rateOfFire: 1.2,
         speed: 120,
         texture: "guard",
@@ -79,6 +89,7 @@ export const stats: Map<string, UnitStat> = new Map([
     ["demon_dragon", {
         armored: false,
         attackRange: 1,
+        building: "hangar",
         canAttack: true,
         canAttackAir: true,
         cost: 40,
@@ -86,6 +97,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstLightArmor: 30,
         flying: true,
         health: 150,
+        limit: -1,
         rateOfFire: 1.4,
         speed: 140,
         texture: "demon_dragon",
@@ -94,6 +106,7 @@ export const stats: Map<string, UnitStat> = new Map([
     ["black_dragon", {
         armored: true,
         attackRange: 1,
+        building: "hangar",
         canAttack: true,
         canAttackAir: false,
         cost: 60,
@@ -101,6 +114,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstLightArmor: 14,
         flying: true,
         health: 250,
+        limit: -1,
         rateOfFire: 1.3,
         speed: 110,
         texture: "black_dragon",
@@ -109,6 +123,7 @@ export const stats: Map<string, UnitStat> = new Map([
     ["male_engineer", {
         armored: true,
         attackRange: 1,
+        building: "castle",
         canAttack: false,
         canAttackAir: false,
         cost: 80,
@@ -116,6 +131,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstLightArmor: 0,
         flying: false,
         health: 400,
+        limit: 2,
         rateOfFire: 1,
         speed: 80,
         texture: "male_engineer",

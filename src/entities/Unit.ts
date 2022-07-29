@@ -42,13 +42,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     radius = 35;
     lastDirection: Direction = "down";
     target: Unit | null;
+    currentHealth: number;
+    free: (unit: Unit) => void;
+    markedForDeletion = false;
 
     stat: UnitStat;
     moving = false;
 
-    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat) {
+    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, free: (unit: Unit) => void) {
         super(scene, x, y, texture);
         this.stat = stat;
+        this.free = free;
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setDepth(2);
@@ -57,6 +61,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.setupGraphics();
         this.setOrigin(0.5, 0.8);
         this.setCircle(this.radius, this.width / 2 - this.radius, this.height - this.radius - 20);
+        this.currentHealth = this.stat.health;
         this.generateAnimations();
         this.play(Unit.AnimationKeys.IDLE_DOWN, true);
     }
@@ -82,7 +87,40 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         return this.scene.pointToTile(this.x, this.y)!;
     }
 
+    takeDamage(unit: Unit) {
+        if (this.stat.armored) {
+            this.currentHealth -= unit.stat.damageAgainstHeavyArmor;
+        } else {
+            this.currentHealth -= unit.stat.damageAgainstLightArmor;
+        }
+        if (this.currentHealth <= 0) {
+            this.free(this);
+        }
+    }
+
+    prepForDestroy(): Promise<void> {
+        this.navPoints = [];
+        this.graphics.clear();
+        this.selectedGraphics.clear();
+        this.body.stop();
+        this.moving = false;
+        this.markedForDeletion = true;
+        this.play("unit-die-" + this.lastDirection);
+        return new Promise<void>(resolve => {
+            this.on("animationcomplete", e => {
+                if ((e.key as string).includes("die")) {
+                    this.graphics.destroy();
+                    this.selectedGraphics.destroy();
+                    resolve();
+                }
+            });
+        });
+    }
+
     update() {
+        if (this.markedForDeletion) {
+            return;
+        }
         this.playAnimation();
         if (this.navPoints.length > 0) {
             if (this.pos.distance(this.navPoints[0]) < 5) {
@@ -228,8 +266,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.anims.create({
             key: Unit.AnimationKeys.DIE_DOWN,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [12, 13, 14, 15]}),
-            frameRate: 4,
-            repeat: -1
+            frameRate: 6,
+            repeat: 0
         });
 
         this.anims.create({
@@ -256,8 +294,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.anims.create({
             key: Unit.AnimationKeys.DIE_UP,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [28, 29, 30, 31]}),
-            frameRate: 4,
-            repeat: -1
+            frameRate: 6,
+            repeat: 0
         });
 
         this.anims.create({
@@ -284,8 +322,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.anims.create({
             key: Unit.AnimationKeys.DIE_LEFT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [44, 45, 46, 47]}),
-            frameRate: 4,
-            repeat: -1
+            frameRate: 6,
+            repeat: 0
         });
 
         this.anims.create({
@@ -312,8 +350,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.anims.create({
             key: Unit.AnimationKeys.DIE_RIGHT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [60, 61, 62, 63]}),
-            frameRate: 4,
-            repeat: -1
+            frameRate: 6,
+            repeat: 0
         });
 
         this.on("animationcomplete", e => {
