@@ -1,13 +1,13 @@
 import Phaser from "phaser";
 import {Pathfinding} from "../model/HexMap";
+import type GameTile from "../model/GameTile";
+import type GameScene from "../scenes/GameScene";
+import type {UnitStat} from "./UnitsStats";
 import Vector2 = Phaser.Math.Vector2;
 import Graphics = Phaser.GameObjects.Graphics;
 import GetLineToCircle = Phaser.Geom.Intersects.GetLineToCircle;
 import Line = Phaser.Geom.Line;
 import Circle = Phaser.Geom.Circle;
-import type GameTile from "../model/GameTile";
-import type GameScene from "../scenes/GameScene";
-import type {UnitStat} from "./UnitsStats";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -15,6 +15,10 @@ type Direction = "up" | "down" | "left" | "right";
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     static AnimationKeys = {
+        IDLE_: "unit-idle-",
+        ATTACK_: "unit-attack-",
+        WALK_: "unit-walk-",
+        DIE_: "unit-die-",
         IDLE_DOWN: "unit-idle-down",
         WALK_DOWN: "unit-walk-down",
         ATTACK_DOWN: "unit-attack-down",
@@ -49,7 +53,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     stat: UnitStat;
     moving = false;
 
-    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, free: (unit: Unit) => void) {
+    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, free: (unit: Unit) => Promise<void>) {
         super(scene, x, y, texture);
         this.stat = stat;
         this.free = free;
@@ -57,6 +61,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         scene.physics.add.existing(this);
         this.setDepth(2);
         this.pathfinding = Pathfinding.GROUND;
+        if (this.stat.flying) {
+            this.pathfinding += Pathfinding.HIGH_GROUND + Pathfinding.WATER;
+        }
         this.scene = scene;
         this.setupGraphics();
         this.setOrigin(0.5, 0.8);
@@ -88,10 +95,16 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     takeDamage(unit: Unit) {
-        if (this.stat.armored) {
-            this.currentHealth -= unit.stat.damageAgainstHeavyArmor;
-        } else {
-            this.currentHealth -= unit.stat.damageAgainstLightArmor;
+        switch (this.stat.type) {
+            case "aircraft":
+                this.currentHealth -= unit.stat.damageAgainstAir;
+                break;
+            case "infantry":
+                this.currentHealth -= unit.stat.damageAgainstInfantry;
+                break;
+            case "vehicle":
+                this.currentHealth -= unit.stat.damageAgainstVehicle;
+                break;
         }
         if (this.currentHealth <= 0) {
             this.free(this);
@@ -151,19 +164,14 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     private playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            switch (this.lastDirection) {
-                case "up":
-                    this.play(Unit.AnimationKeys.IDLE_UP, true);
-                    break;
-                case "down":
-                    this.play(Unit.AnimationKeys.IDLE_DOWN, true);
-                    break;
-                case "left":
-                    this.play(Unit.AnimationKeys.IDLE_LEFT, true);
-                    break;
-                case "right":
-                    this.play(Unit.AnimationKeys.IDLE_RIGHT, true);
-                    break;
+            if (this.target) {
+                if (this.target.pos.x <= this.pos.x) {
+                    this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
+                } else {
+                    this.play(Unit.AnimationKeys.ATTACK_RIGHT, true);
+                }
+            } else {
+                this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
             }
         } else if (Math.abs(velocity.x) > Math.abs(velocity.y)) {
             if (velocity.x < 0) {

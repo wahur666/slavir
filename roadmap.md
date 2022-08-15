@@ -27,10 +27,10 @@
 
 ## Units
 
-- [ ] Configure attack animations
+- [x] Configure attack animations
 - [ ] Add stat info on card
 - [ ] Add health bar
-- [ ] Add building damage parameter
+- [x] Add building damage parameter
 - [ ] Add unit groups (low priority)
 
 ## Gameplay

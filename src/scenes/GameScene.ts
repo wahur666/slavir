@@ -8,16 +8,16 @@ import {Hex} from "../model/hexgrid";
 import {Navigation} from "../model/navigation";
 import Unit from "../entities/Unit";
 import Card from "../entities/Card";
-import {stats} from "../entities/UnitsStats";
-import Pointer = Phaser.Input.Pointer;
-import Graphics = Phaser.GameObjects.Graphics;
-import Vector2 = Phaser.Math.Vector2;
-import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
+import {stats, UnitStat} from "../entities/UnitsStats";
 import type Player from "../model/player/Player";
 import {findObjectByProperty} from "../helpers/tilemap.helper";
 import HumanPlayer from "../model/player/HumanPlayer";
 import AiPlayer from "../model/player/AiPlayer";
 import {range} from "../helpers/utils";
+import Pointer = Phaser.Input.Pointer;
+import Graphics = Phaser.GameObjects.Graphics;
+import Vector2 = Phaser.Math.Vector2;
+import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 
 enum LAYERS {
     BASE = "base"
@@ -117,7 +117,7 @@ export default class GameScene extends Phaser.Scene {
                         if (this.selectedUnit) {
                             const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
                             if (start) {
-                                this.path = this.navigation.findPath(start, target, Pathfinding.GROUND, true);
+                                this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding, true);
                                 if (this.path.length > 0) {
                                     this.selectedUnit.setNav(this.path.map(e => this.calculateNavPoint(e)), unit);
                                 }
@@ -144,7 +144,7 @@ export default class GameScene extends Phaser.Scene {
                         if (this.selectedUnit) {
                             const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
                             if (start) {
-                                this.path = this.navigation.findPath(start, target, Pathfinding.GROUND);
+                                this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding);
                                 if (this.path.length > 0) {
                                     this.selectedUnit.setNav(this.path.map(e => this.hexMap.getCenter(e).add(this.baseOffset).scale(this.scaleFactor)));
                                 }
@@ -409,12 +409,12 @@ export default class GameScene extends Phaser.Scene {
         return this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
     }
 
-    createUnit(hex: Hex, texture: string, stats: any): Unit {
+    createUnit(hex: Hex, texture: string, stats: UnitStat): Unit {
         const pos = this.hexToPos(hex);
         return new Unit(this, pos.x, pos.y, texture, stats, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
     }
 
-    async freeHandler(unit: Unit) {
+    async freeHandler(unit: Unit): Promise<void> {
         const unitToFreeInd = this.player1.units.indexOf(unit);
         if (this.selectedUnit === unit) {
             this.deselectUnit();
