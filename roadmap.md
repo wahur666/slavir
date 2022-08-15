@@ -19,18 +19,16 @@
 
 ## Building
 
-- [ ] Create building class
-- [ ] Make create building part of the user event listener
+- [x] Create building class
 - [ ] Add unit building requirement before creating units
 - [ ] Add base health
 - [ ] Hide enemy buildings when not visible
 
 ## Units
 
-- [x] Configure attack animations
+- [ ] Configure attack animations cooldown time
 - [ ] Add stat info on card
 - [ ] Add health bar
-- [x] Add building damage parameter
 - [ ] Add unit groups (low priority)
 
 ## Gameplay

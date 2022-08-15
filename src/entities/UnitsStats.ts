@@ -147,7 +147,7 @@ export const stats: Map<string, UnitStat> = new Map([
         damageAgainstInfantry: 0,
         damageAgainstVehicle: 0,
         flying: false,
-        health: 400,
+        health: 300,
         limit: 2,
         rateOfFire: 1,
         speed: 80,

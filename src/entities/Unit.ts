@@ -134,6 +134,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         if (this.markedForDeletion) {
             return;
         }
+        if (this.target?.markedForDeletion) {
+            this.target = null;
+        }
         this.playAnimation();
         if (this.navPoints.length > 0) {
             if (this.pos.distance(this.navPoints[0]) < 5) {
@@ -167,8 +170,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             if (this.target) {
                 if (this.target.pos.x <= this.pos.x) {
                     this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
+                    this.lastDirection = "left";
                 } else {
                     this.play(Unit.AnimationKeys.ATTACK_RIGHT, true);
+                    this.lastDirection = "right";
                 }
             } else {
                 this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);

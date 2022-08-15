@@ -18,6 +18,7 @@ import Pointer = Phaser.Input.Pointer;
 import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
+import Building, {buildingStat} from "../entities/Building";
 
 enum LAYERS {
     BASE = "base"
@@ -258,8 +259,8 @@ export default class GameScene extends Phaser.Scene {
                 }
             }
         }
-        if (this.player1.buildings.CASTLE) {
-            for (const visibleTile of this.hexMap.visibleTiles(this.player1.buildings.CASTLE, 3, true)) {
+        if (this.player1.base) {
+            for (const visibleTile of this.hexMap.visibleTiles(this.player1.base, 3, true)) {
                 visibleTiles.add(visibleTile);
             }
         }
@@ -438,7 +439,7 @@ export default class GameScene extends Phaser.Scene {
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({
                 tile,
-                distance: this.hexMap.tileDistance(tile, this.player1.buildings.CASTLE!) + this.hexMap.tileDistance(tile, this.player1.buildings.SPAWN!)
+                distance: this.hexMap.tileDistance(tile, this.player1.base!) + this.hexMap.tileDistance(tile, this.player1.spawn!)
             }))
             .sort((a, b) => a.distance - b.distance);
         if (possibleTiles.length > 0) {
@@ -449,15 +450,15 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createAllPlayerBuildings(player: Player) {
-        this.createBuilding(player, Buildings.CASTLE, new Vector2(0.8), new Vector2(0.5, 0.6));
-        this.createBuilding(player, Buildings.BARRACK, new Vector2(0.8));
-        this.createBuilding(player, Buildings.FACTORY, new Vector2(0.8));
-        this.createBuilding(player, Buildings.HANGAR, new Vector2(0.8));
-        this.createBuilding(player, Buildings.TECH, new Vector2(0.8));
-        this.createBuilding(player, Buildings.SPAWN, new Vector2(1.1), new Vector2(0.5, 0.45));
+        this.createBuilding(player, Buildings.CASTLE);
+        this.createBuilding(player, Buildings.BARRACK);
+        this.createBuilding(player, Buildings.FACTORY);
+        this.createBuilding(player, Buildings.HANGAR);
+        this.createBuilding(player, Buildings.TECH);
+        this.createBuilding(player, Buildings.SPAWN);
     }
 
-    createBuilding(player: Player, building: Buildings, scale = new Vector2(1), origin = new Vector2(0.5)) {
+    createBuilding(player: Player, building: Buildings) {
         const baseTile = findObjectByProperty(this.layers["base" + player.index].objects, "id", building);
         let a;
         if (baseTile && baseTile.x && baseTile.y) {
@@ -466,8 +467,8 @@ export default class GameScene extends Phaser.Scene {
         const hex = a?.hex;
         if (hex) {
             const pos = this.hexToPos(hex);
-            player.buildings[Buildings[building]] = this.hexMap.tiles.find(e => e.hex.equals(hex));
-            this.add.image(pos.x, pos.y, Images[Buildings[building]]).setScale(scale.x, scale.y).setOrigin(origin.x, origin.y);
+            const tile = this.hexMap.tiles.find(e => e.hex.equals(hex))!;
+            player.addBuilding(new Building(this, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile) ;
         }
     }
 
