@@ -118,7 +118,7 @@ export default class GameScene extends Phaser.Scene {
                         if (this.selectedUnit) {
                             const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
                             if (start) {
-                                this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding, true);
+                                this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding, this.selectedUnit.stat.attackRange);
                                 if (this.path.length > 0) {
                                     this.selectedUnit.setNav(this.path.map(e => this.calculateNavPoint(e)), unit);
                                 }
@@ -433,7 +433,7 @@ export default class GameScene extends Phaser.Scene {
 
     }
 
-    playerCreateUnit(player: Player, e: any) {
+    playerCreateUnit(player: Player, e: UnitStat) {
         const alreadyOccupiedPositions: GameTile[] = [...this.player1.units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
         const possibleTiles: { distance: number; tile: GameTile }[] = this.hexMap.tiles
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
@@ -442,7 +442,7 @@ export default class GameScene extends Phaser.Scene {
                 distance: this.hexMap.tileDistance(tile, this.player1.base!) + this.hexMap.tileDistance(tile, this.player1.spawn!)
             }))
             .sort((a, b) => a.distance - b.distance);
-        if (possibleTiles.length > 0) {
+        if (possibleTiles.length > 0 && player.units.length < 6 && (e.limit === -1 || e.limit > player.units.filter(u => u.stat.texture === e.texture).length)) {
             const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e);
             player.units.push(unit);
             this.selectUnit(unit);

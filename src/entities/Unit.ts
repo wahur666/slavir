@@ -157,8 +157,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             this.drawSelectionRing();
         }
         if (!this.moving && this.target) {
-            const neighbours = [...this.gameTile().hex.neighbours(), this.gameTile().hex];
-            if (!neighbours.find(e => e.equals(this.target!.gameTile().hex))) {
+            if(this.target.gameTile().distance(this.gameTile()) > this.stat.attackRange) {
                 this.target = null;
             }
         }

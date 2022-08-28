@@ -19,7 +19,6 @@
 
 ## Building
 
-- [x] Create building class
 - [ ] Add unit building requirement before creating units
 - [ ] Add base health
 - [ ] Hide enemy buildings when not visible
@@ -57,7 +56,7 @@
   - [ ] Add contesting logic
   - [ ] Add timer, with 5 sec dominance for the end
 - [ ] Add turret as commander power
-- [ ] Create unit cap 6
+- [X] Create unit cap 6
   - [ ] Delay
     - 0 unit, 0 sec
     - 1 unit, 5 sec

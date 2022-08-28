@@ -46,7 +46,7 @@ export class Navigation {
         return neighbours;
     }
 
-    findPath(start: GameTile, end: GameTile, mask: number, nearestFree = false): GameTile[] {
+    findPath(start: GameTile, end: GameTile, mask: number, nearestFree = 0): GameTile[] {
         if ((!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask))) {
             return [];
         }
@@ -83,14 +83,14 @@ export class Navigation {
         return [];
     }
 
-    retracePath(start: GameTile, current: Node, mask: number, nearestFree: boolean): GameTile[] {
+    retracePath(start: GameTile, current: Node, mask: number, nearestFree: number): GameTile[] {
         let path: GameTile[] = [];
         while (current.parent) {
             path.unshift(current.tile);
             current = current.parent;
         }
         path.unshift(start);
-        if (nearestFree) {
+        for(let i = 0; i < nearestFree; i++) {
             path.pop();
         }
         if (path.length > 2) {
