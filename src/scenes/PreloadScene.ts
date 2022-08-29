@@ -16,6 +16,7 @@ import black_dragon from "../assets/blackDragon.png";
 import robot5 from "../assets/robot-5.png";
 import fantasy8 from "../assets/fantasy-8.png";
 import demon_dragon from "../assets/demondragon.png";
+import crystals1 from "../assets/crystals1.png";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -31,7 +32,8 @@ export enum Images {
     BLACK_DRAGON = "black_dragon",
     ROBOT5 = "robot5",
     FANTASY8 = "fantasy8",
-    DEMON_DRAGON = "demon_dragon"
+    DEMON_DRAGON = "demon_dragon",
+    CRYSTAL = "crystals1",
 }
 
 export enum Tilemaps {
@@ -52,6 +54,7 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image(Images.HANGAR, hangar);
         this.load.image(Images.TECH, tech);
         this.load.image(Images.SPAWN, spawn);
+        this.load.image(Images.CRYSTAL, crystals1);
 
         this.load.spritesheet(Images.GUARD, guard, {
             frameWidth: 128,

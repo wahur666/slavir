@@ -40,7 +40,7 @@
   - [ ] Move through friendly units, but prevent same end tile
   - [ ] Move through enemy if its flying
 - [ ] Add resources
-  - [ ] Add sprite
+  - [x] Add sprite
   - [ ] Add resource logic
     - 5 sec no harvester
     - 4 sec 1 harvester
@@ -48,7 +48,7 @@
   - [ ] Destroy resource on depletion
   - [ ] Set newly created harvester target the next in line of priory resource
   - [ ] Add bounty for killing harvester
-  - [ ] Add start money 100
+  - [x] Add start money 100
 - [ ] Add unit creation delay based on how many already existing
 - [ ] Add objective
   - [ ] Add sprite

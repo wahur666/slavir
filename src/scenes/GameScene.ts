@@ -19,6 +19,7 @@ import Graphics = Phaser.GameObjects.Graphics;
 import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 import Building, {buildingStat} from "../entities/Building";
+import Resource from "../entities/Resource";
 
 enum LAYERS {
     BASE = "base"
@@ -65,6 +66,7 @@ export default class GameScene extends Phaser.Scene {
     scaledBaseOffset: Phaser.Math.Vector2;
     selectedUnit: Unit | null = null;
     path: GameTile[] = [];
+    resources: Resource[] = []
 
     player1: HumanPlayer;
     player2: AiPlayer;
@@ -99,9 +101,9 @@ export default class GameScene extends Phaser.Scene {
         this.player1 = new HumanPlayer(1, this);
         this.player2 = new AiPlayer(2);
         this.input.keyboard.on("keyup-F", () => {
-           if (this.selectedUnit) {
-               this.freeHandler(this.selectedUnit);
-           }
+            if (this.selectedUnit) {
+                this.freeHandler(this.selectedUnit);
+            }
         });
         this.input.on("pointerdown", (ev: Pointer) => {
             if (ev.rightButtonDown()) {
@@ -180,6 +182,7 @@ export default class GameScene extends Phaser.Scene {
         this.createCards();
         this.createAllPlayerBuildings(this.player1);
         this.createAllPlayerBuildings(this.player2);
+        this.createResources();
     }
 
 
@@ -468,10 +471,18 @@ export default class GameScene extends Phaser.Scene {
         if (hex) {
             const pos = this.hexToPos(hex);
             const tile = this.hexMap.tiles.find(e => e.hex.equals(hex))!;
-            player.addBuilding(new Building(this, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile) ;
+            player.addBuilding(new Building(this, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile);
         }
     }
 
+    createResources() {
+        const a = this.layers.resources;
+        this.resources = a.objects.map(x => this.hexMap.pixelToTile(x.x!, x.y!))
+            .map((tile, index) => {
+                const pos = this.hexToPos(tile!.hex);
+                return new Resource(this, pos.x, pos.y, Images.CRYSTAL, tile!, index, () => {})
+            });
+    }
 }
 
 
