@@ -12,10 +12,10 @@
 
 ## Tilemap
 
-- [ ] Replace ground texture
+- [X] Replace ground texture
 - [ ] Replace obstacle texture
 - [ ] Make base texture ground texture
-- [ ] Make resource texture ground texture
+- [X] Make resource texture ground texture
 
 ## Building
 
@@ -45,8 +45,8 @@
     - 5 sec no harvester
     - 4 sec 1 harvester
     - 3 sec 2 harvester
-  - [ ] Destroy resource on depletion
-  - [ ] Set newly created harvester target the next in line of priory resource
+  - [X] Destroy resource on depletion
+  - [X] Set newly created harvester target the next in line of priory resource
   - [ ] Add bounty for killing harvester
   - [x] Add start money 100
 - [ ] Add unit creation delay based on how many already existing

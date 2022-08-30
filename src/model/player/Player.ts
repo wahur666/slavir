@@ -1,12 +1,14 @@
 import type Unit from "../../entities/Unit";
 import type Building from "../../entities/Building";
 import type GameTile from "../GameTile";
+import type Resource from "../../entities/Resource";
 
 
 export default abstract class Player {
 
     units: Unit[] = [];
     private buildings: Building[] = [];
+    resources: Resource[] = [];
     base: GameTile | undefined;
     spawn: GameTile | undefined;
     baseHealth = 1000;

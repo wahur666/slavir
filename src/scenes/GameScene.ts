@@ -10,7 +10,7 @@ import Unit from "../entities/Unit";
 import Card from "../entities/Card";
 import {stats, UnitStat} from "../entities/UnitsStats";
 import type Player from "../model/player/Player";
-import {findObjectByProperty} from "../helpers/tilemap.helper";
+import {findObjectByProperty, getPropertyValue} from "../helpers/tilemap.helper";
 import HumanPlayer from "../model/player/HumanPlayer";
 import AiPlayer from "../model/player/AiPlayer";
 import {range} from "../helpers/utils";
@@ -87,14 +87,16 @@ export default class GameScene extends Phaser.Scene {
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
+        // @ts-ignore
+        window.game = this;
     }
 
     create() {
         const map = this.createMap();
         this.layers = this.createLayers(map);
         this.hexMap = new HexMap(this.layers);
-        this.navigation = new Navigation(this.hexMap);
         this.calculateBaseOffset(this.layers.base);
+        this.navigation = new Navigation(this.hexMap, this.baseOffset, this.scaleFactor);
         this.graphics = this.add.graphics();
         this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
         this.input.mouse.disableContextMenu();
@@ -122,7 +124,7 @@ export default class GameScene extends Phaser.Scene {
                             if (start) {
                                 this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding, this.selectedUnit.stat.attackRange);
                                 if (this.path.length > 0) {
-                                    this.selectedUnit.setNav(this.path.map(e => this.calculateNavPoint(e)), unit);
+                                    this.selectedUnit.setNav(this.path.map(e => this.navigation.calculateNavPoint(e)), unit);
                                 }
                             }
                         }
@@ -185,10 +187,6 @@ export default class GameScene extends Phaser.Scene {
         this.createResources();
     }
 
-
-    calculateNavPoint(gameTile: GameTile): Vector2 {
-        return this.hexMap.getCenter(gameTile).add(this.baseOffset).scale(this.scaleFactor);
-    }
 
     selectUnit(unit: Unit) {
         if (this.selectedUnit && unit !== this.selectedUnit) {
@@ -349,6 +347,9 @@ export default class GameScene extends Phaser.Scene {
         for (const unit of this.player1.units) {
             unit.update();
         }
+        for (const resource of this.resources) {
+            resource.update();
+        }
         this.drawVisibleTiles();
     }
 
@@ -413,9 +414,9 @@ export default class GameScene extends Phaser.Scene {
         return this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
     }
 
-    createUnit(hex: Hex, texture: string, stats: UnitStat): Unit {
+    createUnit(hex: Hex, texture: string, stats: UnitStat, player: Player): Unit {
         const pos = this.hexToPos(hex);
-        return new Unit(this, pos.x, pos.y, texture, stats, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
+        return new stats.className(this, pos.x, pos.y, texture, stats, player, this.navigation, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
     }
 
     async freeHandler(unit: Unit): Promise<void> {
@@ -446,7 +447,7 @@ export default class GameScene extends Phaser.Scene {
             }))
             .sort((a, b) => a.distance - b.distance);
         if (possibleTiles.length > 0 && player.units.length < 6 && (e.limit === -1 || e.limit > player.units.filter(u => u.stat.texture === e.texture).length)) {
-            const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e);
+            const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e, player);
             player.units.push(unit);
             this.selectUnit(unit);
         }
@@ -477,11 +478,28 @@ export default class GameScene extends Phaser.Scene {
 
     createResources() {
         const a = this.layers.resources;
-        this.resources = a.objects.map(x => this.hexMap.pixelToTile(x.x!, x.y!))
-            .map((tile, index) => {
-                const pos = this.hexToPos(tile!.hex);
-                return new Resource(this, pos.x, pos.y, Images.CRYSTAL, tile!, index, () => {})
-            });
+        for (const object of a.objects) {
+            if (object.x && object.y) {
+                const tile = this.hexMap.pixelToTile(object.x, object.y);
+                if (tile) {
+                    const pos = this.hexToPos(tile.hex);
+                    const priority = getPropertyValue(object, "priority") as number;
+                    const res = new Resource(this, pos.x, pos.y, Images.CRYSTAL, tile, priority, (resource) => {
+                        this.player1.resources = this.player1.resources.filter(e => e !== resource);
+                        this.player2.resources = this.player2.resources.filter(e => e !== resource);
+                        const resourceInd = this.resources.indexOf(resource);
+                        this.resources.splice(resourceInd, 1);
+                        resource.destroy();
+                    });
+                    this.resources.push(res);
+                    if (getPropertyValue(object, "player") === 0) {
+                        this.player1.resources.push(res);
+                    } else {
+                        this.player2.resources.push(res);
+                    }
+                }
+            }
+        }
     }
 }
 

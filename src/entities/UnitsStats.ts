@@ -1,10 +1,13 @@
 import type {BuildingStat} from "./Building";
+import Unit from "./Unit";
+import Harvester from "./Harvester";
 
 export interface UnitStat {
     building: BuildingStat["type"]
     attackRange: 1 | 2;
     canAttack: boolean,
     canAttackAir: boolean;
+    className: typeof Unit;
     cost: number;
     damageAgainstAir: number;
     damageAgainstBase: number;
@@ -27,6 +30,7 @@ export const stats: Map<string, UnitStat> = new Map([
         building: "barrack",
         canAttack: true,
         canAttackAir: false,
+        className: Unit,
         cost: 20,
         damageAgainstAir: 0,
         damageAgainstBase: 10,
@@ -46,6 +50,7 @@ export const stats: Map<string, UnitStat> = new Map([
         building: "barrack",
         canAttack: true,
         canAttackAir: true,
+        className: Unit,
         cost: 30,
         damageAgainstAir: 17,
         damageAgainstBase: 8,
@@ -65,6 +70,7 @@ export const stats: Map<string, UnitStat> = new Map([
         building: "factory",
         canAttack: true,
         canAttackAir: true,
+        className: Unit,
         cost: 40,
         damageAgainstAir: 22,
         damageAgainstBase: 10,
@@ -84,6 +90,7 @@ export const stats: Map<string, UnitStat> = new Map([
         building: "factory",
         canAttack: true,
         canAttackAir: false,
+        className: Unit,
         cost: 60,
         damageAgainstAir: 0,
         damageAgainstBase: 20,
@@ -103,6 +110,7 @@ export const stats: Map<string, UnitStat> = new Map([
         building: "hangar",
         canAttack: true,
         canAttackAir: true,
+        className: Unit,
         cost: 40,
         damageAgainstAir: 25,
         damageAgainstBase: 12,
@@ -122,6 +130,7 @@ export const stats: Map<string, UnitStat> = new Map([
         building: "hangar",
         canAttack: true,
         canAttackAir: false,
+        className: Unit,
         cost: 60,
         damageAgainstAir: 0,
         damageAgainstBase: 25,
@@ -141,6 +150,7 @@ export const stats: Map<string, UnitStat> = new Map([
         building: "castle",
         canAttack: false,
         canAttackAir: false,
+        className: Harvester,
         cost: 60,
         damageAgainstAir: 0,
         damageAgainstBase: 0,

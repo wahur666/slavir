@@ -8,6 +8,8 @@ import Graphics = Phaser.GameObjects.Graphics;
 import GetLineToCircle = Phaser.Geom.Intersects.GetLineToCircle;
 import Line = Phaser.Geom.Line;
 import Circle = Phaser.Geom.Circle;
+import type Player from "../model/player/Player";
+import type {Navigation} from "../model/navigation";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -49,14 +51,18 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     currentHealth: number;
     free: (unit: Unit) => void;
     markedForDeletion = false;
+    player: Player;
+    navigation: Navigation;
 
     stat: UnitStat;
     moving = false;
 
-    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, free: (unit: Unit) => Promise<void>) {
+    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, player: Player, navigation: Navigation,  free: (unit: Unit) => Promise<void>) {
         super(scene, x, y, texture);
         this.stat = stat;
         this.free = free;
+        this.player = player;
+        this.navigation = navigation;
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setDepth(2);
@@ -83,6 +89,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         return new Vector2(this.x, this.y);
     }
 
+    /**
+     * Set navigation points, optionally sets the target if it is a unit
+     * @param points
+     * @param target
+     */
     setNav(points: Vector2[], target: Unit | null = null): void {
         if (points.length > 1) {
             this.navPoints = points.slice(1);
@@ -163,7 +174,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    private playAnimation() {
+    playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
             if (this.target) {

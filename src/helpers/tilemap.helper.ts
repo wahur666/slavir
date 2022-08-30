@@ -8,3 +8,7 @@ export function findObjectByProperty(objects: Phaser.Types.Tilemaps.TiledObject[
     }
     return undefined;
 }
+
+export function getPropertyValue<T>(object: Phaser.Types.Tilemaps.TiledObject, property: string): T | undefined {
+    return object.properties.find(e => e.name === property)?.value;
+}

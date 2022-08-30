@@ -29,7 +29,7 @@ class Node {
 
 export class Navigation {
 
-    constructor(public hexMap: HexMap) {}
+    constructor(public hexMap: HexMap, public baseOffset: Vector2, public scaleFactor: number ) {}
 
     createNode(tile: GameTile, mask: number, start: GameTile, end: GameTile): Node {
         return new Node(tile, Boolean(tile.pathfinding & mask), start, end);
@@ -172,5 +172,9 @@ export class Navigation {
             }
         }
         return intersections.length === 0;
+    }
+
+    calculateNavPoint(gameTile: GameTile): Vector2 {
+        return this.hexMap.getCenter(gameTile).add(this.baseOffset).scale(this.scaleFactor);
     }
 }
