@@ -124,9 +124,7 @@ export default class GameScene extends Phaser.Scene {
                             const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
                             if (start) {
                                 this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding, this.selectedUnit.stat.attackRange);
-                                if (this.path.length > 0) {
-                                    this.selectedUnit.setNav(this.path.map(e => this.navigation.calculateNavPoint(e)), unit);
-                                }
+                                this.selectedUnit.setNav(this.path.map(e => this.navigation.calculateNavPoint(e)), unit);
                             }
                         }
                         if (this.config.debug.distance) {
@@ -348,6 +346,9 @@ export default class GameScene extends Phaser.Scene {
         for (const unit of this.player1.units) {
             unit.update();
         }
+        for (const unit of this.player2.units) {
+            unit.update();
+        }
         for (const resource of this.resources) {
             resource.update(delta);
         }
@@ -424,14 +425,15 @@ export default class GameScene extends Phaser.Scene {
 
     async freeHandler(unit: Unit): Promise<void> {
         const unitToFreeInd = unit.player.units.indexOf(unit);
-        if (this.selectedUnit === unit) {
-            this.deselectUnit();
-            await unit.prepForDestroy();
-        }
+        unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
         if (unit instanceof Harvester) {
             const playerToReward = unit.player === this.player1 ? this.player2 : this.player1;
             playerToReward.resource += 80;
             // console.log(playerToReward.resource);
+        }
+        if (this.selectedUnit === unit) {
+            this.deselectUnit();
+            await unit.prepForDestroy();
         }
         unit.destroy();
         unit.player.units.splice(unitToFreeInd, 1);
@@ -446,17 +448,29 @@ export default class GameScene extends Phaser.Scene {
     }
 
     playerCreateUnit(player: Player, e: UnitStat) {
-        const alreadyOccupiedPositions: GameTile[] = [...this.player1.units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
+        if (player.createCoolDown !== 0) {
+            return;
+        }
+        if (player.units.length > 5) {
+            return;
+        }
+        if (player.resource < e.cost) {
+            return;
+        }
+        player.resource -= e.cost;
+        console.log(player.resource);
+        const alreadyOccupiedPositions: GameTile[] = [...player.units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
         const possibleTiles: { distance: number; tile: GameTile }[] = this.hexMap.tiles
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({
                 tile,
-                distance: this.hexMap.tileDistance(tile, this.player1.base!) + this.hexMap.tileDistance(tile, this.player1.spawn!)
+                distance: this.hexMap.tileDistance(tile, player.base!) + this.hexMap.tileDistance(tile, player.spawn!)
             }))
             .sort((a, b) => a.distance - b.distance);
         if (possibleTiles.length > 0 && player.units.length < 6 && (e.limit === -1 || e.limit > player.units.filter(u => u.stat.texture === e.texture).length)) {
             const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e, player);
             player.units.push(unit);
+            player.resetCreateCoolDown();
             this.selectUnit(unit);
         }
     }

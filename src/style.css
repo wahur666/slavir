@@ -11,3 +11,8 @@ html, body {
     align-items: center;
     justify-content: center;
 }
+
+#cv1 {
+    max-width: 100vw;
+    max-height: 100vh;
+}

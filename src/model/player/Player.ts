@@ -24,6 +24,9 @@ export default abstract class Player {
     currentHarvestTime = 0;
     harvestTime = 5000;
 
+    baseCreateCoolDown = 5000;
+    createCoolDown = 0;
+
     constructor(public index: number) {
     }
 
@@ -38,11 +41,18 @@ export default abstract class Player {
 
     update(delta: number) {
         this.currentHarvestTime +=  delta * 5 / (5 - this.numberOfHarvesters * 2);
-        if (this.currentHarvestTime > 5000) {
+        if (this.currentHarvestTime > this.harvestTime) {
             this.resource += 10;
-            this.currentHarvestTime -= 5000;
+            this.currentHarvestTime -= this.harvestTime;
             console.log(this.resource);
+        }
+        if (this.createCoolDown > 0) {
+            this.createCoolDown = Math.max(0, this.createCoolDown - delta);
+            console.log("Create cooldown", this.createCoolDown | 0);
         }
     }
 
+    resetCreateCoolDown() {
+        this.createCoolDown = this.baseCreateCoolDown * this.units.length;
+    }
 }

@@ -12,10 +12,8 @@
 
 ## Tilemap
 
-- [X] Replace ground texture
 - [ ] Replace obstacle texture
 - [ ] Make base texture ground texture
-- [X] Make resource texture ground texture
 
 ## Building
 
@@ -39,17 +37,6 @@
   - [ ] Block targets, and make it to move to the closest tile
   - [ ] Move through friendly units, but prevent same end tile
   - [ ] Move through enemy if its flying
-- [x] Add resources
-  - [x] Add sprite
-  - [x] Add resource logic
-    - (Date.now() - lastUpdate) * ( 5 / (5 - numOfHarvesters * 2) )  
-      - 5 sec no harvester
-      - 3 sec 1 harvester
-      - 1 sec 2 harvester
-  - [x] Destroy resource on depletion
-  - [x] Set newly created harvester target the next in line of priory resource
-  - [x] Add bounty for killing harvester, 80
-  - [x] Add start money 100
 - [ ] Add unit creation delay based on how many already existing
 - [ ] Add objective
   - [ ] Add sprite
@@ -58,7 +45,7 @@
   - [ ] Add timer, with 5 sec dominance for the end
 - [ ] Add turret as commander power
 - [X] Create unit cap 6
-  - [ ] Delay
+  - [x] Delay
     - 0 unit, 0 sec
     - 1 unit, 5 sec
     - 2 units, 10 sec
