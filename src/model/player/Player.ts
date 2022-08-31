@@ -20,6 +20,10 @@ export default abstract class Player {
         TECH: false
     };
 
+    numberOfHarvesters = 0;
+    currentHarvestTime = 0;
+    harvestTime = 5000;
+
     constructor(public index: number) {
     }
 
@@ -30,6 +34,15 @@ export default abstract class Player {
             this.spawn = tile;
         }
         this.buildings.push(building);
+    }
+
+    update(delta: number) {
+        this.currentHarvestTime +=  delta * 5 / (5 - this.numberOfHarvesters * 2);
+        if (this.currentHarvestTime > 5000) {
+            this.resource += 10;
+            this.currentHarvestTime -= 5000;
+            console.log(this.resource);
+        }
     }
 
 }

@@ -7,11 +7,10 @@ export default class Resource extends Phaser.GameObjects.Sprite {
     gameTile: GameTile;
     /** when a new "harvester" is created, the priority, which resource patch is automatically selected  */
     priority: number;
-    /** The resource is available for 60 seconds of active harvesting */
-    availableResource = 60 * 1000;
+    /** The resource is available for 100 seconds of active harvesting */
+    availableResource =  100_000;
     free: (resource: Resource) => void;
-    private _occupied = false;
-    lastHarvestUpdate = 0;
+    occupied = false;
 
     constructor(scene: GameScene, x: number, y: number, texture: string, gameTile: GameTile, priority: number, free: (resource: Resource) => void) {
         super(scene, x, y, texture);
@@ -22,25 +21,9 @@ export default class Resource extends Phaser.GameObjects.Sprite {
         this.free = free;
     }
 
-    get occupied() {
-        return this._occupied;
-    }
-
-    startHarvesting() {
-        this._occupied = true;
-        this.lastHarvestUpdate = Date.now();
-    }
-
-    stopHarvesting() {
-        this._occupied = false;
-        this.lastHarvestUpdate = 0;
-    }
-
-    update() {
-        if (this._occupied) {
-            const now = Date.now();
-            this.availableResource -= now - this.lastHarvestUpdate;
-            this.lastHarvestUpdate = now;
+    update(delta: number) {
+        if (this.occupied) {
+            this.availableResource -= delta;
             // console.log(this.availableResource);
         }
         if (this.availableResource <= 0) {

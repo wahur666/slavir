@@ -39,16 +39,16 @@
   - [ ] Block targets, and make it to move to the closest tile
   - [ ] Move through friendly units, but prevent same end tile
   - [ ] Move through enemy if its flying
-- [ ] Add resources
+- [x] Add resources
   - [x] Add sprite
-  - [ ] Add resource logic
-    - (Date.now() - lastUpdate) * ( 5 / (5 - numOfHarvesters) )  
+  - [x] Add resource logic
+    - (Date.now() - lastUpdate) * ( 5 / (5 - numOfHarvesters * 2) )  
       - 5 sec no harvester
-      - 4 sec 1 harvester, 1.25x multiplier for time (5/4) 
-      - 3 sec 2 harvester, 1.66x multiplier for time (5/3)
-  - [X] Destroy resource on depletion
-  - [X] Set newly created harvester target the next in line of priory resource
-  - [ ] Add bounty for killing harvester
+      - 3 sec 1 harvester
+      - 1 sec 2 harvester
+  - [x] Destroy resource on depletion
+  - [x] Set newly created harvester target the next in line of priory resource
+  - [x] Add bounty for killing harvester, 80
   - [x] Add start money 100
 - [ ] Add unit creation delay based on how many already existing
 - [ ] Add objective

@@ -12,6 +12,7 @@ export default class Harvester extends Unit {
     constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, player: Player, navigation: Navigation, free: (unit: Unit) => Promise<void>) {
         super(scene, x, y, texture, stat, player, navigation, free);
         this.findNearestResource();
+        this.player.numberOfHarvesters += 1;
     }
 
     findNearestResource() {
@@ -57,18 +58,24 @@ export default class Harvester extends Unit {
         }
     }
 
+    prepForDestroy(): Promise<void> {
+        const a = super.prepForDestroy();
+        this.player.numberOfHarvesters -= 1;
+        return a;
+    }
+
     update() {
         super.update();
         const resource = this.scene.resources.find(e => e.gameTile === this.gameTile());
         if (!this.moving && !this.harvesting) {
             if (resource) {
-                resource.startHarvesting();
+                resource.occupied = true;
                 this.harvesting = true;
             }
         }
         if (this.moving && this.harvesting) {
             if (resource) {
-                resource.stopHarvesting();
+                resource.occupied = true;
                 this.harvesting = false;
             }
         }

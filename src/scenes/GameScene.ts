@@ -20,6 +20,7 @@ import Vector2 = Phaser.Math.Vector2;
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 import Building, {buildingStat} from "../entities/Building";
 import Resource from "../entities/Resource";
+import Harvester from "../entities/Harvester";
 
 enum LAYERS {
     BASE = "base"
@@ -348,8 +349,10 @@ export default class GameScene extends Phaser.Scene {
             unit.update();
         }
         for (const resource of this.resources) {
-            resource.update();
+            resource.update(delta);
         }
+        this.player1.update(delta);
+        this.player2.update(delta);
         this.drawVisibleTiles();
     }
 
@@ -420,14 +423,19 @@ export default class GameScene extends Phaser.Scene {
     }
 
     async freeHandler(unit: Unit): Promise<void> {
-        const unitToFreeInd = this.player1.units.indexOf(unit);
+        const unitToFreeInd = unit.player.units.indexOf(unit);
         if (this.selectedUnit === unit) {
             this.deselectUnit();
             await unit.prepForDestroy();
         }
+        if (unit instanceof Harvester) {
+            const playerToReward = unit.player === this.player1 ? this.player2 : this.player1;
+            playerToReward.resource += 80;
+            // console.log(playerToReward.resource);
+        }
         unit.destroy();
-        this.player1.units.splice(unitToFreeInd, 1);
-        console.log(this.player1.units);
+        unit.player.units.splice(unitToFreeInd, 1);
+        // console.log(unit.player.units);
     }
 
     private createCards() {
