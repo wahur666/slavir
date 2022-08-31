@@ -9,7 +9,7 @@ export default class Resource extends Phaser.GameObjects.Sprite {
     priority: number;
     /** The resource is available for 60 seconds of active harvesting */
     availableResource = 60 * 1000;
-    free = (resource: Resource) => {};
+    free: (resource: Resource) => void;
     private _occupied = false;
     lastHarvestUpdate = 0;
 

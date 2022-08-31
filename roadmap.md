@@ -42,9 +42,10 @@
 - [ ] Add resources
   - [x] Add sprite
   - [ ] Add resource logic
-    - 5 sec no harvester
-    - 4 sec 1 harvester
-    - 3 sec 2 harvester
+    - (Date.now() - lastUpdate) * ( 5 / (5 - numOfHarvesters) )  
+      - 5 sec no harvester
+      - 4 sec 1 harvester, 1.25x multiplier for time (5/4) 
+      - 3 sec 2 harvester, 1.66x multiplier for time (5/3)
   - [X] Destroy resource on depletion
   - [X] Set newly created harvester target the next in line of priory resource
   - [ ] Add bounty for killing harvester
