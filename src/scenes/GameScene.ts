@@ -344,10 +344,10 @@ export default class GameScene extends Phaser.Scene {
 
     update(time: number, delta: number) {
         for (const unit of this.player1.units) {
-            unit.update();
+            unit.update(delta);
         }
         for (const unit of this.player2.units) {
-            unit.update();
+            unit.update(delta);
         }
         for (const resource of this.resources) {
             resource.update(delta);

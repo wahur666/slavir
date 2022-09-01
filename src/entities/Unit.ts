@@ -53,9 +53,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     markedForDeletion = false;
     player: Player;
     navigation: Navigation;
+    attackCoolDown = 0;
 
     stat: UnitStat;
     moving = false;
+    attackAnimationPlaying = false;
 
     constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, player: Player, navigation: Navigation,  free: (unit: Unit) => Promise<void>) {
         super(scene, x, y, texture);
@@ -141,12 +143,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
-    update() {
+    update(delta: number) {
         if (this.markedForDeletion) {
             return;
         }
         if (this.target?.markedForDeletion) {
             this.target = null;
+            this.attackAnimationPlaying = false;
         }
         this.playAnimation();
         if (this.navPoints.length > 0) {
@@ -167,6 +170,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         if (this.selected) {
             this.drawSelectionRing();
         }
+        if (this.attackCoolDown > 0) {
+            this.attackCoolDown = Math.max(0, this.attackCoolDown - delta);
+        }
         if (!this.moving && this.target) {
             if(this.target.gameTile().distance(this.gameTile()) > this.stat.attackRange) {
                 this.target = null;
@@ -177,7 +183,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            if (this.target) {
+            if (this.target && this.attackCoolDown === 0) {
                 if (this.target.pos.x <= this.pos.x) {
                     this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
                     this.lastDirection = "left";
@@ -185,8 +191,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.play(Unit.AnimationKeys.ATTACK_RIGHT, true);
                     this.lastDirection = "right";
                 }
+                this.attackCoolDown = this.stat.rateOfFire * 1000;
+                this.attackAnimationPlaying = true;
             } else {
-                this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
+                if (!this.attackAnimationPlaying) {
+                    this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
+                }
             }
         } else if (Math.abs(velocity.x) > Math.abs(velocity.y)) {
             if (velocity.x < 0) {
@@ -378,7 +388,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         });
 
         this.on("animationcomplete", e => {
-            if (e.key === Unit.AnimationKeys.ATTACK_DOWN) {
+            if (e.key.includes(Unit.AnimationKeys.ATTACK_)) {
+                this.attackAnimationPlaying = false;
                 this.play(Unit.AnimationKeys.IDLE_DOWN, true);
             }
         });

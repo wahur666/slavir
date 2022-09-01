@@ -23,7 +23,7 @@
 
 ## Units
 
-- [ ] Configure attack animations cooldown time
+- [x] Configure attack animations cooldown time
 - [ ] Add stat info on card
 - [ ] Add health bar
 - [ ] Add unit groups (low priority)

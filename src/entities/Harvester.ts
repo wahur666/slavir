@@ -33,10 +33,14 @@ export default class Harvester extends Unit {
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            if (this.harvesting) {
+            if (this.harvesting && this.attackCoolDown === 0) {
                 this.play(Unit.AnimationKeys.ATTACK_ + this.lastDirection, true);
+                this.attackCoolDown = this.stat.rateOfFire * 1000;
+                this.attackAnimationPlaying = true;
             } else {
-                this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
+                if (!this.attackAnimationPlaying) {
+                    this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
+                }
             }
         } else if (Math.abs(velocity.x) > Math.abs(velocity.y)) {
             if (velocity.x < 0) {
@@ -77,8 +81,8 @@ export default class Harvester extends Unit {
         console.log("Player harvesters", this.player.numberOfHarvesters);
     }
 
-    update() {
-        super.update();
+    update(delta: number) {
+        super.update(delta);
         if (this.markedForDeletion) {
             return;
         }

@@ -39,7 +39,7 @@ export const stats: Map<string, UnitStat> = new Map([
         flying: false,
         health: 150,
         limit: -1,
-        rateOfFire: 0.6,
+        rateOfFire: 0.8,
         speed: 120,
         texture: "fantasy8",
         type: "infantry",
