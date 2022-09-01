@@ -1,5 +1,6 @@
 import type GameTile from "../GameTile";
 import type HexMap from "../HexMap";
+import {Pathfinding} from "../HexMap";
 import Heap from "heap-js";
 import Vector2 = Phaser.Math.Vector2;
 
@@ -81,6 +82,10 @@ export class Navigation {
             }
         }
         return [];
+    }
+
+    checkBlockade(start: GameTile, end: GameTile): boolean {
+        return this.hexMap.getTileHits(start, end).every(e => e.tile.pathfinding !== Pathfinding.OBSTACLE);
     }
 
     retracePath(start: GameTile, current: Node, mask: number, nearestFree: number): GameTile[] {

@@ -100,7 +100,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         if (points.length > 1) {
             this.navPoints = points.slice(1);
         }
-        this.target = target;
+        // When we can target?
+        // 1. We have a target
+        // 2. That is not the same unit
+        // 3. Which can attack
+        // 4. If not airborne we can attack
+        // 5. And if the target is airborne the unit also can attack air
+        if (target && target !== this && this.stat.canAttack && (target.stat.type !== "aircraft" || this.stat.canAttackAir)) {
+            this.target = target;
+        } else {
+            this.target = null;
+        }
     }
 
     gameTile(): GameTile {
@@ -119,7 +129,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.currentHealth -= unit.stat.damageAgainstVehicle;
                 break;
         }
+        console.log("Remaining health", this.currentHealth);
         if (this.currentHealth <= 0) {
+            unit.target = null;
             this.free(this);
         }
     }
@@ -191,6 +203,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.play(Unit.AnimationKeys.ATTACK_RIGHT, true);
                     this.lastDirection = "right";
                 }
+                this.target.takeDamage(this);
                 this.attackCoolDown = this.stat.rateOfFire * 1000;
                 this.attackAnimationPlaying = true;
             } else {
@@ -199,6 +212,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 }
             }
         } else if (Math.abs(velocity.x) > Math.abs(velocity.y)) {
+            this.attackAnimationPlaying = false;
             if (velocity.x < 0) {
                 this.play(Unit.AnimationKeys.WALK_LEFT, true);
                 this.lastDirection = "left";
@@ -207,6 +221,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.lastDirection = "right";
             }
         } else {
+            this.attackAnimationPlaying = false;
             if (velocity.y < 0) {
                 this.play(Unit.AnimationKeys.WALK_UP, true);
                 this.lastDirection = "up";

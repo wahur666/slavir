@@ -48,7 +48,7 @@ export default abstract class Player {
         }
         if (this.createCoolDown > 0) {
             this.createCoolDown = Math.max(0, this.createCoolDown - delta);
-            console.log("Create cooldown", this.createCoolDown | 0);
+            // console.log("Create cooldown", this.createCoolDown | 0);
         }
     }
 

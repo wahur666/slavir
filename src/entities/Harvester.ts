@@ -43,6 +43,7 @@ export default class Harvester extends Unit {
                 }
             }
         } else if (Math.abs(velocity.x) > Math.abs(velocity.y)) {
+            this.attackAnimationPlaying = false;
             if (velocity.x < 0) {
                 this.play(Unit.AnimationKeys.WALK_LEFT, true);
                 this.lastDirection = "left";
@@ -51,6 +52,7 @@ export default class Harvester extends Unit {
                 this.lastDirection = "right";
             }
         } else {
+            this.attackAnimationPlaying = false;
             if (velocity.y < 0) {
                 this.play(Unit.AnimationKeys.WALK_UP, true);
                 this.lastDirection = "up";

@@ -67,7 +67,7 @@ export default class GameScene extends Phaser.Scene {
     scaledBaseOffset: Phaser.Math.Vector2;
     selectedUnit: Unit | null = null;
     path: GameTile[] = [];
-    resources: Resource[] = []
+    resources: Resource[] = [];
 
     player1: HumanPlayer;
     player2: AiPlayer;
@@ -115,16 +115,23 @@ export default class GameScene extends Phaser.Scene {
                     || ev.y < this.scaledBaseOffset.y || ev.y > this.config.height - this.scaledBaseOffset.y) {
                     return;
                 }
+                // target tile, to check does have unit on it
                 const target = this.pointToTile(ev.x, ev.y);
+                // unit on the target tile
                 const unit = this.player1.units.find(e => this.pointToTile(e.pos.x, e.pos.y) === target);
                 if (unit) {
                     if (target) {
                         this.setCurrentTile(target);
                         if (this.selectedUnit) {
-                            const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
-                            if (start) {
-                                this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding, this.selectedUnit.stat.attackRange);
-                                this.selectedUnit.setNav(this.path.map(e => this.navigation.calculateNavPoint(e)), unit);
+                            if(unit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
+                                && this.navigation.checkBlockade(this.selectedUnit.gameTile(), unit.gameTile())) {
+                                this.selectedUnit?.setNav([], unit);
+                            } else {
+                                const start = this.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
+                                if (start) {
+                                    this.path = this.navigation.findPath(start, target, this.selectedUnit.pathfinding, this.selectedUnit.stat.attackRange);
+                                    this.selectedUnit.setNav(this.path.map(e => this.navigation.calculateNavPoint(e)), unit);
+                                }
                             }
                         }
                         if (this.config.debug.distance) {
@@ -433,8 +440,8 @@ export default class GameScene extends Phaser.Scene {
         }
         if (this.selectedUnit === unit) {
             this.deselectUnit();
-            await unit.prepForDestroy();
         }
+        await unit.prepForDestroy();
         unit.destroy();
         unit.player.units.splice(unitToFreeInd, 1);
         // console.log(unit.player.units);
@@ -458,7 +465,7 @@ export default class GameScene extends Phaser.Scene {
             return;
         }
         player.resource -= e.cost;
-        console.log(player.resource);
+        console.log("Player", player.index, "index", player.resource);
         const alreadyOccupiedPositions: GameTile[] = [...player.units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
         const possibleTiles: { distance: number; tile: GameTile }[] = this.hexMap.tiles
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
