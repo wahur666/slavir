@@ -27,6 +27,9 @@
 - [ ] Add stat info on card
 - [ ] Add health bar
 - [ ] Add unit groups (low priority)
+- [ ] Decrease unit help on damage
+- [ ] Make sure it cannot target itself
+- [ ] Harvester should not able to target units
 
 ## Gameplay
 
