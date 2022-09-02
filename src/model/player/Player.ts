@@ -11,7 +11,8 @@ export default abstract class Player {
     resources: Resource[] = [];
     base: GameTile | undefined;
     spawn: GameTile | undefined;
-    baseHealth = 1000;
+    maxBaseHealth = 1000;
+    currentBaseHealth = this.maxBaseHealth;
     resource = 100;
     hasBuildings = {
         BARRACK: false,
@@ -54,5 +55,9 @@ export default abstract class Player {
 
     resetCreateCoolDown() {
         this.createCoolDown = this.baseCreateCoolDown * this.units.length;
+    }
+
+    takeObjectiveDamage() {
+        this.currentBaseHealth = Math.max(0, this.currentBaseHealth - this.maxBaseHealth / 2);
     }
 }

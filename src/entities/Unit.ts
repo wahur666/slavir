@@ -136,12 +136,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    prepForDestroy(): Promise<void> {
+    stopUnit() {
         this.navPoints = [];
         this.graphics.clear();
         this.selectedGraphics.clear();
         this.body.stop();
         this.moving = false;
+        this.target = null;
+    }
+
+    prepForDestroy(): Promise<void> {
+        this.stopUnit();
         this.markedForDeletion = true;
         this.play("unit-die-" + this.lastDirection);
         return new Promise<void>(resolve => {

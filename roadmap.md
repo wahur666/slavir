@@ -9,6 +9,7 @@
 - [ ] Add win graphics
 - [ ] Add loose graphics
 - [ ] Add pause menu
+- [ ] Add in game time timer
 
 ## Tilemap
 
@@ -18,18 +19,14 @@
 ## Building
 
 - [ ] Add unit building requirement before creating units
-- [ ] Add base health
+- [X] Add base health
 - [ ] Hide enemy buildings when not visible
 
 ## Units
 
-- [x] Configure attack animations cooldown time
 - [ ] Add stat info on card
 - [ ] Add health bar
 - [ ] Add unit groups (low priority)
-- [X] Decrease unit help on damage
-- [x] Make sure it cannot target itself
-- [X] Harvester should not able to target units
 
 ## Gameplay
 
@@ -40,11 +37,12 @@
   - [ ] Block targets, and make it to move to the closest tile
   - [ ] Move through friendly units, but prevent same end tile
   - [ ] Move through enemy if its flying
-- [ ] Add objective
+- [X] Add objective
   - [ ] Add sprite
-  - [ ] Add capture logic
-  - [ ] Add contesting logic
-  - [ ] Add timer, with 5 sec dominance for the end
+  - [X] Add capture logic
+  - [X] Add contesting logic
+  - [X] Add timer, with 5 sec dominance for the end
+  - [ ] Add unit pad holding logic
 - [ ] Add turret as commander power
     
 ## AI

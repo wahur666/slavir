@@ -21,6 +21,7 @@ import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 import Building, {buildingStat} from "../entities/Building";
 import Resource from "../entities/Resource";
 import Harvester from "../entities/Harvester";
+import Objective from "../entities/Objective";
 
 enum LAYERS {
     BASE = "base"
@@ -68,6 +69,8 @@ export default class GameScene extends Phaser.Scene {
     selectedUnit: Unit | null = null;
     path: GameTile[] = [];
     resources: Resource[] = [];
+    gameEnded = false;
+    objective: Objective;
 
     player1: HumanPlayer;
     player2: AiPlayer;
@@ -103,6 +106,7 @@ export default class GameScene extends Phaser.Scene {
         this.input.mouse.disableContextMenu();
         this.player1 = new HumanPlayer(1, this);
         this.player2 = new AiPlayer(2);
+        this.objective = new Objective({}, this.player1, this.player2);
         this.input.keyboard.on("keyup-F", () => {
             if (this.selectedUnit) {
                 this.freeHandler(this.selectedUnit);
@@ -350,6 +354,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
+        if (this.gameEnded) {
+            return;
+        }
         for (const unit of this.player1.units) {
             unit.update(delta);
         }
@@ -359,9 +366,32 @@ export default class GameScene extends Phaser.Scene {
         for (const resource of this.resources) {
             resource.update(delta);
         }
+        this.objective.update(delta);
         this.player1.update(delta);
         this.player2.update(delta);
         this.drawVisibleTiles();
+        if (this.player1.currentBaseHealth <= 0) {
+            console.log("You lost");
+            this.endGame();
+        }
+        if (this.player2.currentBaseHealth <= 0) {
+            console.log("You won");
+            this.endGame();
+        }
+    }
+
+    endGame() {
+        this.gameEnded = true;
+        this.stopUnits();
+    }
+
+    stopUnits() {
+        for (const unit of this.player1.units) {
+            unit.stopUnit();
+        }
+        for (const unit of this.player2.units) {
+            unit.stopUnit();
+        }
     }
 
     createMapRepresentation(mapSize: Vector2) {
