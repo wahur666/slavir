@@ -2,6 +2,7 @@
 
 ## Scenes
 
+- [ ] Add loading screen
 - [ ] Create start menu scene
 
 ## UI
@@ -10,6 +11,10 @@
 - [ ] Add loose graphics
 - [ ] Add pause menu
 - [ ] Add in game time timer
+- [ ] Add resource animation
+- [ ] Add Unit cool down animation
+- [ ] Add objective animation
+- [ ] Add rocket animation
 
 ## Tilemap
 
