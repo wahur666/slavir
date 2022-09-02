@@ -1,6 +1,6 @@
-# Slavir
+<img src="src/assets/slavir.png" alt="Slavir" width="200px" height="200px">
 
-Open-Source Real Time Tactics game inspired by CNC Rivals.
+Slavir is an Open-Source Real Time Tactics game inspired by CNC Rivals.
 
 ## Project goals:
 
