@@ -56,8 +56,7 @@ module.exports = {
   },
   optimization: {
     minimize: true,
-    minimizer: [new TerserPlugin()],
-    runtimeChunk: "single"
+    minimizer: [new TerserPlugin()]
   },
   resolve: {
     extensions: [".ts", ".js"],

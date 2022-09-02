@@ -2,7 +2,6 @@ const path = require("path");
 const WebpackBar = require("webpackbar");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
-const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
   mode: "development",
@@ -52,11 +51,6 @@ module.exports = {
         type: "asset/resource",
       }
     ],
-  },
-  optimization: {
-    // minimize: true,
-    // minimizer: [new TerserPlugin()],
-    runtimeChunk: "single"
   },
   resolve: {
     extensions: [".ts", ".js"],
