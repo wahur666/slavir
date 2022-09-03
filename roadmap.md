@@ -1,11 +1,5 @@
 # Roadmap
 
-## Scenes
-
-- [X] Add loading screen
-- [X] Create start menu scene
-- [X] Add start button on menu scene
-
 ## UI
 
 - [ ] Add win graphics
@@ -35,6 +29,7 @@
 
 ## Gameplay
 
+- [ ] Add 3 sec delay before the game starts
 - [ ] Add unit tracking to target
   - [ ] Add dynamic obstacles
   - [ ] Recalculate navigation if needed

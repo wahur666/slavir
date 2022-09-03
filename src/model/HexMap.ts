@@ -155,6 +155,6 @@ export default class HexMap {
         const polys = this.tiles.map(e => this.layout.polygonCorners(e.hex).map(e => new Vector2(e.x, e.y))).flat();
         const maxX = Math.max(...polys.map(e => e.x));
         const maxY = Math.max(...polys.map(e => e.y));
-        return new Vector2(maxX, maxY).scale(scale);
+        return new Vector2(maxX - 16, maxY).scale(scale);
     }
 }
