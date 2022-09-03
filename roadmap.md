@@ -2,8 +2,9 @@
 
 ## Scenes
 
-- [ ] Add loading screen
-- [ ] Create start menu scene
+- [X] Add loading screen
+- [X] Create start menu scene
+- [ ] Add start button on menu scene
 
 ## UI
 
@@ -24,7 +25,6 @@
 ## Building
 
 - [ ] Add unit building requirement before creating units
-- [X] Add base health
 - [ ] Hide enemy buildings when not visible
 
 ## Units
@@ -44,9 +44,6 @@
   - [ ] Move through enemy if its flying
 - [X] Add objective
   - [ ] Add sprite
-  - [X] Add capture logic
-  - [X] Add contesting logic
-  - [X] Add timer, with 5 sec dominance for the end
   - [ ] Add unit pad holding logic
 - [ ] Add turret as commander power
     

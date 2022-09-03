@@ -17,6 +17,7 @@ import robot5 from "../assets/robot-5.png";
 import fantasy8 from "../assets/fantasy-8.png";
 import demon_dragon from "../assets/demondragon.png";
 import crystals1 from "../assets/crystals1.png";
+import slavir from "../assets/slavir.png";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -34,6 +35,7 @@ export enum Images {
     FANTASY8 = "fantasy8",
     DEMON_DRAGON = "demon_dragon",
     CRYSTAL = "crystals1",
+    SLAVIR = "slavir"
 }
 
 export enum Tilemaps {
@@ -41,12 +43,30 @@ export enum Tilemaps {
 }
 
 export default class PreloadScene extends Phaser.Scene {
+    loadingText: Phaser.GameObjects.Text;
+    background: Phaser.GameObjects.Rectangle;
+    foreground: Phaser.GameObjects.Rectangle;
+    logo: Phaser.GameObjects.Sprite;
 
-    constructor(config: typeof SHARED_CONFIG) {
+    constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.PRELOAD);
     }
 
+    createLoadingGui() {
+        this.loadingText = this.add.text(this.config.width / 2 - 85, this.config.height / 2 - 110, "Loading...", {
+            fontFamily: "Anton Regular, Arial, sans-serif",
+            fontSize: "50px"
+        });
+        this.background = this.add.rectangle(this.config.width / 2, this.config.height / 2 + 50, 600, 50, 0xFFFFFF);
+        this.foreground = this.add.rectangle(343, this.config.height / 2 + 50, 595, 45, 0x233565)
+            .setOrigin(0, 0.5);
+        this.load.on("progress", (value) => {
+            this.foreground.setDisplaySize(595 * value | 0, 45);
+        });
+    }
+
     preload() {
+        this.load.image(Images.SLAVIR, slavir);
         this.load.image(Images.HEX_GRID, Hex_v01_grid);
         this.load.image(Images.CASTLE, castle);
         this.load.image(Images.BARRACK, barrack);
@@ -89,13 +109,20 @@ export default class PreloadScene extends Phaser.Scene {
 
         this.load.tilemapTiledJSON(Tilemaps.MAP1, map1);
 
+        this.createLoadingGui();
+
         this.load.once("complete", () => {
-            this.startGame();
+            // this.startGame();
         });
     }
 
     startGame() {
-        this.scene.start(SceneRegistry.GAME);
+        setTimeout(() => {
+            this.foreground.destroy();
+            this.background.destroy();
+            this.loadingText.destroy();
+            this.scene.start(SceneRegistry.MENU);
+        }, 1000);
     }
 
 }
