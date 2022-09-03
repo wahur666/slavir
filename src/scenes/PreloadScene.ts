@@ -18,6 +18,7 @@ import fantasy8 from "../assets/fantasy-8.png";
 import demon_dragon from "../assets/demondragon.png";
 import crystals1 from "../assets/crystals1.png";
 import slavir from "../assets/slavir.png";
+import {defaultFont} from "../helpers/utils";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -54,7 +55,7 @@ export default class PreloadScene extends Phaser.Scene {
 
     createLoadingGui() {
         this.loadingText = this.add.text(this.config.width / 2 - 85, this.config.height / 2 - 110, "Loading...", {
-            fontFamily: "Anton Regular, Arial, sans-serif",
+            fontFamily: defaultFont,
             fontSize: "50px"
         });
         this.background = this.add.rectangle(this.config.width / 2, this.config.height / 2 + 50, 600, 50, 0xFFFFFF);
@@ -112,7 +113,7 @@ export default class PreloadScene extends Phaser.Scene {
         this.createLoadingGui();
 
         this.load.once("complete", () => {
-            // this.startGame();
+            this.startGame();
         });
     }
 
