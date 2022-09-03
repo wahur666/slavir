@@ -18,6 +18,9 @@ import fantasy8 from "../assets/fantasy-8.png";
 import demon_dragon from "../assets/demondragon.png";
 import crystals1 from "../assets/crystals1.png";
 import slavir from "../assets/slavir.png";
+import buttonLong_blue from "../assets/buttonLong_blue.png";
+import buttonLong_blue_pressed from "../assets/buttonLong_blue_pressed.png";
+import parchmentAncient from "../assets/parchmentAncient.png";
 import {defaultFont} from "../helpers/utils";
 
 export enum Images {
@@ -36,7 +39,10 @@ export enum Images {
     FANTASY8 = "fantasy8",
     DEMON_DRAGON = "demon_dragon",
     CRYSTAL = "crystals1",
-    SLAVIR = "slavir"
+    SLAVIR = "slavir",
+    BUTTON = "button",
+    BUTTON_PRESSED = "button-pressed",
+    BROWN_BG = "brown_bg"
 }
 
 export enum Tilemaps {
@@ -47,7 +53,6 @@ export default class PreloadScene extends Phaser.Scene {
     loadingText: Phaser.GameObjects.Text;
     background: Phaser.GameObjects.Rectangle;
     foreground: Phaser.GameObjects.Rectangle;
-    logo: Phaser.GameObjects.Sprite;
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.PRELOAD);
@@ -76,6 +81,9 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image(Images.TECH, tech);
         this.load.image(Images.SPAWN, spawn);
         this.load.image(Images.CRYSTAL, crystals1);
+        this.load.image(Images.BUTTON, buttonLong_blue);
+        this.load.image(Images.BUTTON_PRESSED, buttonLong_blue_pressed);
+        this.load.image(Images.BROWN_BG, parchmentAncient);
 
         this.load.spritesheet(Images.GUARD, guard, {
             frameWidth: 128,

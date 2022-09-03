@@ -22,6 +22,7 @@ import Building, {buildingStat} from "../entities/Building";
 import Resource from "../entities/Resource";
 import Harvester from "../entities/Harvester";
 import Objective from "../entities/Objective";
+import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
 
 enum LAYERS {
     BASE = "base"
@@ -88,6 +89,7 @@ export default class GameScene extends Phaser.Scene {
         terrain: Phaser.Tilemaps.ObjectLayer;
         base: Phaser.Tilemaps.TilemapLayer
     };
+    bg: Phaser.GameObjects.Sprite;
 
     constructor(private config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -96,6 +98,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.bg = this.add.sprite(this.config.width / 2 , this.config.height / 2, Images.BROWN_BG).setScale(1.25);
         const map = this.createMap();
         this.layers = this.createLayers(map);
         this.hexMap = new HexMap(this.layers);
@@ -107,6 +110,36 @@ export default class GameScene extends Phaser.Scene {
         this.player1 = new HumanPlayer(1, this);
         this.player2 = new AiPlayer(2);
         this.objective = new Objective({}, this.player1, this.player2);
+
+
+        this.setupInput();
+
+        this.createMapRepresentation(new Vector2(this.layers.base.tilemap.width, this.layers.base.tilemap.height));
+
+        for (const tile of this.hexMap.tiles) {
+            tile.tile.tint = 0x545454;
+        }
+
+        if (this.config.debug.hexes) {
+            this.drawHexes();
+        }
+        // this.drawVisibleTiles();
+        if (this.config.debug.distance) {
+            this.drawTileDistance();
+        }
+        if (this.config.debug.navMesh) {
+            this.drawNavMesh();
+        }
+        // this.createPlayer1Units();
+        this.createCards();
+        this.createAllPlayerBuildings(this.player1);
+        this.createAllPlayerBuildings(this.player2);
+        this.createResources();
+    }
+
+
+    private setupInput() {
+        this.input.setDefaultCursor(`url(${cursorGauntlet_grey}), default`);
         this.input.keyboard.on("keyup-F", () => {
             if (this.selectedUnit) {
                 this.freeHandler(this.selectedUnit);
@@ -127,7 +160,7 @@ export default class GameScene extends Phaser.Scene {
                     if (target) {
                         this.setCurrentTile(target);
                         if (this.selectedUnit) {
-                            if(unit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
+                            if (unit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
                                 && this.navigation.checkBlockade(this.selectedUnit.gameTile(), unit.gameTile())) {
                                 this.selectedUnit?.setNav([], unit);
                             } else {
@@ -173,30 +206,7 @@ export default class GameScene extends Phaser.Scene {
                 }
             }
         });
-
-        this.createMapRepresentation(new Vector2(this.layers.base.tilemap.width, this.layers.base.tilemap.height));
-
-        for (const tile of this.hexMap.tiles) {
-            tile.tile.tint = 0x545454;
-        }
-
-        if (this.config.debug.hexes) {
-            this.drawHexes();
-        }
-        // this.drawVisibleTiles();
-        if (this.config.debug.distance) {
-            this.drawTileDistance();
-        }
-        if (this.config.debug.navMesh) {
-            this.drawNavMesh();
-        }
-        // this.createPlayer1Units();
-        this.createCards();
-        this.createAllPlayerBuildings(this.player1);
-        this.createAllPlayerBuildings(this.player2);
-        this.createResources();
     }
-
 
     selectUnit(unit: Unit) {
         if (this.selectedUnit && unit !== this.selectedUnit) {
