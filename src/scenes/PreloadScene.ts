@@ -130,7 +130,11 @@ export default class PreloadScene extends Phaser.Scene {
             this.foreground.destroy();
             this.background.destroy();
             this.loadingText.destroy();
-            this.scene.start(SceneRegistry.MENU);
+            if (this.config.debug.autoLoadGame) {
+                this.scene.start(SceneRegistry.GAME);
+            } else {
+                this.scene.start(SceneRegistry.MENU);
+            }
         }, 1000);
     }
 

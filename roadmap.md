@@ -4,7 +4,7 @@
 
 - [X] Add loading screen
 - [X] Create start menu scene
-- [ ] Add start button on menu scene
+- [X] Add start button on menu scene
 
 ## UI
 

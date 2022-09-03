@@ -26,10 +26,10 @@ export default class MenuScene extends Phaser.Scene {
             fontFamily: defaultFont,
             fontSize: "50px"
         });
-
-        setTimeout(() => {
-            this.scene.start(SceneRegistry.GAME)
-        }, 3000);
+        this.startButton.setInteractive();
+        this.startButton.on("pointerup", () => {
+            this.scene.start(SceneRegistry.GAME);
+        });
     }
 
 
