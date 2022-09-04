@@ -2,6 +2,8 @@ import type Unit from "../../entities/Unit";
 import type Building from "../../entities/Building";
 import type GameTile from "../GameTile";
 import type Resource from "../../entities/Resource";
+import type Systems from "../Systems";
+import type GameScene from "../../scenes/GameScene";
 
 
 export default abstract class Player {
@@ -27,8 +29,10 @@ export default abstract class Player {
 
     baseCreateCoolDown = 5000;
     createCoolDown = 0;
+    protected gameScene: GameScene;
 
-    constructor(public index: number) {
+    constructor(public index: number, protected systems: Systems) {
+        this.gameScene = systems.gameScene;
     }
 
     addBuilding(building: Building, tile: GameTile) {
@@ -59,5 +63,25 @@ export default abstract class Player {
 
     takeObjectiveDamage() {
         this.currentBaseHealth = Math.max(0, this.currentBaseHealth - this.maxBaseHealth / 2);
+    }
+
+    createUnit() {
+
+    }
+
+    buildBarrack() {
+
+    }
+
+    buildFactory() {
+
+    }
+
+    buildHangar() {
+
+    }
+
+    buildTech() {
+        throw Error("Unsupported");
     }
 }

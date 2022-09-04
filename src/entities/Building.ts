@@ -3,6 +3,15 @@ import Vector2 = Phaser.Math.Vector2;
 import type GameTile from "../model/GameTile";
 import type GameScene from "../scenes/GameScene";
 
+export enum Buildings {
+    CASTLE,
+    BARRACK,
+    FACTORY,
+    HANGAR,
+    TECH,
+    SPAWN
+}
+
 export interface BuildingStat {
     type: "castle" | "barrack" | "factory" | "hangar" | "tech" | "spawn",
     cost: number,

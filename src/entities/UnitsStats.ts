@@ -2,6 +2,16 @@ import type {BuildingStat} from "./Building";
 import Unit from "./Unit";
 import Harvester from "./Harvester";
 
+export const enum UnitName {
+    B1_Fantasy8 = "fantasy8",
+    B2_Female_Archer = "female_archer",
+    F1_Robot5 = "robot5",
+    F2_Guard = "guard",
+    H1_Demon_Dragon = "demon_dragon",
+    H2_Black_Dragon = "black_dragon",
+    Harvester = "male_engineer",
+}
+
 export interface UnitStat {
     building: BuildingStat["type"]
     attackRange: 1 | 2;
@@ -18,14 +28,14 @@ export interface UnitStat {
     limit: number;
     rateOfFire: number;
     speed: number;
-    texture: string;
+    texture: UnitName;
     type: "infantry" | "vehicle" | "aircraft"
     visionRadius: 1 | 2 | 3;
 }
 
 
-export const stats: Map<string, UnitStat> = new Map([
-    ["fantasy8", {
+export const stats: Map<UnitName, UnitStat> = new Map([
+    [UnitName.B1_Fantasy8, {
         attackRange: 1,
         building: "barrack",
         canAttack: true,
@@ -41,11 +51,11 @@ export const stats: Map<string, UnitStat> = new Map([
         limit: -1,
         rateOfFire: 0.8,
         speed: 120,
-        texture: "fantasy8",
+        texture: UnitName.B1_Fantasy8,
         type: "infantry",
         visionRadius: 3
     }],
-    ["female_archer", {
+    [UnitName.B2_Female_Archer, {
         attackRange: 2,
         building: "barrack",
         canAttack: true,
@@ -61,11 +71,11 @@ export const stats: Map<string, UnitStat> = new Map([
         limit: -1,
         rateOfFire: 1,
         speed: 100,
-        texture: "female_archer",
+        texture: UnitName.B2_Female_Archer,
         type: "infantry",
         visionRadius: 2
     }],
-    ["robot5", {
+    [UnitName.F1_Robot5, {
         attackRange: 1,
         building: "factory",
         canAttack: true,
@@ -81,11 +91,11 @@ export const stats: Map<string, UnitStat> = new Map([
         limit: -1,
         rateOfFire: 0.8,
         speed: 120,
-        texture: "robot5",
+        texture: UnitName.F1_Robot5,
         type: "vehicle",
         visionRadius: 2
     }],
-    ["guard", {
+    [UnitName.F2_Guard, {
         attackRange: 1,
         building: "factory",
         canAttack: true,
@@ -101,11 +111,11 @@ export const stats: Map<string, UnitStat> = new Map([
         limit: -1,
         rateOfFire: 1.2,
         speed: 120,
-        texture: "guard",
+        texture: UnitName.F2_Guard,
         type: "vehicle",
         visionRadius: 2
     }],
-    ["demon_dragon", {
+    [UnitName.H1_Demon_Dragon, {
         attackRange: 1,
         building: "hangar",
         canAttack: true,
@@ -121,11 +131,11 @@ export const stats: Map<string, UnitStat> = new Map([
         limit: -1,
         rateOfFire: 1.4,
         speed: 140,
-        texture: "demon_dragon",
+        texture: UnitName.H1_Demon_Dragon,
         type: "aircraft",
         visionRadius: 2
     }],
-    ["black_dragon", {
+    [UnitName.H2_Black_Dragon, {
         attackRange: 1,
         building: "hangar",
         canAttack: true,
@@ -141,11 +151,11 @@ export const stats: Map<string, UnitStat> = new Map([
         limit: -1,
         rateOfFire: 1.3,
         speed: 110,
-        texture: "black_dragon",
+        texture: UnitName.H2_Black_Dragon,
         type: "aircraft",
         visionRadius: 2
     }],
-    ["male_engineer", {
+    [UnitName.Harvester, {
         attackRange: 1,
         building: "castle",
         canAttack: false,
@@ -161,7 +171,7 @@ export const stats: Map<string, UnitStat> = new Map([
         limit: 2,
         rateOfFire: 1,
         speed: 80,
-        texture: "male_engineer",
+        texture: UnitName.Harvester,
         type: "vehicle",
         visionRadius: 1
     }]

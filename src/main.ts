@@ -17,7 +17,6 @@ export const SHARED_CONFIG = {
     debug: {
         arcade: false,
         hexes: false,
-        distance: false,
         navMesh: false,
         autoLoadGame: true
     }
