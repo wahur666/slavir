@@ -21,6 +21,10 @@ import slavir from "../assets/slavir.png";
 import buttonLong_blue from "../assets/buttonLong_blue.png";
 import buttonLong_blue_pressed from "../assets/buttonLong_blue_pressed.png";
 import parchmentAncient from "../assets/parchmentAncient.png";
+import panel_blue from "../assets/panel_blue.png";
+import icon_wing from "../assets/Icon.3_58.png";
+import icon_armor from "../assets/Icon.6_94.png";
+import icon_wizard from "../assets/Icons8_32.png";
 import {defaultFont} from "../helpers/utils";
 
 export enum Images {
@@ -42,7 +46,11 @@ export enum Images {
     SLAVIR = "slavir",
     BUTTON = "button",
     BUTTON_PRESSED = "button-pressed",
-    BROWN_BG = "brown_bg"
+    BROWN_BG = "brown_bg",
+    PANEL_BLUE = "panel-blue",
+    ICON_WING = "icon-wing",
+    ICON_ARMOR = "icon-armor",
+    ICON_WIZARD = "icon-wizard"
 }
 
 export enum Tilemaps {
@@ -84,6 +92,10 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image(Images.BUTTON, buttonLong_blue);
         this.load.image(Images.BUTTON_PRESSED, buttonLong_blue_pressed);
         this.load.image(Images.BROWN_BG, parchmentAncient);
+        this.load.image(Images.PANEL_BLUE, panel_blue);
+        this.load.image(Images.ICON_WING, icon_wing);
+        this.load.image(Images.ICON_ARMOR, icon_armor);
+        this.load.image(Images.ICON_WIZARD, icon_wizard);
 
         this.load.spritesheet(Images.GUARD, guard, {
             frameWidth: 128,

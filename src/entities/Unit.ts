@@ -11,6 +11,7 @@ import Circle = Phaser.Geom.Circle;
 import type Player from "../model/player/Player";
 import type {Navigation} from "../model/navigation";
 import type Systems from "../model/Systems";
+import HumanPlayer from "../model/player/HumanPlayer";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -185,10 +186,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.scene.physics.moveTo(this, this.navPoints[0].x, this.navPoints[0].y, this.stat.speed);
             }
         }
-        this.drawPath();
-        this.selectedGraphics.clear();
-        if (this.selected) {
-            this.drawSelectionRing();
+        if (this.player === this.systems.player1) {
+            this.drawPath();
+            this.selectedGraphics.clear();
+            if (this.selected) {
+                this.drawSelectionRing();
+            }
         }
         if (this.attackCoolDown > 0) {
             this.attackCoolDown = Math.max(0, this.attackCoolDown - delta);
