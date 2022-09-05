@@ -1,5 +1,5 @@
 import Unit from "../../entities/Unit";
-import type Building from "../../entities/Building";
+import Building, {Buildings, buildingStat} from "../../entities/Building";
 import type GameTile from "../GameTile";
 import type Resource from "../../entities/Resource";
 import type Systems from "../Systems";
@@ -8,6 +8,8 @@ import type {UnitStat} from "../../entities/UnitsStats";
 import {Pathfinding} from "../HexMap";
 import type {Hex} from "../hexgrid";
 import Harvester from "../../entities/Harvester";
+import {findObjectByProperty} from "../../helpers/tilemap.helper";
+import {UnitName, unitStatMap} from "../../entities/UnitsStats";
 
 
 export default abstract class Player {
@@ -36,18 +38,11 @@ export default abstract class Player {
     createCoolDown = 0;
     protected gameScene: GameScene;
 
-    constructor(public index: number, protected systems: Systems) {
+    protected constructor(public index: number, protected systems: Systems) {
         this.gameScene = systems.gameScene;
     }
 
-    addBuilding(building: Building, tile: GameTile) {
-        if (building.stat.type === "castle") {
-            this.base = tile;
-        } else if (building.stat.type === "spawn") {
-            this.spawn = tile;
-        }
-        this.buildings.push(building);
-    }
+
 
     update(delta: number) {
         this.currentHarvestTime +=  delta * 5 / (5 - this.numberOfHarvesters * 2);
@@ -70,51 +65,39 @@ export default abstract class Player {
         this.currentBaseHealth = Math.max(0, this.currentBaseHealth - this.maxBaseHealth / 2);
     }
 
-    createUnit(hex: Hex, texture: string, stats: UnitStat, player: Player): Unit {
+    private createUnitWithPos(hex: Hex, texture: string, stats: UnitStat): Unit {
         const pos = this.systems.hexToPos(hex);
-        return new stats.className(this.systems, pos.x, pos.y, texture, stats, player, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
+        return new stats.className(this.systems, pos.x, pos.y, texture, stats, this, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
     }
 
-    buildBarrack() {
-
-    }
-
-    buildFactory() {
-
-    }
-
-    buildHangar() {
-
-    }
-
-    buildTech() {
-        throw Error("Unsupported");
-    }
-
-    playerCreateUnit(player: Player, e: UnitStat) {
-        if (player.createCoolDown !== 0) {
+    createUnit(e: UnitName) {
+        const unitStat = unitStatMap.get(e);
+        if (!unitStat) {
             return;
         }
-        if (player.units.length > 5) {
+        if (this.createCoolDown !== 0) {
             return;
         }
-        if (player.resource < e.cost) {
+        if (this.units.length > 5) {
             return;
         }
-        player.resource -= e.cost;
-        console.log("Player", player.index, "index", player.resource);
-        const alreadyOccupiedPositions: GameTile[] = [...player.units.map(unit => this.systems.pointToTile(unit.pos.x, unit.pos.y)!)];
+        if (this.resource < unitStat.cost) {
+            return;
+        }
+        this.resource -= unitStat.cost;
+        console.log("Player", this.index, "index", this.resource);
+        const alreadyOccupiedPositions: GameTile[] = [...this.units.map(unit => this.systems.pointToTile(unit.pos.x, unit.pos.y)!)];
         const possibleTiles: { distance: number; tile: GameTile }[] = this.systems.map.tiles
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({
                 tile,
-                distance: this.systems.map.tileDistance(tile, player.base!) + this.systems.map.tileDistance(tile, player.spawn!)
+                distance: this.systems.map.tileDistance(tile, this.base!) + this.systems.map.tileDistance(tile, this.spawn!)
             }))
             .sort((a, b) => a.distance - b.distance);
-        if (possibleTiles.length > 0 && player.units.length < 6 && (e.limit === -1 || e.limit > player.units.filter(u => u.stat.texture === e.texture).length)) {
-            const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e, player);
-            player.units.push(unit);
-            player.resetCreateCoolDown();
+        if (possibleTiles.length > 0 && this.units.length < 6 && (unitStat.limit === -1 || unitStat.limit > this.units.filter(u => u.stat.texture === unitStat.texture).length)) {
+            const unit = this.createUnitWithPos(possibleTiles[0].tile.hex, unitStat.texture, unitStat);
+            this.units.push(unit);
+            this.resetCreateCoolDown();
             this.selectUnit(unit);
         }
     }
@@ -149,5 +132,70 @@ export default abstract class Player {
             this.selectedUnit.selected = false;
             this.selectedUnit = null;
         }
+    }
+
+    addBuilding(building: Building, tile: GameTile) {
+        if (building.stat.type === "castle") {
+            this.base = tile;
+        } else if (building.stat.type === "spawn") {
+            this.spawn = tile;
+        }
+        this.buildings.push(building);
+    }
+
+    createBuilding(building: Buildings) {
+        let baseTile;
+        if (building === Buildings.CASTLE || building == Buildings.SPAWN) {
+            baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", building);
+        } else {
+            baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", Object.values(this.hasBuildings).filter(e => !!e).length + 1);
+        }
+        let a;
+        if (baseTile && baseTile.x && baseTile.y) {
+            a = this.systems.map.pixelToTile(baseTile.x, baseTile.y);
+        }
+        const hex = a?.hex;
+        if (hex) {
+            const pos = this.systems.hexToPos(hex);
+            const tile = this.systems.map.tiles.find(e => e.hex.equals(hex))!;
+            this.addBuilding(new Building(this.systems, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile);
+        }
+    }
+
+    buildSpawnAndBase() {
+        this.createBuilding(Buildings.CASTLE);
+        this.createBuilding(Buildings.SPAWN);
+    }
+
+    buildBarrack() {
+        this.createBuilding(Buildings.BARRACK);
+        this.hasBuildings.BARRACK = true;
+    }
+
+    buildFactory() {
+        this.createBuilding(Buildings.FACTORY);
+        this.hasBuildings.FACTORY = true;
+    }
+
+    buildHangar() {
+        this.createBuilding(Buildings.HANGAR);
+        this.hasBuildings.HANGAR = true;
+    }
+
+    buildTech() {
+        // this.createBuilding(Buildings.TECH);
+        // this.hasBuildings.TECH = true;
+        throw Error("Unsupported");
+    }
+
+
+    createAllPlayerBuildings() {
+        this.buildFactory();
+        this.buildBarrack();
+        this.buildHangar();
+    }
+
+    create() {
+        this.buildSpawnAndBase();
     }
 }

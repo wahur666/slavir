@@ -3,6 +3,8 @@ import Vector2 = Phaser.Math.Vector2;
 import type GameTile from "../model/GameTile";
 import type GameScene from "../scenes/GameScene";
 import type Systems from "../model/Systems";
+import Player from "../model/player/Player";
+import {findObjectByProperty} from "../helpers/tilemap.helper";
 
 export enum Buildings {
     CASTLE,
@@ -67,7 +69,7 @@ export default class Building extends Phaser.GameObjects.Sprite {
     revealed = false;
     readonly stat: BuildingStat;
     scene: GameScene;
-    private systems: Systems;
+    private readonly systems: Systems;
 
     constructor(systems: Systems, x: number, y: number, stat: BuildingStat) {
         super(systems.gameScene, x, y, stat.texture);

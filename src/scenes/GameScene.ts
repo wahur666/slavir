@@ -6,11 +6,8 @@ import {Images} from "./PreloadScene";
 import {Pathfinding} from "../model/HexMap";
 import type {Hex} from "../model/hexgrid";
 import type Player from "../model/player/Player";
-import {findObjectByProperty} from "../helpers/tilemap.helper";
 import {range} from "../helpers/utils";
 import Graphics = Phaser.GameObjects.Graphics;
-import Building, {Buildings, buildingStat} from "../entities/Building";
-import type Resource from "../entities/Resource";
 import Systems from "../model/Systems";
 
 const grey = 0x808080;
@@ -72,8 +69,8 @@ export default class GameScene extends Phaser.Scene {
         if (this.config.debug.navMesh) {
             this.drawNavMesh();
         }
-        this.createAllPlayerBuildings(this.player1);
-        this.createAllPlayerBuildings(this.player2);
+        this.player1.create();
+        this.player2.create();
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -184,30 +181,6 @@ export default class GameScene extends Phaser.Scene {
             .setY(this.systems.scaledBaseOffset.y)
             .setScale(this.scaleFactor);
     }
-
-    createAllPlayerBuildings(player: Player) {
-        this.createBuilding(player, Buildings.CASTLE);
-        this.createBuilding(player, Buildings.BARRACK);
-        this.createBuilding(player, Buildings.FACTORY);
-        this.createBuilding(player, Buildings.HANGAR);
-        this.createBuilding(player, Buildings.TECH);
-        this.createBuilding(player, Buildings.SPAWN);
-    }
-
-    createBuilding(player: Player, building: Buildings) {
-        const baseTile = findObjectByProperty(this.systems.layers["base" + player.index].objects, "id", building);
-        let a;
-        if (baseTile && baseTile.x && baseTile.y) {
-            a = this.systems.map.pixelToTile(baseTile.x, baseTile.y);
-        }
-        const hex = a?.hex;
-        if (hex) {
-            const pos = this.systems.hexToPos(hex);
-            const tile = this.systems.map.tiles.find(e => e.hex.equals(hex))!;
-            player.addBuilding(new Building(this.systems, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile);
-        }
-    }
-
 
 }
 

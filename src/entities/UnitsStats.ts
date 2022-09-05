@@ -2,7 +2,7 @@ import type {BuildingStat} from "./Building";
 import Unit from "./Unit";
 import Harvester from "./Harvester";
 
-export const enum UnitName {
+export enum UnitName {
     B1_Fantasy8 = "fantasy8",
     B2_Female_Archer = "female_archer",
     F1_Robot5 = "robot5",
@@ -34,7 +34,7 @@ export interface UnitStat {
 }
 
 
-export const stats: Map<UnitName, UnitStat> = new Map([
+export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     [UnitName.B1_Fantasy8, {
         attackRange: 1,
         building: "barrack",

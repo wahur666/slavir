@@ -4,7 +4,7 @@ import cursorGauntlet_grey from "../../assets/cursorGauntlet_grey.png";
 import type GameTile from "../GameTile";
 import type Systems from "../Systems";
 import type Unit from "../../entities/Unit";
-import {stats} from "../../entities/UnitsStats";
+import {unitStatMap} from "../../entities/UnitsStats";
 import Card from "../../entities/Card";
 
 
@@ -84,9 +84,9 @@ export default class HumanPlayer extends Player {
 
 
     private createCards() {
-        console.log(stats);
-        const cards = [...stats.values()].map((e, index, arr) =>
-            new Card(this.gameScene, (this.systems.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, () => this.playerCreateUnit(this, e)));
+        console.log(unitStatMap);
+        const cards = [...unitStatMap.values()].map((e, index, arr) =>
+            new Card(this.gameScene, (this.systems.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, () => this.createUnit(e.texture)));
     }
 
 }
