@@ -5,16 +5,12 @@ import {SceneRegistry} from "./SceneRegistry";
 import {Images} from "./PreloadScene";
 import {Pathfinding} from "../model/HexMap";
 import type {Hex} from "../model/hexgrid";
-import Unit from "../entities/Unit";
-import Card from "../entities/Card";
-import {stats, UnitStat} from "../entities/UnitsStats";
 import type Player from "../model/player/Player";
 import {findObjectByProperty} from "../helpers/tilemap.helper";
 import {range} from "../helpers/utils";
 import Graphics = Phaser.GameObjects.Graphics;
 import Building, {Buildings, buildingStat} from "../entities/Building";
 import type Resource from "../entities/Resource";
-import Harvester from "../entities/Harvester";
 import Systems from "../model/Systems";
 
 const grey = 0x808080;
@@ -37,8 +33,6 @@ export default class GameScene extends Phaser.Scene {
     scaleFactor = 3;
     graphics: Graphics;
     graphics2: Graphics;
-    selectedUnit: Unit | null = null;
-    resources: Resource[] = [];
     gameEnded = false;
     systems: Systems;
     player1: Player;
@@ -78,24 +72,8 @@ export default class GameScene extends Phaser.Scene {
         if (this.config.debug.navMesh) {
             this.drawNavMesh();
         }
-        this.createCards();
         this.createAllPlayerBuildings(this.player1);
         this.createAllPlayerBuildings(this.player2);
-    }
-
-    selectUnit(unit: Unit) {
-        if (this.selectedUnit && unit !== this.selectedUnit) {
-            this.selectedUnit.selected = false;
-        }
-        this.selectedUnit = unit;
-        this.selectedUnit.selected = true;
-    }
-
-    deselectUnit() {
-        if (this.selectedUnit) {
-            this.selectedUnit.selected = false;
-            this.selectedUnit = null;
-        }
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -110,7 +88,7 @@ export default class GameScene extends Phaser.Scene {
     drawVisibleTiles() {
         const visibleTiles = new Set<GameTile>();
         for (const player1Unit of this.player1.units) {
-            const tile = this.pointToTile(player1Unit.pos.x, player1Unit.pos.y);
+            const tile = this.systems.pointToTile(player1Unit.pos.x, player1Unit.pos.y);
             if (tile) {
                 for (const visibleTile of this.systems.map.visibleTiles(tile, player1Unit.stat.visionRadius)) {
                     visibleTiles.add(visibleTile);
@@ -138,13 +116,6 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // Pixel to tile on scaled and moved values
-    pointToTile(x: number, y: number): GameTile | undefined {
-        const normalizedX = (x / this.scaleFactor | 0) - this.systems.baseOffset.x;
-        const normalizedY = (y / this.scaleFactor | 0) - this.systems.baseOffset.y;
-        return this.systems.map.pixelToTile(normalizedX, normalizedY);
-    }
-
     update(time: number, delta: number) {
         if (this.gameEnded) {
             return;
@@ -155,7 +126,7 @@ export default class GameScene extends Phaser.Scene {
         for (const unit of this.player2.units) {
             unit.update(delta);
         }
-        for (const resource of this.resources) {
+        for (const resource of this.systems.resources) {
             resource.update(delta);
         }
         this.systems.objective.update(delta);
@@ -193,7 +164,6 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-
     /** Draws non walkable paths */
     drawNavMesh() {
         const polyiz = this.systems.map.generateNavigationPolygons(Pathfinding.GROUND);
@@ -215,63 +185,6 @@ export default class GameScene extends Phaser.Scene {
             .setScale(this.scaleFactor);
     }
 
-    createUnit(hex: Hex, texture: string, stats: UnitStat, player: Player): Unit {
-        const pos = this.systems.hexToPos(hex);
-        return new stats.className(this, pos.x, pos.y, texture, stats, player, this.systems.navigation, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
-    }
-
-    async freeHandler(unit: Unit): Promise<void> {
-        const unitToFreeInd = unit.player.units.indexOf(unit);
-        unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
-        if (unit instanceof Harvester) {
-            const playerToReward = unit.player === this.player1 ? this.player2 : this.player1;
-            playerToReward.resource += 80;
-            // console.log(playerToReward.resource);
-        }
-        if (this.selectedUnit === unit) {
-            this.deselectUnit();
-        }
-        await unit.prepForDestroy();
-        unit.destroy();
-        unit.player.units.splice(unitToFreeInd, 1);
-        // console.log(unit.player.units);
-    }
-
-    private createCards() {
-        console.log(stats);
-        const cards = [...stats.values()].map((e, index, arr) =>
-            new Card(this, (this.config.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, () => this.playerCreateUnit(this.player1, e)));
-
-    }
-
-    playerCreateUnit(player: Player, e: UnitStat) {
-        if (player.createCoolDown !== 0) {
-            return;
-        }
-        if (player.units.length > 5) {
-            return;
-        }
-        if (player.resource < e.cost) {
-            return;
-        }
-        player.resource -= e.cost;
-        console.log("Player", player.index, "index", player.resource);
-        const alreadyOccupiedPositions: GameTile[] = [...player.units.map(unit => this.pointToTile(unit.pos.x, unit.pos.y)!)];
-        const possibleTiles: { distance: number; tile: GameTile }[] = this.systems.map.tiles
-            .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
-            .map(tile => ({
-                tile,
-                distance: this.systems.map.tileDistance(tile, player.base!) + this.systems.map.tileDistance(tile, player.spawn!)
-            }))
-            .sort((a, b) => a.distance - b.distance);
-        if (possibleTiles.length > 0 && player.units.length < 6 && (e.limit === -1 || e.limit > player.units.filter(u => u.stat.texture === e.texture).length)) {
-            const unit = this.createUnit(possibleTiles[0].tile.hex, e.texture, e, player);
-            player.units.push(unit);
-            player.resetCreateCoolDown();
-            this.selectUnit(unit);
-        }
-    }
-
     createAllPlayerBuildings(player: Player) {
         this.createBuilding(player, Buildings.CASTLE);
         this.createBuilding(player, Buildings.BARRACK);
@@ -291,7 +204,7 @@ export default class GameScene extends Phaser.Scene {
         if (hex) {
             const pos = this.systems.hexToPos(hex);
             const tile = this.systems.map.tiles.find(e => e.hex.equals(hex))!;
-            player.addBuilding(new Building(this, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile);
+            player.addBuilding(new Building(this.systems, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile);
         }
     }
 

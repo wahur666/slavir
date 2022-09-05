@@ -10,6 +10,7 @@ import Line = Phaser.Geom.Line;
 import Circle = Phaser.Geom.Circle;
 import type Player from "../model/player/Player";
 import type {Navigation} from "../model/navigation";
+import type Systems from "../model/Systems";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -58,21 +59,23 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     stat: UnitStat;
     moving = false;
     attackAnimationPlaying = false;
+    systems: Systems;
 
-    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, player: Player, navigation: Navigation,  free: (unit: Unit) => Promise<void>) {
-        super(scene, x, y, texture);
+    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player,  free: (unit: Unit) => Promise<void>) {
+        super(systems.gameScene, x, y, texture);
+        this.systems = systems;
+        this.scene = systems.gameScene;
         this.stat = stat;
         this.free = free;
         this.player = player;
-        this.navigation = navigation;
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
+        this.navigation = systems.navigation;
+        this.scene.add.existing(this);
+        this.scene.physics.add.existing(this);
         this.setDepth(2);
         this.pathfinding = Pathfinding.GROUND;
         if (this.stat.flying) {
             this.pathfinding += Pathfinding.HIGH_GROUND + Pathfinding.WATER;
         }
-        this.scene = scene;
         this.setupGraphics();
         this.setOrigin(0.5, 0.8);
         this.setCircle(this.radius, this.width / 2 - this.radius, this.height - this.radius - 20);
@@ -114,7 +117,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     gameTile(): GameTile {
-        return this.scene.pointToTile(this.x, this.y)!;
+        return this.systems.pointToTile(this.x, this.y)!;
     }
 
     takeDamage(unit: Unit) {

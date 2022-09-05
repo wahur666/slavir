@@ -1,16 +1,15 @@
 import Unit from "./Unit";
-import type GameScene from "../scenes/GameScene";
 import type {UnitStat} from "./UnitsStats";
 import type Player from "../model/player/Player";
-import type {Navigation} from "../model/navigation";
+import type Systems from "../model/Systems";
 
 
 export default class Harvester extends Unit {
 
     harvesting = false;
 
-    constructor(scene: GameScene, x: number, y: number, texture: string, stat: UnitStat, player: Player, navigation: Navigation, free: (unit: Unit) => Promise<void>) {
-        super(scene, x, y, texture, stat, player, navigation, free);
+    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
+        super(systems, x, y, texture, stat, player, free);
         this.findNearestResource();
     }
 
@@ -88,7 +87,7 @@ export default class Harvester extends Unit {
         if (this.markedForDeletion) {
             return;
         }
-        const resource = this.scene.resources.find(e => e.gameTile === this.gameTile());
+        const resource = this.systems.resources.find(e => e.gameTile === this.gameTile());
         if (!this.moving && !this.harvesting) {
             if (resource) {
                 resource.occupied = true;

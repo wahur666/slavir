@@ -2,6 +2,7 @@ import {Images} from "../scenes/PreloadScene";
 import Vector2 = Phaser.Math.Vector2;
 import type GameTile from "../model/GameTile";
 import type GameScene from "../scenes/GameScene";
+import type Systems from "../model/Systems";
 
 export enum Buildings {
     CASTLE,
@@ -66,10 +67,12 @@ export default class Building extends Phaser.GameObjects.Sprite {
     revealed = false;
     readonly stat: BuildingStat;
     scene: GameScene;
+    private systems: Systems;
 
-    constructor(scene: GameScene, x: number, y: number, stat: BuildingStat) {
-        super(scene, x, y, stat.texture);
+    constructor(systems: Systems, x: number, y: number, stat: BuildingStat) {
+        super(systems.gameScene, x, y, stat.texture);
         this.stat = stat;
+        this.systems = systems;
         if (this.stat.type === "spawn" || this.stat.type === "castle") {
             this.revealed = true;
         }
@@ -79,12 +82,12 @@ export default class Building extends Phaser.GameObjects.Sprite {
         if (this.stat.scale) {
             this.setScale(this.stat.scale.x, this.stat.scale.y);
         }
-        scene.add.existing(this);
+        this.systems.gameScene.add.existing(this);
 
     }
 
     gameTile(): GameTile {
-        return this.scene.pointToTile(this.x, this.y)!;
+        return this.systems.pointToTile(this.x, this.y)!;
     }
 
 }

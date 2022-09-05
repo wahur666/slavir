@@ -12,6 +12,7 @@ import {Images, Tilemaps} from "../scenes/PreloadScene";
 import type GameScene from "../scenes/GameScene";
 import HumanPlayer from "./player/HumanPlayer";
 import AiPlayer from "./player/AiPlayer";
+import type GameTile from "./GameTile";
 
 
 export default class Systems {
@@ -28,6 +29,7 @@ export default class Systems {
     hexes: Set<Hex>;
     readonly player1: Player;
     readonly player2: Player;
+    readonly players: Player[];
     gameScene: GameScene;
     layers: {
         obstacle: Phaser.Tilemaps.ObjectLayer;
@@ -54,6 +56,7 @@ export default class Systems {
         this.height = mapDimensions.height;
         this.player1 = new HumanPlayer(1, this);
         this.player2 = new AiPlayer(2, this);
+        this.players = [this.player1, this.player2];
         const map = this.createMap(gameScene);
         this.layers = this.createLayers(map);
         this.map = new HexMap(this.layers);
@@ -159,6 +162,13 @@ export default class Systems {
     /** Returns the scaled hex center position  */
     public hexToPos(hex: Hex): Vector2 {
         return this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
+    }
+
+    // Pixel to tile on scaled and moved values
+    public pointToTile(x: number, y: number): GameTile | undefined {
+        const normalizedX = (x / this.scaleFactor | 0) - this.baseOffset.x;
+        const normalizedY = (y / this.scaleFactor | 0) - this.baseOffset.y;
+        return this.map.pixelToTile(normalizedX, normalizedY);
     }
 
 }
