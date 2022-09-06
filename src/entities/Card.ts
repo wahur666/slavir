@@ -8,6 +8,7 @@ export default class Card extends Phaser.GameObjects.Sprite {
     costText: Phaser.GameObjects.Text;
     private player: Player;
     private unitStat: UnitStat;
+    cooldownLine: Phaser.GameObjects.Rectangle;
 
     constructor(scene: Phaser.Scene, x: number, y: number, unitStat: UnitStat, player: Player, private onCLick: () => void) {
         super(scene, x, y, unitStat.texture, 1);
@@ -58,6 +59,10 @@ export default class Card extends Phaser.GameObjects.Sprite {
         } else {
             wingIcon.tint = 0xFF0000;
         }
+
+        this.cooldownLine = this.scene.add.rectangle(x - 5, y, 80, 5, 0xFF0000, 0.7);
+        this.cooldownLine.setDepth(13);
+        this.cooldownLine.setVisible(false);
     }
 
     update() {
@@ -65,6 +70,15 @@ export default class Card extends Phaser.GameObjects.Sprite {
             this.costText.setColor("#FF0000");
         } else {
             this.costText.setColor("#FFFFFF");
+        }
+        if (this.player.createCoolDown === 0) {
+            this.cooldownLine.setVisible(false);
+        } else {
+            this.cooldownLine.setVisible(true);
+            const maxHeight = this.y - 63;
+            const minHeight = this.y + 48;
+            const percent = this.player.createCoolDown / this.player.baseCreateCoolDown / this.player.units.length;
+            this.cooldownLine.setY(Phaser.Math.Linear(maxHeight, minHeight, percent));
         }
     }
 
