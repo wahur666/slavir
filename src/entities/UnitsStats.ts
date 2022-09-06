@@ -24,6 +24,9 @@ export interface UnitStat {
     damageAgainstInfantry: number;
     damageAgainstVehicle: number;
     flying: boolean;
+    goodAgainstInfantry: boolean;
+    goodAgainstFactory: boolean;
+    goodAgainstAir: boolean;
     health: number;
     limit: number;
     rateOfFire: number;
@@ -47,6 +50,9 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         damageAgainstInfantry: 20,
         damageAgainstVehicle: 15,
         flying: false,
+        goodAgainstInfantry: true,
+        goodAgainstFactory: false,
+        goodAgainstAir: false,
         health: 150,
         limit: -1,
         rateOfFire: 0.8,
@@ -67,6 +73,9 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         damageAgainstInfantry: 15,
         damageAgainstVehicle: 12,
         flying: false,
+        goodAgainstInfantry: true,
+        goodAgainstFactory: false,
+        goodAgainstAir: true,
         health: 120,
         limit: -1,
         rateOfFire: 1,
@@ -87,6 +96,9 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         damageAgainstInfantry: 25,
         damageAgainstVehicle: 15,
         flying: false,
+        goodAgainstInfantry: true,
+        goodAgainstFactory: false,
+        goodAgainstAir: true,
         health: 200,
         limit: -1,
         rateOfFire: 0.8,
@@ -106,6 +118,9 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         damageAgainstBase: 20,
         damageAgainstInfantry: 15,
         damageAgainstVehicle: 30,
+        goodAgainstInfantry: false,
+        goodAgainstFactory: true,
+        goodAgainstAir: false,
         flying: false,
         health: 250,
         limit: -1,
@@ -126,6 +141,9 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         damageAgainstBase: 12,
         damageAgainstInfantry: 30,
         damageAgainstVehicle: 20,
+        goodAgainstInfantry: true,
+        goodAgainstFactory: true,
+        goodAgainstAir: true,
         flying: true,
         health: 150,
         limit: -1,
@@ -146,6 +164,9 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         damageAgainstBase: 25,
         damageAgainstVehicle: 30,
         damageAgainstInfantry: 14,
+        goodAgainstInfantry: false,
+        goodAgainstFactory: true,
+        goodAgainstAir: false,
         flying: true,
         health: 250,
         limit: -1,
@@ -167,6 +188,9 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         damageAgainstInfantry: 0,
         damageAgainstVehicle: 0,
         flying: false,
+        goodAgainstInfantry: false,
+        goodAgainstFactory: false,
+        goodAgainstAir: false,
         health: 300,
         limit: 2,
         rateOfFire: 1,

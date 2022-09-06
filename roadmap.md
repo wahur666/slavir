@@ -23,7 +23,7 @@
 
 ## Units
 
-- [ ] Add stat info on card
+- [X] Add stat info on card
 - [ ] Add health bar
 - [ ] Add unit groups (low priority)
 

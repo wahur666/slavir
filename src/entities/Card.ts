@@ -26,16 +26,35 @@ export default class Card extends Phaser.GameObjects.Sprite {
 
         const wizardIcon = this.scene.add.image(x - 25, y + 58, Images.ICON_WIZARD);
         wizardIcon.setDepth(12).setScale(0.5);
-        wizardIcon.tint = 0xFF0000;
+        if (unitStat.canAttack) {
+            if (unitStat.goodAgainstInfantry) {
+                wizardIcon.tint = 0x00FF00;
+            }
+        } else {
+            wizardIcon.tint = 0xFF0000;
+        }
 
         const armorIcon = this.scene.add.image(x - 5, y + 58, Images.ICON_ARMOR);
         armorIcon.setDepth(12).setScale(0.5);
-        armorIcon.tint = 0xFF0000;
+        if (unitStat.canAttack) {
+            if (unitStat.goodAgainstFactory) {
+                armorIcon.tint = 0x00FF00;
+            }
+        } else {
+            armorIcon.tint = 0xFF0000;
+        }
 
         const wingIcon = this.scene.add.image(x + 15, y + 58, Images.ICON_WING);
         wingIcon.setDepth(12).setScale(0.5);
-        wingIcon.tint = 0xFF0000;
+        if (unitStat.canAttack && unitStat.canAttackAir) {
+            if (unitStat.goodAgainstAir) {
+                wingIcon.tint = 0x00FF00;
+            }
+        } else {
+            wingIcon.tint = 0xFF0000;
+        }
     }
+
 
 
 }
