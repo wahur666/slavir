@@ -16,12 +16,14 @@ export default class HumanPlayer extends Player {
     resourceText: Phaser.GameObjects.Text;
     resourceBarFg: Phaser.GameObjects.Rectangle;
     private cards: Card[];
+    private unitTicks: Phaser.GameObjects.Image[];
 
     constructor(index: number, systems: Systems) {
         super(index, systems);
         this.setupInput();
         this.createCards();
         this.setupResourceUI();
+        this.setupUnitCapUI();
     }
 
     private setupInput() {
@@ -144,6 +146,49 @@ export default class HumanPlayer extends Player {
     decreaseHarvesterCount() {
         super.decreaseHarvesterCount();
         this.updateTicks();
+    }
+
+    setupUnitCapUI() {
+        const baseX = 50;
+        const baseY = 640;
+        const panel = this.gameScene.add.image(baseX, baseY, Images.PANEL_BLUE);
+        panel.setDepth(11).setScale(1.5, 0.6).setOrigin(0, 0.5);
+        const image = this.gameScene.add.image(baseX + 30, baseY, Images.ICON_UNIT);
+        image.setDepth(12);
+        const unitBg = this.gameScene.add.rectangle(baseX + 60, baseY, 72, 12, 0xFFFFFF);
+        unitBg.setDepth(12).setOrigin(0, 0.5);
+        this.unitTicks = [];
+        for (let i = 0; i < 6; i++) {
+            const img = this.gameScene.add.image(baseX + 61 + 13 * i, baseY, Images.BUTTON_PRESSED_BEIGE);
+            img.setDepth(13).setScale(12 / 45);
+            img.setVisible(false);
+            this.unitTicks.push(img);
+        }
+    }
+
+    createUnit(e: UnitName) {
+        super.createUnit(e);
+        this.updateUnitCounter();
+    }
+
+    async freeHandler(unit: Unit): Promise<void> {
+        const res = await super.freeHandler(unit);
+        this.updateUnitCounter();
+        return res;
+    }
+
+    updateUnitCounter() {
+        const unitsLength = this.units.length;
+        this.unitTicks.forEach((e, i) => {
+            e.setVisible(i < unitsLength);
+            if (unitsLength <= 2) {
+                e.tint = 0xFFFFFF;
+            } else if (unitsLength > 2 && unitsLength <= 4) {
+                e.tint = 0xFFA500;
+            } else {
+                e.tint = 0xFF0000;
+            }
+        });
     }
 
 

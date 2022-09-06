@@ -26,9 +26,11 @@ import icon_wing from "../assets/Icon.3_58.png";
 import icon_armor from "../assets/Icon.6_94.png";
 import icon_wizard from "../assets/Icons8_32.png";
 import brown_panel from "../assets/panelInset_brown.png";
-import beige_panel from "../assets/panelInset_beigeLight.png"
+import beige_panel from "../assets/panelInset_beigeLight.png";
 import tick_silver from "../assets/arrowSilver_right.png";
 import tick_brown from "../assets/arrowBrown_right.png";
+import icon_unit from "../assets/Icon.4_33.png";
+import square_button_pressed_beige from "../assets/buttonSquare_beige_pressed.png";
 import {defaultFont} from "../helpers/utils";
 
 export enum Images {
@@ -58,7 +60,9 @@ export enum Images {
     ICON_WIZARD = "icon-wizard",
     BROWN_PANEL = "brown-panel",
     TICK_SILVER = "tick-silver",
-    TICK_BROWN = "tick-brown"
+    TICK_BROWN = "tick-brown",
+    ICON_UNIT = "icon-unit",
+    BUTTON_PRESSED_BEIGE = "button-pressed-beige",
 }
 
 export enum Tilemaps {
@@ -108,6 +112,8 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image(Images.TICK_SILVER, tick_silver);
         this.load.image(Images.TICK_BROWN, tick_brown);
         this.load.image(Images.PANEL_BEIGE, beige_panel);
+        this.load.image(Images.ICON_UNIT, icon_unit);
+        this.load.image(Images.BUTTON_PRESSED_BEIGE, square_button_pressed_beige);
 
         this.load.spritesheet(Images.GUARD, guard, {
             frameWidth: 128,
