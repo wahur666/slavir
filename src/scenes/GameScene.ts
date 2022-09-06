@@ -6,7 +6,7 @@ import {Images} from "./PreloadScene";
 import {Pathfinding} from "../model/HexMap";
 import type {Hex} from "../model/hexgrid";
 import type Player from "../model/player/Player";
-import {defaultFont, range} from "../helpers/utils";
+import {defaultFont, formatTime, range} from "../helpers/utils";
 import Graphics = Phaser.GameObjects.Graphics;
 import Systems from "../model/Systems";
 
@@ -36,6 +36,8 @@ export default class GameScene extends Phaser.Scene {
     player2: Player;
     bg: Phaser.GameObjects.Sprite;
     fpsText: Phaser.GameObjects.Text;
+    startDate: number;
+    currentTimeText: Phaser.GameObjects.Text;
 
     constructor(public config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -44,6 +46,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.startDate = Date.now();
         this.bg = this.add.sprite(this.config.width / 2 , this.config.height / 2, Images.BROWN_BG).setScale(1.25);
 
         this.systems = new Systems(this, {
@@ -61,6 +64,11 @@ export default class GameScene extends Phaser.Scene {
             fontFamily: "sans-serif",
             fontSize: "12px",
             color: "#0000FF"
+        });
+        const timeBg = this.add.image(this.config.width / 2, 10, Images.PANEL_BLUE);
+        this.currentTimeText = this.add.text(this.config.width / 2 - 25, 10, "00:00", {
+            fontFamily: defaultFont,
+            fontSize: "30px"
         });
 
         for (const tile of this.systems.map.tiles) {
@@ -120,6 +128,7 @@ export default class GameScene extends Phaser.Scene {
 
     update(time: number, delta: number) {
         this.fpsText.setText(`${1000 / delta | 0} FPS`);
+        this.currentTimeText.setText(formatTime((Date.now() - this.startDate) / 1000 | 0));
         if (this.gameEnded) {
             return;
         }

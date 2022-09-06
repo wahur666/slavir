@@ -5,7 +5,7 @@
 - [ ] Add win graphics
 - [ ] Add loose graphics
 - [ ] Add pause menu
-- [ ] Add in game time timer
+- [X] Add in game time timer
 - [X] Add resource animation
 - [X] Add Unit cool down animation
 - [ ] Add objective animation
