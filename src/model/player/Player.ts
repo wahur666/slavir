@@ -76,19 +76,19 @@ export default abstract class Player {
         this.numberOfHarvesters = Math.max(this.numberOfHarvesters - 1 , 0);
     }
 
-    createUnit(e: UnitName) {
+    createUnit(e: UnitName): Unit | null {
         const unitStat = unitStatMap.get(e);
         if (!unitStat) {
-            return;
+            return null;
         }
         if (this.createCoolDown !== 0) {
-            return;
+            return null;
         }
         if (this.units.length > 5) {
-            return;
+            return null;
         }
         if (this.resource < unitStat.cost) {
-            return;
+            return null;
         }
         this.resource -= unitStat.cost;
         console.log("Player", this.index, "index", this.resource);
@@ -105,7 +105,9 @@ export default abstract class Player {
             this.units.push(unit);
             this.resetCreateCoolDown();
             this.selectUnit(unit);
+            return unit;
         }
+        return null;
     }
 
     protected async freeHandler(unit: Unit): Promise<void> {

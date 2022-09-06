@@ -50,12 +50,11 @@ export default class HumanPlayer extends Player {
                         if (this.selectedUnit) {
                             if (unit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
                                 && this.systems.navigation.checkBlockade(this.selectedUnit.gameTile(), unit.gameTile())) {
-                                this.selectedUnit?.setNav([], unit);
+                                this.selectedUnit?.moveToGameTile(null, unit);
                             } else {
                                 const start = this.systems.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
                                 if (start) {
-                                    this.path = this.systems.navigation.findPath(start, target, this.selectedUnit.pathfinding, this.selectedUnit.stat.attackRange);
-                                    this.selectedUnit.setNav(this.path.map(e => this.systems.navigation.calculateNavPoint(e)), unit);
+                                    this.selectedUnit.moveToGameTile(target, unit);
                                 }
                             }
                         }
@@ -77,11 +76,7 @@ export default class HumanPlayer extends Player {
                         if (this.selectedUnit) {
                             const start = this.systems.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
                             if (start) {
-                                this.path = this.systems.navigation.findPath(start, target, this.selectedUnit.pathfinding);
-                                if (this.path.length > 0) {
-                                    this.selectedUnit.setNav(this.path.map(e => this.systems.map.getCenter(e)
-                                        .add(this.systems.baseOffset).scale(this.gameScene.scaleFactor)));
-                                }
+                                this.selectedUnit.moveToGameTile(target);
                             }
                         }
                     }
@@ -166,9 +161,10 @@ export default class HumanPlayer extends Player {
         }
     }
 
-    createUnit(e: UnitName) {
-        super.createUnit(e);
+    createUnit(e: UnitName): Unit | null {
+        const unit = super.createUnit(e);
         this.updateUnitCounter();
+        return unit;
     }
 
     async freeHandler(unit: Unit): Promise<void> {

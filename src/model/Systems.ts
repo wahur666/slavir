@@ -45,6 +45,9 @@ export default class Systems {
         base: Phaser.Tilemaps.TilemapLayer
     };
     tileMap: Phaser.Tilemaps.Tilemap;
+    pad1GameTiles: GameTile[];
+    pad2GameTiles: GameTile[];
+    pad3GameTiles: GameTile[];
 
     constructor(gameScene: GameScene, mapDimensions: {
         scaleFactor: number,
@@ -59,10 +62,10 @@ export default class Systems {
         this.player2 = new AiPlayer(2, this);
         this.players = [this.player1, this.player2];
         this.tileMap = this.createMap(gameScene);
-        const tileMap2 = this.createMap(gameScene);
         this.layers = this.createLayers(this.tileMap);
         this.map = new HexMap(this.layers);
         [this.baseOffset, this.scaledBaseOffset] = this.calculateBaseOffset(this.layers.base);
+        this.calculatePadGameTiles();
         this.navigation = new Navigation(this.map, this.baseOffset, this.scaleFactor);
         this.hexes = this.createMapRepresentation(this.layers.base.tilemap.width, this.layers.base.tilemap.height);
         this.objective = new Objective({}, this.player1, this.player2);
@@ -166,11 +169,17 @@ export default class Systems {
         return this.hexCenter(hex).add(this.baseOffset).scale(this.scaleFactor);
     }
 
-    // Pixel to tile on scaled and moved values
+    /** Pixel to tile on scaled and moved values
+     * @see {@link HexMap.pixelToTile} for the unscaled resolve */
     public pointToTile(x: number, y: number): GameTile | undefined {
         const normalizedX = (x / this.scaleFactor | 0) - this.baseOffset.x;
         const normalizedY = (y / this.scaleFactor | 0) - this.baseOffset.y;
         return this.map.pixelToTile(normalizedX, normalizedY);
     }
 
+    private calculatePadGameTiles() {
+        this.pad1GameTiles = this.layers.pad1.objects.map(value => this.map.pixelToTile(value.x!, value.y!)!);
+        this.pad2GameTiles = this.layers.pad2.objects.map(value => this.map.pixelToTile(value.x!, value.y!)!);
+        this.pad3GameTiles = this.layers.pad3.objects.map(value => this.map.pixelToTile(value.x!, value.y!)!);
+    }
 }

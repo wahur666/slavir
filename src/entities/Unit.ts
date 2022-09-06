@@ -100,7 +100,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      * @param points
      * @param target
      */
-    setNav(points: Vector2[], target: Unit | null = null): void {
+    private setNav(points: Vector2[], target: Unit | null = null): void {
         if (points.length > 1) {
             this.navPoints = points.slice(1);
         }
@@ -421,4 +421,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
+    moveToGameTile(gameTile: GameTile | null = null, target: Unit | null = null) {
+        const path = this.systems.navigation.findPathAsVector2(this.gameTile(), gameTile ? gameTile : this.gameTile(), this.pathfinding, target ? this.stat.attackRange : 0);
+        this.setNav(path, target);
+    }
 }

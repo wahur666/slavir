@@ -8,11 +8,6 @@
 - [ ] Add objective animation
 - [ ] Add rocket animation
 
-## Tilemap
-
-- [X] Replace obstacle texture
-- [X] Make base texture ground texture
-
 ## Building
 
 - [ ] Add unit building requirement before creating units

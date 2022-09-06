@@ -30,13 +30,13 @@ class Node {
 
 export class Navigation {
 
-    constructor(public hexMap: HexMap, public baseOffset: Vector2, public scaleFactor: number ) {}
+    constructor(private hexMap: HexMap, private baseOffset: Vector2, private scaleFactor: number ) {}
 
-    createNode(tile: GameTile, mask: number, start: GameTile, end: GameTile): Node {
+    private createNode(tile: GameTile, mask: number, start: GameTile, end: GameTile): Node {
         return new Node(tile, Boolean(tile.pathfinding & mask), start, end);
     }
 
-    nodeNeighbours(node: Node, mask: number, start: GameTile, end: GameTile): Node[] {
+    private nodeNeighbours(node: Node, mask: number, start: GameTile, end: GameTile): Node[] {
         const neighbours: Node[] = [];
         for (const hex of node.tile.hex.neighbours()) {
             const tile = this.hexMap.hexToTile(hex);
@@ -47,7 +47,7 @@ export class Navigation {
         return neighbours;
     }
 
-    findPath(start: GameTile, end: GameTile, mask: number, nearestFree = 0): GameTile[] {
+    private findPath(start: GameTile, end: GameTile, mask: number, nearestFree = 0): GameTile[] {
         if ((!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask))) {
             return [];
         }
@@ -84,11 +84,15 @@ export class Navigation {
         return [];
     }
 
-    checkBlockade(start: GameTile, end: GameTile): boolean {
+    public findPathAsVector2(start: GameTile, end: GameTile, mask: number, nearestFree = 0): Vector2[] {
+        return this.findPath(start, end, mask, nearestFree).map(e => this.calculateNavPoint(e));
+    }
+
+    public checkBlockade(start: GameTile, end: GameTile): boolean {
         return this.hexMap.getTileHits(start, end).every(e => e.tile.pathfinding !== Pathfinding.OBSTACLE);
     }
 
-    retracePath(start: GameTile, current: Node, mask: number, nearestFree: number): GameTile[] {
+    private retracePath(start: GameTile, current: Node, mask: number, nearestFree: number): GameTile[] {
         let path: GameTile[] = [];
         while (current.parent) {
             path.unshift(current.tile);
@@ -163,7 +167,7 @@ export class Navigation {
         return this.checkNavMeshBetweenPoints(point1, point2, mask);
     }
 
-    public checkNavMeshBetweenPoints(point1: Vector2, point2: Vector2, mask: number): boolean {
+    private checkNavMeshBetweenPoints(point1: Vector2, point2: Vector2, mask: number): boolean {
         const polygons = this.hexMap.generateNavigationPolygons2(mask);
         const intersections: Vector2[][] = [];
         for (const polygon of polygons) {
@@ -179,7 +183,7 @@ export class Navigation {
         return intersections.length === 0;
     }
 
-    calculateNavPoint(gameTile: GameTile): Vector2 {
+    private calculateNavPoint(gameTile: GameTile): Vector2 {
         return this.hexMap.getCenter(gameTile).add(this.baseOffset).scale(this.scaleFactor);
     }
 }

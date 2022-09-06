@@ -25,7 +25,7 @@ export default class Harvester extends Unit {
         });
         const targetResource = resources.length > 0 ? resources[0] : null;
         if (targetResource) {
-            this.setNav(this.navigation.findPath(this.gameTile(), targetResource.gameTile, this.pathfinding).map(e => this.navigation.calculateNavPoint(e)));
+            this.moveToGameTile(targetResource.gameTile);
         }
     }
 

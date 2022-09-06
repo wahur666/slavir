@@ -2,7 +2,6 @@ import Player from "./Player";
 import Harvester from "../../entities/Harvester";
 import type Systems from "../Systems";
 import {UnitName} from "../../entities/UnitsStats";
-import {Buildings} from "../../entities/Building";
 
 
 export default class AiPlayer extends Player {
@@ -23,6 +22,13 @@ export default class AiPlayer extends Player {
         }
         if (!this.hasBuildings.BARRACK) {
             this.buildBarrack();
+        } else {
+            if (this.units.filter(e => !(e instanceof Harvester)).length === 0) {
+                const unit = this.createUnit(UnitName.B1_Fantasy8);
+                if (unit) {
+                    unit.moveToGameTile(this.systems.pad2GameTiles[3]);
+                }
+            }
         }
     }
 
