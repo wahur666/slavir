@@ -6,7 +6,7 @@
 - [ ] Add loose graphics
 - [ ] Add pause menu
 - [ ] Add in game time timer
-- [ ] Add resource animation
+- [X] Add resource animation
 - [ ] Add Unit cool down animation
 - [ ] Add objective animation
 - [ ] Add rocket animation

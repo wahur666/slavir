@@ -1,13 +1,18 @@
 import Phaser from "phaser";
-import Rectangle = Phaser.Geom.Rectangle;
 import type {UnitStat} from "./UnitsStats";
 import {Images} from "../scenes/PreloadScene";
 import {defaultFont} from "../helpers/utils";
+import type Player from "../model/player/Player";
 
 export default class Card extends Phaser.GameObjects.Sprite {
+    costText: Phaser.GameObjects.Text;
+    private player: Player;
+    private unitStat: UnitStat;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, unitStat: UnitStat, private onCLick: () => void) {
+    constructor(scene: Phaser.Scene, x: number, y: number, unitStat: UnitStat, player: Player, private onCLick: () => void) {
         super(scene, x, y, unitStat.texture, 1);
+        this.player = player;
+        this.unitStat = unitStat;
         scene.add.existing(this);
         this.setDepth(2);
         this.setCrop(28, 0, 72, 100);
@@ -16,11 +21,11 @@ export default class Card extends Phaser.GameObjects.Sprite {
         const backdrop = this.scene.add.image(x - 6, y + 5, Images.PANEL_BLUE).setScale(0.8, 1.4).setDepth(10);
         backdrop.setInteractive();
         backdrop.on("pointerdown", (ev) => this.onCLick());
-        const costText = this.scene.add.text(x - 6, y + 25, `${unitStat.cost}`, {
+        this.costText = this.scene.add.text(x - 6, y + 25, `${unitStat.cost}`, {
             fontFamily: defaultFont,
             fontSize: "18px"
         });
-        costText.setDepth(12);
+        this.costText.setDepth(12);
         const crystal = this.scene.add.image(x - 20, y + 38, Images.CRYSTAL);
         crystal.setDepth(12).setScale(0.5);
 
@@ -55,6 +60,12 @@ export default class Card extends Phaser.GameObjects.Sprite {
         }
     }
 
-
+    update() {
+        if (this.player.resource < this.unitStat.cost) {
+            this.costText.setColor("#FF0000");
+        } else {
+            this.costText.setColor("#FFFFFF");
+        }
+    }
 
 }

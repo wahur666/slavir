@@ -70,6 +70,14 @@ export default abstract class Player {
         return new stats.className(this.systems, pos.x, pos.y, texture, stats, this, this.freeHandler.bind(this)).play(Unit.AnimationKeys.IDLE_DOWN);
     }
 
+    increaseHarvesterCount() {
+        this.numberOfHarvesters = Math.min(this.numberOfHarvesters + 1, 2);
+    }
+
+    decreaseHarvesterCount() {
+        this.numberOfHarvesters = Math.max(this.numberOfHarvesters - 1 , 0);
+    }
+
     createUnit(e: UnitName) {
         const unitStat = unitStatMap.get(e);
         if (!unitStat) {

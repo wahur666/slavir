@@ -18,7 +18,7 @@ export const SHARED_CONFIG = {
         arcade: false,
         hexes: false,
         navMesh: false,
-        autoLoadGame: true
+        autoLoadGame: false
     }
 };
 

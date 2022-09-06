@@ -72,13 +72,13 @@ export default class Harvester extends Unit {
 
     startHarvesting() {
         this.harvesting = true;
-        this.player.numberOfHarvesters += 1;
+        this.player.increaseHarvesterCount();
         console.log("Player harvesters", this.player.numberOfHarvesters);
     }
 
     stopHarvesting() {
         this.harvesting = false;
-        this.player.numberOfHarvesters -= 1;
+        this.player.decreaseHarvesterCount();
         console.log("Player harvesters", this.player.numberOfHarvesters);
     }
 

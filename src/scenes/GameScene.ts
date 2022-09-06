@@ -6,7 +6,7 @@ import {Images} from "./PreloadScene";
 import {Pathfinding} from "../model/HexMap";
 import type {Hex} from "../model/hexgrid";
 import type Player from "../model/player/Player";
-import {range} from "../helpers/utils";
+import {defaultFont, range} from "../helpers/utils";
 import Graphics = Phaser.GameObjects.Graphics;
 import Systems from "../model/Systems";
 
@@ -35,6 +35,7 @@ export default class GameScene extends Phaser.Scene {
     player1: Player;
     player2: Player;
     bg: Phaser.GameObjects.Sprite;
+    fpsText: Phaser.GameObjects.Text;
 
     constructor(public config: typeof SHARED_CONFIG) {
         super(SceneRegistry.GAME);
@@ -56,7 +57,11 @@ export default class GameScene extends Phaser.Scene {
         this.graphics = this.add.graphics();
         this.graphics2 = this.add.graphics().setScale(this.scaleFactor);
         this.input.mouse.disableContextMenu();
-
+        this.fpsText = this.add.text(0, 0, "0 FPS", {
+            fontFamily: "sans-serif",
+            fontSize: "12px",
+            color: "#0000FF"
+        });
 
         for (const tile of this.systems.map.tiles) {
             tile.tile.tint = 0x545454;
@@ -114,6 +119,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
+        this.fpsText.setText(`${1000 / delta | 0} FPS`);
         if (this.gameEnded) {
             return;
         }
