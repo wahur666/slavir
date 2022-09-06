@@ -20,7 +20,7 @@ export default abstract class Player {
     resources: Resource[] = [];
     base: GameTile | undefined;
     spawn: GameTile | undefined;
-    maxBaseHealth = 3000;
+    maxBaseHealth = 30_000;
     currentBaseHealth = this.maxBaseHealth;
     resource = 100;
     hasBuildings = {
