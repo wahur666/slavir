@@ -1,7 +1,8 @@
 import Player from "./Player";
 import Harvester from "../../entities/Harvester";
 import type Systems from "../Systems";
-import {UnitName} from "../../entities/UnitsStats";
+import {UnitName, unitStatMap} from "../../entities/UnitsStats";
+import type Unit from "../../entities/Unit";
 
 
 export default class AiPlayer extends Player {
@@ -12,8 +13,15 @@ export default class AiPlayer extends Player {
 
     update(delta: number) {
         super.update(delta);
-
         this.play();
+    }
+
+    createUnit(e: UnitName): Unit | null {
+        const unit = super.createUnit(e);
+        if (unit) {
+            unit.tint = 0xf6c5c5;
+        }
+        return unit;
     }
 
     play() {
@@ -24,9 +32,11 @@ export default class AiPlayer extends Player {
             this.buildBarrack();
         } else {
             if (this.units.filter(e => !(e instanceof Harvester)).length === 0) {
-                const unit = this.createUnit(UnitName.B1_Fantasy8);
-                if (unit) {
-                    unit.moveToGameTile(this.systems.pad2GameTiles[3]);
+                if (this.resource >= unitStatMap.get(UnitName.B1_Fantasy8)!.cost) {
+                    const unit = this.createUnit(UnitName.B1_Fantasy8);
+                    if (unit) {
+                        unit.moveToGameTile(this.systems.pad2GameTiles[3]);
+                    }
                 }
             }
         }
