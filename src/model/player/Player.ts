@@ -42,8 +42,6 @@ export default abstract class Player {
         this.gameScene = systems.gameScene;
     }
 
-
-
     update(delta: number) {
         this.currentHarvestTime +=  delta * 5 / (5 - this.numberOfHarvesters * 2);
         if (this.currentHarvestTime > this.harvestTime) {
@@ -57,7 +55,7 @@ export default abstract class Player {
         }
     }
 
-    resetCreateCoolDown() {
+    private resetCreateCoolDown() {
         this.createCoolDown = this.baseCreateCoolDown * this.units.length;
     }
 
@@ -110,7 +108,7 @@ export default abstract class Player {
         }
     }
 
-    async freeHandler(unit: Unit): Promise<void> {
+    protected async freeHandler(unit: Unit): Promise<void> {
         const unitToFreeInd = unit.player.units.indexOf(unit);
         unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
         if (unit instanceof Harvester) {
@@ -127,7 +125,7 @@ export default abstract class Player {
         // console.log(unit.player.units);
     }
 
-    selectUnit(unit: Unit) {
+    protected selectUnit(unit: Unit) {
         if (this.selectedUnit && unit !== this.selectedUnit) {
             this.selectedUnit.selected = false;
         }
@@ -135,14 +133,14 @@ export default abstract class Player {
         this.selectedUnit.selected = true;
     }
 
-    deselectUnit() {
+    protected deselectUnit() {
         if (this.selectedUnit) {
             this.selectedUnit.selected = false;
             this.selectedUnit = null;
         }
     }
 
-    addBuilding(building: Building, tile: GameTile) {
+    private addBuilding(building: Building, tile: GameTile) {
         if (building.stat.type === "castle") {
             this.base = tile;
         } else if (building.stat.type === "spawn") {
@@ -151,7 +149,7 @@ export default abstract class Player {
         this.buildings.push(building);
     }
 
-    createBuilding(building: Buildings) {
+    private createBuilding(building: Buildings) {
         let baseTile;
         if (building === Buildings.CASTLE || building == Buildings.SPAWN) {
             baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", building);
@@ -170,7 +168,7 @@ export default abstract class Player {
         }
     }
 
-    buildSpawnAndBase() {
+    private buildSpawnAndBase() {
         this.createBuilding(Buildings.CASTLE);
         this.createBuilding(Buildings.SPAWN);
     }
@@ -190,14 +188,13 @@ export default abstract class Player {
         this.hasBuildings.HANGAR = true;
     }
 
-    buildTech() {
+    private buildTech() {
         // this.createBuilding(Buildings.TECH);
         // this.hasBuildings.TECH = true;
         throw Error("Unsupported");
     }
 
-
-    createAllPlayerBuildings() {
+    private createAllPlayerBuildings() {
         this.buildFactory();
         this.buildBarrack();
         this.buildHangar();

@@ -4,28 +4,14 @@ import GameConfig = Phaser.Types.Core.GameConfig;
 import PreloadScene from "./scenes/PreloadScene";
 import MenuScene from "./scenes/MenuScene";
 import "./style.css";
+import {SHARED_CONFIG} from "./model/config";
 
-
-const scenes = [PreloadScene, MenuScene, GameScene];
-const createScene = scene => new scene(SHARED_CONFIG);
-const initScenes = () => scenes.map(createScene);
-
-
-export const SHARED_CONFIG = {
-    width: 1280,
-    height: 720,
-    debug: {
-        arcade: false,
-        hexes: false,
-        navMesh: false,
-        autoLoadGame: true
-    }
-};
 
 const config: GameConfig = {
     ...SHARED_CONFIG,
     type: Phaser.WEBGL,
-    scene: initScenes(),
+    scene: [PreloadScene, MenuScene, GameScene],
+
     render: {
         pixelArt: true,
     },

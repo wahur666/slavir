@@ -44,6 +44,7 @@ export default class Systems {
         terrain: Phaser.Tilemaps.ObjectLayer;
         base: Phaser.Tilemaps.TilemapLayer
     };
+    tileMap: Phaser.Tilemaps.Tilemap;
 
     constructor(gameScene: GameScene, mapDimensions: {
         scaleFactor: number,
@@ -57,8 +58,9 @@ export default class Systems {
         this.player1 = new HumanPlayer(1, this);
         this.player2 = new AiPlayer(2, this);
         this.players = [this.player1, this.player2];
-        const map = this.createMap(gameScene);
-        this.layers = this.createLayers(map);
+        this.tileMap = this.createMap(gameScene);
+        const tileMap2 = this.createMap(gameScene);
+        this.layers = this.createLayers(this.tileMap);
         this.map = new HexMap(this.layers);
         [this.baseOffset, this.scaledBaseOffset] = this.calculateBaseOffset(this.layers.base);
         this.navigation = new Navigation(this.map, this.baseOffset, this.scaleFactor);

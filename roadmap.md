@@ -4,14 +4,14 @@
 
 - [ ] Add win graphics
 - [ ] Add loose graphics
-- [ ] Add pause menu
+- [X] Add back to menu button
 - [ ] Add objective animation
 - [ ] Add rocket animation
 
 ## Tilemap
 
-- [ ] Replace obstacle texture
-- [ ] Make base texture ground texture
+- [X] Replace obstacle texture
+- [X] Make base texture ground texture
 
 ## Building
 

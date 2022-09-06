@@ -2,8 +2,8 @@ import Phaser from "phaser";
 import {SceneRegistry} from "./SceneRegistry";
 import {Images} from "./PreloadScene";
 import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
-import type {SHARED_CONFIG} from "../main";
 import {defaultFont} from "../helpers/utils";
+import {SHARED_CONFIG} from "../model/config";
 
 
 export default class MenuScene extends Phaser.Scene {
@@ -12,9 +12,10 @@ export default class MenuScene extends Phaser.Scene {
     startButton: Phaser.GameObjects.Sprite;
     startButtonText: Phaser.GameObjects.Text;
     bg: Phaser.GameObjects.Sprite;
-
-    constructor(private config: typeof SHARED_CONFIG) {
+    private config: typeof SHARED_CONFIG;
+    constructor() {
         super(SceneRegistry.MENU);
+        this.config = SHARED_CONFIG;
     }
 
     create() {

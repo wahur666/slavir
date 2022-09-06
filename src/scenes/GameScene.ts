@@ -1,4 +1,3 @@
-import type {SHARED_CONFIG} from "../main";
 import type GameTile from "../model/GameTile";
 import Phaser from "phaser";
 import {SceneRegistry} from "./SceneRegistry";
@@ -9,6 +8,7 @@ import type Player from "../model/player/Player";
 import {defaultFont, formatTime, range} from "../helpers/utils";
 import Graphics = Phaser.GameObjects.Graphics;
 import Systems from "../model/Systems";
+import {SHARED_CONFIG} from "../model/config";
 
 const grey = 0x808080;
 const white = 0xFFFFFF;
@@ -38,11 +38,13 @@ export default class GameScene extends Phaser.Scene {
     fpsText: Phaser.GameObjects.Text;
     startDate: number;
     currentTimeText: Phaser.GameObjects.Text;
+    private config: typeof SHARED_CONFIG;
 
-    constructor(public config: typeof SHARED_CONFIG) {
+    constructor() {
         super(SceneRegistry.GAME);
         // @ts-ignore
         window.game = this;
+        this.config = SHARED_CONFIG;
     }
 
     create() {
@@ -84,6 +86,7 @@ export default class GameScene extends Phaser.Scene {
         }
         this.player1.create();
         this.player2.create();
+        this.setupRetireButton();
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -195,6 +198,21 @@ export default class GameScene extends Phaser.Scene {
             .setX(this.systems.scaledBaseOffset.x)
             .setY(this.systems.scaledBaseOffset.y)
             .setScale(this.scaleFactor);
+    }
+
+    setupRetireButton() {
+        const retireButton = this.add.image(1200, 600, Images.BUTTON);
+        retireButton.setInteractive();
+        retireButton.on("pointerup", () => {
+            // this.scene.start(SceneRegistry.MENU);
+            console.log("There is a bug, so");
+            window.location.reload();
+        });
+        retireButton.setScale(0.7, 0.9);
+        const retireButtonText = this.add.text(1170, 580, "Retire", {
+            fontFamily: defaultFont,
+            fontSize: "28px",
+        });
     }
 
 }

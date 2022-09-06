@@ -22,7 +22,7 @@ export default class AiPlayer extends Player {
             this.createUnit(UnitName.Harvester);
         }
         if (!this.hasBuildings.BARRACK) {
-            this.createBuilding(Buildings.BARRACK);
+            this.buildBarrack();
         }
     }
 

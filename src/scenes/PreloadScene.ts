@@ -1,5 +1,4 @@
 import * as Phaser from "phaser";
-import type {SHARED_CONFIG} from "../main";
 import {SceneRegistry} from "./SceneRegistry";
 import Hex_v01_grid from "../assets/Hex_v01_grid.png";
 import map1 from "../maps/map2.json";
@@ -32,6 +31,7 @@ import tick_brown from "../assets/arrowBrown_right.png";
 import icon_unit from "../assets/Icon.4_33.png";
 import square_button_pressed_beige from "../assets/buttonSquare_beige_pressed.png";
 import {defaultFont} from "../helpers/utils";
+import {SHARED_CONFIG} from "../model/config";
 
 export enum Images {
     HEX_GRID = "hex-grid",
@@ -73,9 +73,11 @@ export default class PreloadScene extends Phaser.Scene {
     loadingText: Phaser.GameObjects.Text;
     background: Phaser.GameObjects.Rectangle;
     foreground: Phaser.GameObjects.Rectangle;
+    private config: typeof SHARED_CONFIG;
 
-    constructor(private config: typeof SHARED_CONFIG) {
+    constructor() {
         super(SceneRegistry.PRELOAD);
+        this.config = SHARED_CONFIG;
     }
 
     createLoadingGui() {
