@@ -20,7 +20,7 @@ export default abstract class Player {
     resources: Resource[] = [];
     base: GameTile | undefined;
     spawn: GameTile | undefined;
-    maxBaseHealth = 1000;
+    maxBaseHealth = 3000;
     currentBaseHealth = this.maxBaseHealth;
     resource = 100;
     hasBuildings = {
@@ -34,7 +34,7 @@ export default abstract class Player {
     currentHarvestTime = 0;
     harvestTime = 5000;
 
-    baseCreateCoolDown = 5000;
+    baseCreateCoolDown = 2500;
     createCoolDown = 0;
     protected gameScene: GameScene;
 

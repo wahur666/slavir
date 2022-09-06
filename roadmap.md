@@ -5,9 +5,6 @@
 - [ ] Add win graphics
 - [ ] Add loose graphics
 - [ ] Add pause menu
-- [X] Add in game time timer
-- [X] Add resource animation
-- [X] Add Unit cool down animation
 - [ ] Add objective animation
 - [ ] Add rocket animation
 
@@ -23,7 +20,6 @@
 
 ## Units
 
-- [X] Add stat info on card
 - [ ] Add health bar
 - [ ] Add unit groups (low priority)
 

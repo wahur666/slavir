@@ -80,7 +80,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.setupGraphics();
         this.setOrigin(0.5, 0.8);
         this.setCircle(this.radius, this.width / 2 - this.radius, this.height - this.radius - 20);
-        this.currentHealth = this.stat.health;
+        this.currentHealth = this.stat.health * this.stat.squadSize;
         this.generateAnimations();
         this.play(Unit.AnimationKeys.IDLE_DOWN, true);
     }
