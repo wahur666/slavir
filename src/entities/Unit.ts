@@ -11,7 +11,6 @@ import Circle = Phaser.Geom.Circle;
 import type Player from "../model/player/Player";
 import type {Navigation} from "../model/navigation";
 import type Systems from "../model/Systems";
-import HumanPlayer from "../model/player/HumanPlayer";
 
 type Direction = "up" | "down" | "left" | "right";
 

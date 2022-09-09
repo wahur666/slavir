@@ -15,7 +15,7 @@ import {UnitName, unitStatMap} from "../../entities/UnitsStats";
 export default abstract class Player {
 
     units: Unit[] = [];
-    private buildings: Building[] = [];
+    buildings: Building[] = [];
     selectedUnit: Unit | null = null;
     resources: Resource[] = [];
     base: GameTile | undefined;

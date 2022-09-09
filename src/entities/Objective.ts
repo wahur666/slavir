@@ -19,12 +19,14 @@ export default class Objective {
     maxPeaceCoolDown = 10_000;
     peaceCoolDown = 0;
 
-    pads: ObjectivePadState[] = [];
+    pads: ObjectivePadState[] = Array(3).fill(0);
 
     player1: Player;
     player2: Player;
+    padTiles: { pad1: GameTile[]; pad2: GameTile[]; pad3: GameTile[] };
 
-    constructor(padTiles: {[key: string]: GameTile[]}, player1: Player, player2: Player) {
+    constructor(padTiles: {pad1: GameTile[], pad2: GameTile[], pad3: GameTile[]}, player1: Player, player2: Player) {
+        this.padTiles = padTiles;
         this.player1 = player1;
         this.player2 = player2;
     }
@@ -34,6 +36,7 @@ export default class Objective {
             this.peaceCoolDown = Math.max(0, this.peaceCoolDown - delta);
             return;
         }
+        this.calculatePadState();
         const padState = sum(this.pads);
         if (padState !== 0) {
             this.currentCoolDown += delta | 0;
@@ -46,6 +49,7 @@ export default class Objective {
         } else if (this.currentCoolDown > this.bufferZone) {
             this.currentCoolDown = Math.max(this.bufferZone, this.currentCoolDown - delta | 0);
         }
+        // console.log("Pad state cooldown", this.currentCoolDown / 1000 | 0);
     }
 
     /**
@@ -56,6 +60,41 @@ export default class Objective {
             console.log("Rocket goes brrrrrr to the " + (leftSide ? "left" : "right"));
             setTimeout(() => resolve(), 3000);
         });
+    }
+
+    private calculatePadState() {
+        const checkPad = (pad: GameTile, units: GameTile[]): boolean => {
+            for (const unit of units) {
+                if (unit === pad) return true;
+            }
+            return false;
+        };
+        const checkAllPadsForPlayer = (player: Player): number[] => {
+            const playerPads: number[] = [];
+            const playerUnits = player.units.map(e => e.gameTile()!);
+            if (playerUnits.length === 0) {
+                return [0, 0, 0];
+            }
+            const checkAllTiles = (padTiles: GameTile[]): boolean => {
+                for (const pad of padTiles) {
+                    if (checkPad(pad, playerUnits)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            playerPads.push(checkAllTiles(this.padTiles.pad1) ? 1 : 0);
+            playerPads.push(checkAllTiles(this.padTiles.pad2) ? 1 : 0);
+            playerPads.push(checkAllTiles(this.padTiles.pad3) ? 1 : 0);
+            return playerPads;
+        };
+
+        const player1pads = checkAllPadsForPlayer(this.player1);
+        const player2pads = checkAllPadsForPlayer(this.player2);
+
+        for (let i = 0; i < 3; i++) {
+            this.pads[i] = player1pads[i] - player2pads[i];
+        }
     }
 
 }

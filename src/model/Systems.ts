@@ -68,7 +68,11 @@ export default class Systems {
         this.calculatePadGameTiles();
         this.navigation = new Navigation(this.map, this.baseOffset, this.scaleFactor);
         this.hexes = this.createMapRepresentation(this.layers.base.tilemap.width, this.layers.base.tilemap.height);
-        this.objective = new Objective({}, this.player1, this.player2);
+        this.objective = new Objective({
+            pad1: this.pad1GameTiles,
+            pad2: this.pad2GameTiles,
+            pad3: this.pad3GameTiles
+        }, this.player1, this.player2);
         this.resources = this.createResources(gameScene);
     }
 

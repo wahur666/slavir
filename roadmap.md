@@ -30,7 +30,7 @@
   - [ ] Move through enemy if its flying
 - [X] Add objective
   - [ ] Add sprite
-  - [ ] Add unit pad holding logic
+  - [X] Add unit pad holding logic
 - [ ] Add turret as commander power
     
 ## AI
