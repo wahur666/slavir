@@ -41,7 +41,7 @@ export default class Objective {
         if (padState !== 0) {
             this.currentCoolDown += delta | 0;
             if (this.currentCoolDown >= this.maxCoolDown) {
-                const leftSide = padState > 0;
+                const leftSide = padState < 0;
                 this.playRocketAnimation(leftSide).then(() => (leftSide ? this.player1 : this.player2).takeObjectiveDamage());
                 this.currentCoolDown = 0;
                 this.peaceCoolDown = this.maxPeaceCoolDown;

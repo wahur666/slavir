@@ -4,7 +4,6 @@
 
 - [ ] Add win graphics
 - [ ] Add loose graphics
-- [X] Add back to menu button
 - [ ] Add objective animation
 - [ ] Add rocket animation
 
@@ -15,7 +14,7 @@
 
 ## Units
 
-- [ ] Add health bar
+- [X] Add health bar
 - [ ] Add unit groups (low priority)
 
 ## Gameplay

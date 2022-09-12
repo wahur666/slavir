@@ -85,7 +85,7 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
         goodAgainstAir: true,
         health: 220,
         limit: -1,
-        rateOfFire: 1,
+        rateOfFire: 5,
         reference: "Missile Squad",
         speed: 100,
         squadSize: 4,

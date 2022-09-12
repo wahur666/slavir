@@ -5,11 +5,13 @@ import type Resource from "../../entities/Resource";
 import type Systems from "../Systems";
 import type GameScene from "../../scenes/GameScene";
 import type {UnitStat} from "../../entities/UnitsStats";
+import {UnitName, unitStatMap} from "../../entities/UnitsStats";
 import {Pathfinding} from "../HexMap";
 import type {Hex} from "../hexgrid";
 import Harvester from "../../entities/Harvester";
 import {findObjectByProperty} from "../../helpers/tilemap.helper";
-import {UnitName, unitStatMap} from "../../entities/UnitsStats";
+import HealthBar from "../../entities/HealthBar";
+import THREE = Phaser.Input.Keyboard.KeyCodes.THREE;
 
 
 export default abstract class Player {
@@ -37,6 +39,7 @@ export default abstract class Player {
     baseCreateCoolDown = 2500;
     createCoolDown = 0;
     protected gameScene: GameScene;
+    private baseHealthBar?: HealthBar;
 
     protected constructor(public index: number, protected systems: Systems) {
         this.gameScene = systems.gameScene;
@@ -52,6 +55,10 @@ export default abstract class Player {
         if (this.createCoolDown > 0) {
             this.createCoolDown = Math.max(0, this.createCoolDown - delta);
             // console.log("Create cooldown", this.createCoolDown | 0);
+        }
+        if (this.baseHealthBar) {
+            const castle = this.buildings[0];
+            this.baseHealthBar.update(castle.x, castle.y - 60, this.currentBaseHealth / this.maxBaseHealth);
         }
     }
 
@@ -155,6 +162,9 @@ export default abstract class Player {
         let baseTile;
         if (building === Buildings.CASTLE || building == Buildings.SPAWN) {
             baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", building);
+            if (building === Buildings.CASTLE) {
+                this.baseHealthBar = new HealthBar(this.gameScene, baseTile.x, baseTile.y - 60, 100, 15);
+            }
         } else {
             baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", Object.values(this.hasBuildings).filter(e => !!e).length + 1);
         }

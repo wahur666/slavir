@@ -11,6 +11,7 @@ import Circle = Phaser.Geom.Circle;
 import type Player from "../model/player/Player";
 import type {Navigation} from "../model/navigation";
 import type Systems from "../model/Systems";
+import HealthBar from "./HealthBar";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -60,6 +61,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     moving = false;
     attackAnimationPlaying = false;
     systems: Systems;
+    private healthBar: HealthBar;
 
     constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player,  free: (unit: Unit) => Promise<void>) {
         super(systems.gameScene, x, y, texture);
@@ -81,7 +83,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.setCircle(this.radius, this.width / 2 - this.radius, this.height - this.radius - 20);
         this.currentHealth = this.stat.health * this.stat.squadSize;
         this.generateAnimations();
+        this.setupHealthBar();
         this.play(Unit.AnimationKeys.IDLE_DOWN, true);
+    }
+
+    setupHealthBar() {
+        this.healthBar = new HealthBar(this.scene, this.x, this.y - 50, 70, 10);
     }
 
     setupGraphics() {
@@ -123,13 +130,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     takeDamage(unit: Unit) {
         switch (this.stat.type) {
             case "aircraft":
-                this.currentHealth -= unit.stat.damageAgainstAir;
+                this.currentHealth -= unit.stat.damageAgainstAir * unit.stat.squadSize;
                 break;
             case "infantry":
-                this.currentHealth -= unit.stat.damageAgainstInfantry;
+                this.currentHealth -= unit.stat.damageAgainstInfantry * unit.stat.squadSize;
                 break;
             case "vehicle":
-                this.currentHealth -= unit.stat.damageAgainstVehicle;
+                this.currentHealth -= unit.stat.damageAgainstVehicle * unit.stat.squadSize;
                 break;
         }
         console.log("Remaining health", this.currentHealth);
@@ -150,6 +157,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     prepForDestroy(): Promise<void> {
         this.stopUnit();
+        this.healthBar.free();
         this.markedForDeletion = true;
         this.play("unit-die-" + this.lastDirection);
         return new Promise<void>(resolve => {
@@ -200,6 +208,15 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.target = null;
             }
         }
+        this.healthBar.update(this.x, this.y - 100, this.currentHealth / this.stat.health / this.stat.squadSize);
+    }
+
+    attackTarget() {
+        if (this.target && this.target.gameTile().distance(this.gameTile()) <= this.stat.attackRange) {
+            this.target.takeDamage(this);
+            this.attackCoolDown = this.stat.rateOfFire * 1000;
+            this.attackAnimationPlaying = true;
+        }
     }
 
     playAnimation() {
@@ -213,9 +230,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.play(Unit.AnimationKeys.ATTACK_RIGHT, true);
                     this.lastDirection = "right";
                 }
-                this.target.takeDamage(this);
-                this.attackCoolDown = this.stat.rateOfFire * 1000;
-                this.attackAnimationPlaying = true;
+                this.attackTarget();
             } else {
                 if (!this.attackAnimationPlaying) {
                     this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
