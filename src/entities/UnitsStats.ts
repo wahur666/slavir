@@ -1,4 +1,5 @@
 import type {BuildingStat} from "./Building";
+import {Buildings} from "./Building";
 import Unit from "./Unit";
 import Harvester from "./Harvester";
 
@@ -43,7 +44,7 @@ export interface UnitStat {
 export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     [UnitName.B1_Fantasy8, {
         attackRange: 1,
-        building: "barrack",
+        building: Buildings.BARRACK,
         canAttack: true,
         canAttackAir: false,
         className: Unit,
@@ -69,7 +70,7 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     }],
     [UnitName.B2_Female_Archer, {
         attackRange: 1,
-        building: "barrack",
+        building: Buildings.BARRACK,
         canAttack: true,
         canAttackAir: true,
         className: Unit,
@@ -95,7 +96,7 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     }],
     [UnitName.F1_Robot5, {
         attackRange: 1,
-        building: "factory",
+        building: Buildings.FACTORY,
         canAttack: true,
         canAttackAir: true,
         className: Unit,
@@ -121,7 +122,7 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     }],
     [UnitName.F2_Guard, {
         attackRange: 1,
-        building: "factory",
+        building: Buildings.FACTORY,
         canAttack: true,
         canAttackAir: false,
         className: Unit,
@@ -147,7 +148,7 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     }],
     [UnitName.H1_Demon_Dragon, {
         attackRange: 1,
-        building: "hangar",
+        building: Buildings.HANGAR,
         canAttack: true,
         canAttackAir: true,
         className: Unit,
@@ -173,7 +174,7 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     }],
     [UnitName.H2_Black_Dragon, {
         attackRange: 1,
-        building: "hangar",
+        building: Buildings.HANGAR,
         canAttack: true,
         canAttackAir: false,
         className: Unit,
@@ -199,7 +200,7 @@ export const unitStatMap: Map<UnitName, UnitStat> = new Map([
     }],
     [UnitName.Harvester, {
         attackRange: 1,
-        building: "castle",
+        building: Buildings.CASTLE,
         canAttack: false,
         canAttackAir: false,
         className: Harvester,

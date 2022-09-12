@@ -3,59 +3,57 @@ import Vector2 = Phaser.Math.Vector2;
 import type GameTile from "../model/GameTile";
 import type GameScene from "../scenes/GameScene";
 import type Systems from "../model/Systems";
-import Player from "../model/player/Player";
-import {findObjectByProperty} from "../helpers/tilemap.helper";
 
 export enum Buildings {
-    CASTLE,
-    BARRACK,
-    FACTORY,
-    HANGAR,
-    TECH,
-    SPAWN
+    CASTLE = "castle",
+    BARRACK = "barrack",
+    FACTORY = "factory",
+    HANGAR = "hangar",
+    TECH = "tech",
+    SPAWN = "spawn",
 }
 
 export interface BuildingStat {
-    type: "castle" | "barrack" | "factory" | "hangar" | "tech" | "spawn",
+    type:  Buildings
     cost: number,
     origin?: Vector2;
     scale?: Vector2;
     texture: string
 }
-export const buildingStat: Map<string, BuildingStat> = new Map([
-    ["castle", {
-        type: "castle",
+export const buildingStat: Map<Buildings, BuildingStat> = new Map([
+    [Buildings.CASTLE, {
+        type: Buildings.CASTLE,
         cost: 0,
         scale: new Vector2(0.8),
         origin: new Vector2(0.5, 0.6),
         texture: Images.CASTLE
     }],
-    ["barrack", {
-        type: "barrack",
+    [Buildings.BARRACK, {
+        type: Buildings.BARRACK,
         texture: Images.BARRACK,
         scale: new Vector2(0.8),
         cost: 30
     }],
-    ["factory", {
-        type: "factory",
+    [Buildings.FACTORY, {
+        type: Buildings.FACTORY,
         texture: Images.FACTORY,
         scale: new Vector2(0.8),
         cost: 60
     }],
-    ["hangar", {
-        type: "hangar",
+    [Buildings.HANGAR, {
+        type: Buildings.HANGAR,
         texture: Images.HANGAR,
         scale: new Vector2(0.8),
         cost: 50
     }],
-    ["tech", {
-        type: "tech",
+    [Buildings.TECH, {
+        type: Buildings.TECH,
         cost: 100,
         scale: new Vector2(0.8),
         texture: Images.TECH
     }],
-    ["spawn", {
-        type: "spawn",
+    [Buildings.SPAWN, {
+        type: Buildings.SPAWN,
         cost: 0,
         scale: new Vector2(1.1),
         origin: new Vector2(0.5, 0.42),

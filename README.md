@@ -15,3 +15,5 @@ Slavir is an Open-Source Real Time Tactics game inspired by CNC Rivals.
 + Webpack
 + [Tiled editor](https://www.mapeditor.org/)
 + Assets - [OpenGameArt](https://opengameart.org/)
+
+Read the [Roadmap](roadmap.md) what's planed (eventually).

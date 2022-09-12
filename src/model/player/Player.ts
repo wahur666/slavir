@@ -89,6 +89,9 @@ export default abstract class Player {
         if (this.createCoolDown !== 0) {
             return null;
         }
+        if (!this.buildings.find(e => e.stat.type === unitStat.building)) {
+            return null;
+        }
         if (this.units.length > 5) {
             return null;
         }
@@ -156,10 +159,16 @@ export default abstract class Player {
         this.buildings.push(building);
     }
 
-    private createBuilding(building: Buildings) {
+    public createBuilding(building: Buildings) {
+        const buildingConst = buildingStat.get(building)!.cost;
+        if (this.resource < buildingConst) {
+            return;
+        }
+        this.resource -= buildingConst;
         let baseTile;
         if (building === Buildings.CASTLE || building == Buildings.SPAWN) {
-            baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", building);
+            const id = building === Buildings.CASTLE ? 0 : 5;
+            baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", id);
             if (building === Buildings.CASTLE) {
                 this.baseHealthBar = new HealthBar(this.gameScene, baseTile.x, baseTile.y - 60, 100, 15);
             }
@@ -174,8 +183,23 @@ export default abstract class Player {
         if (hex) {
             const pos = this.systems.hexToPos(hex);
             const tile = this.systems.map.tiles.find(e => e.hex.equals(hex))!;
-            this.addBuilding(new Building(this.systems, pos.x, pos.y, buildingStat.get(Buildings[building].toLowerCase())!), tile);
+            this.addBuilding(new Building(this.systems, pos.x, pos.y, buildingStat.get(building)!), tile);
+            switch (building) {
+                case Buildings.BARRACK:
+                    this.hasBuildings.BARRACK = true;
+                    break;
+                case Buildings.FACTORY:
+                    this.hasBuildings.FACTORY = true;
+                    break;
+                case Buildings.HANGAR:
+                    this.hasBuildings.HANGAR = true;
+                    break;
+                case Buildings.TECH:
+                    this.hasBuildings.TECH = true;
+                    break;
+            }
         }
+        console.log("player monny", this.resource);
     }
 
     private buildSpawnAndBase() {
@@ -202,12 +226,6 @@ export default abstract class Player {
         // this.createBuilding(Buildings.TECH);
         // this.hasBuildings.TECH = true;
         throw Error("Unsupported");
-    }
-
-    private createAllPlayerBuildings() {
-        this.buildFactory();
-        this.buildBarrack();
-        this.buildHangar();
     }
 
     create() {

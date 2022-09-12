@@ -8,6 +8,8 @@ import {UnitName, unitStatMap} from "../../entities/UnitsStats";
 import Card from "../../entities/Card";
 import {Images} from "../../scenes/PreloadScene";
 import {defaultFont} from "../../helpers/utils";
+import {buildingStat} from "../../entities/Building";
+import BuildingCard from "../../entities/BuildingCard";
 
 
 export default class HumanPlayer extends Player {
@@ -17,6 +19,7 @@ export default class HumanPlayer extends Player {
     resourceBarFg: Phaser.GameObjects.Rectangle;
     private cards: Card[];
     private unitTicks: Phaser.GameObjects.Image[];
+    private buildCards: BuildingCard[];
 
     constructor(index: number, systems: Systems) {
         super(index, systems);
@@ -87,8 +90,10 @@ export default class HumanPlayer extends Player {
 
     private createCards() {
         console.log(unitStatMap);
+        this.buildCards = [...buildingStat.values()].slice(1, 4).map((e, i) =>
+            new BuildingCard(this.gameScene, this.systems.width / 2 - 255 + i * 180, this.systems.height / 2 + 245, this, e));
         this.cards = [...unitStatMap.values()].map((e, index, arr) =>
-            new Card(this.gameScene, (this.systems.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, this, () => this.createUnit(e.texture)));
+            new Card(this.gameScene, (this.systems.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, this));
     }
 
 
@@ -126,6 +131,7 @@ export default class HumanPlayer extends Player {
         this.resourceText.setText(`${this.resource}`);
         this.resourceBarFg.setDisplaySize(65 * this.currentHarvestTime / this.harvestTime, 15);
         this.cards.forEach(c => c.update());
+        this.buildCards.forEach(c => c.update());
     }
 
     updateTicks() {
