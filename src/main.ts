@@ -5,12 +5,13 @@ import PreloadScene from "./scenes/PreloadScene";
 import MenuScene from "./scenes/MenuScene";
 import "./style.css";
 import {SHARED_CONFIG} from "./model/config";
+import ScoreScene from "./scenes/ScoreScene";
 
 
 const config: GameConfig = {
     ...SHARED_CONFIG,
     type: Phaser.WEBGL,
-    scene: [PreloadScene, MenuScene, GameScene],
+    scene: [PreloadScene, MenuScene, GameScene, ScoreScene],
 
     render: {
         pixelArt: true,

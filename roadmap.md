@@ -2,8 +2,8 @@
 
 ## UI
 
-- [ ] Add win graphics
-- [ ] Add loose graphics
+- [X] Add win graphics
+- [x] Add loose graphics
 - [ ] Add objective animation
 - [ ] Add rocket animation
 
@@ -14,7 +14,6 @@
 
 ## Units
 
-- [X] Add health bar
 - [ ] Add unit groups (low priority)
 
 ## Gameplay

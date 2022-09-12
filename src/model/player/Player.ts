@@ -11,8 +11,6 @@ import type {Hex} from "../hexgrid";
 import Harvester from "../../entities/Harvester";
 import {findObjectByProperty} from "../../helpers/tilemap.helper";
 import HealthBar from "../../entities/HealthBar";
-import THREE = Phaser.Input.Keyboard.KeyCodes.THREE;
-
 
 export default abstract class Player {
 

@@ -150,17 +150,20 @@ export default class GameScene extends Phaser.Scene {
         this.drawVisibleTiles();
         if (this.player1.currentBaseHealth <= 0) {
             console.log("You lost");
-            this.endGame();
+            this.endGame(false);
         }
         if (this.player2.currentBaseHealth <= 0) {
             console.log("You won");
-            this.endGame();
+            this.endGame(true);
         }
     }
 
-    endGame() {
+    endGame(result) {
         this.gameEnded = true;
         this.stopUnits();
+        setTimeout(() => {
+            this.scene.start(SceneRegistry.SCORE, {result});
+        }, 3000);
     }
 
     stopUnits() {
@@ -204,9 +207,7 @@ export default class GameScene extends Phaser.Scene {
         const retireButton = this.add.image(1200, 600, Images.BUTTON);
         retireButton.setInteractive();
         retireButton.on("pointerup", () => {
-            // this.scene.start(SceneRegistry.MENU);
-            console.log("There is a bug, so");
-            window.location.reload();
+            this.scene.start(SceneRegistry.SCORE, {result: false});
         });
         retireButton.setScale(0.7, 0.9);
         const retireButtonText = this.add.text(1170, 580, "Retire", {

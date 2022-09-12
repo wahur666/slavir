@@ -43,7 +43,7 @@ export default class HumanPlayer extends Player {
                 // target tile, to check does have unit on it
                 const target = this.systems.pointToTile(ev.x, ev.y);
                 // unit on the target tile
-                const unit = this.units.find(e => this.systems.pointToTile(e.pos.x, e.pos.y) === target);
+                const unit = this.systems.player2.units.find(e => this.systems.pointToTile(e.pos.x, e.pos.y) === target);
                 if (unit) {
                     if (target) {
                         this.gameScene.setCurrentTile(target);

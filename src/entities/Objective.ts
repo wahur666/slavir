@@ -1,14 +1,7 @@
 import type Player from "../model/player/Player";
 import type GameTile from "../model/GameTile";
 
-
-const enum ObjectivePadState {
-    PLAYER1 = -1,
-    CONTESTED = 0,
-    PLAYER2 = 1
-}
-
-const sum = (arr: ObjectivePadState[]) => arr.reduce((acc, item) => acc + item, 0);
+const sum = (arr: number[]) => arr.reduce((acc, item) => acc + item, 0);
 
 export default class Objective {
 
@@ -19,7 +12,7 @@ export default class Objective {
     maxPeaceCoolDown = 10_000;
     peaceCoolDown = 0;
 
-    pads: ObjectivePadState[] = Array(3).fill(0);
+    pads: number[] = Array(3).fill(0);
 
     player1: Player;
     player2: Player;
