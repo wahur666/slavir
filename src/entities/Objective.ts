@@ -9,9 +9,9 @@ const sum = (arr: number[]) => arr.reduce((acc, item) => acc + item, 0);
 
 export default class Objective {
 
-    maxCoolDown = 60_00;
+    maxCoolDown = 60_000;
     currentCoolDown = 0;
-    bufferZone = 55_00;
+    bufferZone = 55_000;
 
     maxPeaceCoolDown = 10_000;
     peaceCoolDown = 0;

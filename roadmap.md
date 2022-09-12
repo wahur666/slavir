@@ -1,10 +1,5 @@
 # Roadmap
 
-## UI
-
-- [x] Add objective animation
-- [x] Add rocket animation
-
 ## Building
 
 - [ ] Add unit building requirement before creating units
