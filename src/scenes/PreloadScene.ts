@@ -30,6 +30,11 @@ import tick_silver from "../assets/arrowSilver_right.png";
 import tick_brown from "../assets/arrowBrown_right.png";
 import icon_unit from "../assets/Icon.4_33.png";
 import square_button_pressed_beige from "../assets/buttonSquare_beige_pressed.png";
+import obelisk from "../assets/obelisk.png";
+import obelisk_numbers from "../assets/obelisk_numbers.png";
+import nuke from "../assets/nuke.png";
+import nuke_nums from "../assets/nuke_nums.png";
+import lightning from "../assets/lightning.png";
 import {defaultFont} from "../helpers/utils";
 import {SHARED_CONFIG} from "../model/config";
 
@@ -63,6 +68,11 @@ export enum Images {
     TICK_BROWN = "tick-brown",
     ICON_UNIT = "icon-unit",
     BUTTON_PRESSED_BEIGE = "button-pressed-beige",
+    OBELISK = "obelisk",
+    OBELISK_NUMS = "obelisk-nums",
+    NUKE = "nuke",
+    NUKE_NUMS = "nuke-nums",
+    LIGHTNING = "lightning"
 }
 
 export enum Tilemaps {
@@ -116,6 +126,9 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image(Images.PANEL_BEIGE, beige_panel);
         this.load.image(Images.ICON_UNIT, icon_unit);
         this.load.image(Images.BUTTON_PRESSED_BEIGE, square_button_pressed_beige);
+        this.load.image(Images.OBELISK, obelisk);
+        this.load.image(Images.OBELISK_NUMS, obelisk_numbers);
+        this.load.image(Images.NUKE, nuke);
 
         this.load.spritesheet(Images.GUARD, guard, {
             frameWidth: 128,
@@ -146,6 +159,16 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.spritesheet(Images.MALE_ENGINEER, male_engineer, {
             frameWidth: 128,
             frameHeight: 128
+        });
+
+        this.load.spritesheet(Images.NUKE_NUMS, nuke_nums, {
+            frameWidth: 7,
+            frameHeight: 7
+        });
+
+        this.load.spritesheet(Images.LIGHTNING, lightning, {
+            frameWidth: 256,
+            frameHeight: 256
         });
 
         this.load.tilemapTiledJSON(Tilemaps.MAP1, map1);

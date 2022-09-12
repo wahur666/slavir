@@ -2,10 +2,8 @@
 
 ## UI
 
-- [X] Add win graphics
-- [x] Add loose graphics
-- [ ] Add objective animation
-- [ ] Add rocket animation
+- [x] Add objective animation
+- [x] Add rocket animation
 
 ## Building
 
@@ -26,9 +24,6 @@
   - [ ] Block targets, and make it to move to the closest tile
   - [ ] Move through friendly units, but prevent same end tile
   - [ ] Move through enemy if its flying
-- [X] Add objective
-  - [ ] Add sprite
-  - [X] Add unit pad holding logic
 - [ ] Add turret as commander power
     
 ## AI

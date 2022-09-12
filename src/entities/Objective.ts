@@ -1,48 +1,76 @@
 import type Player from "../model/player/Player";
 import type GameTile from "../model/GameTile";
+import type Systems from "../model/Systems";
+import {Images} from "../scenes/PreloadScene";
+import HealthBar from "./HealthBar";
+import Lightning from "./Lightning";
 
 const sum = (arr: number[]) => arr.reduce((acc, item) => acc + item, 0);
 
 export default class Objective {
 
-    maxCoolDown = 60_000;
+    maxCoolDown = 60_00;
     currentCoolDown = 0;
-    bufferZone = 55_000;
+    bufferZone = 55_00;
 
     maxPeaceCoolDown = 10_000;
     peaceCoolDown = 0;
+
+    bufferTime = 3000;
 
     pads: number[] = Array(3).fill(0);
 
     player1: Player;
     player2: Player;
-    padTiles: { pad1: GameTile[]; pad2: GameTile[]; pad3: GameTile[] };
+    padTiles: { nuke: GameTile, pad1: GameTile[]; pad2: GameTile[]; pad3: GameTile[] };
+    private healthBar: HealthBar;
+    private nukePos: Phaser.Math.Vector2;
+    private lightning: Lightning;
 
-    constructor(padTiles: {pad1: GameTile[], pad2: GameTile[], pad3: GameTile[]}, player1: Player, player2: Player) {
+    constructor(private systems: Systems, padTiles: {nuke: GameTile, pad1: GameTile[], pad2: GameTile[], pad3: GameTile[]}) {
         this.padTiles = padTiles;
-        this.player1 = player1;
-        this.player2 = player2;
+        this.player1 = this.systems.player1;
+        this.player2 = this.systems.player2;
+        this.create();
+        this.lightning = new Lightning(this.systems.gameScene, 0, 0);
+    }
+
+    create() {
+        this.nukePos = this.systems.hexToPos(this.padTiles.nuke.hex);
+        const nukeBase = this.systems.gameScene.add.image(this.nukePos.x, this.nukePos.y, Images.NUKE);
+        const obelisk = this.systems.gameScene.add.image(this.nukePos.x + 1, this.nukePos.y + 10, Images.OBELISK).setOrigin(0.5, 1);
+        const obeliskNums = this.systems.gameScene.add.image(this.nukePos.x + 1, this.nukePos.y - 18, Images.OBELISK_NUMS);
+        const nukeBaseNums0 = this.systems.gameScene.add.image(this.nukePos.x - 39, this.nukePos.y - 4, Images.NUKE_NUMS, 0);
+        const nukeBaseNums3 = this.systems.gameScene.add.image(this.nukePos.x + 39, this.nukePos.y - 4, Images.NUKE_NUMS, 3);
+        this.healthBar = new HealthBar(this.systems.gameScene, this.nukePos.x + 1, this.nukePos.y + 20, 100, 15, 0x23aa65);
     }
 
     update(delta: number) {
         if (this.peaceCoolDown > 0) {
             this.peaceCoolDown = Math.max(0, this.peaceCoolDown - delta);
+            this.healthBar.update(this.nukePos.x + 1, this.nukePos.y + 20, Math.max(0, 1 - (this.maxPeaceCoolDown - this.peaceCoolDown) / this.bufferTime));
+            this.healthBar.setColor(0xFF0000);
             return;
         }
+        this.healthBar.setColor(0x23aa65);
         this.calculatePadState();
         const padState = sum(this.pads);
         if (padState !== 0) {
             this.currentCoolDown += delta | 0;
             if (this.currentCoolDown >= this.maxCoolDown) {
                 const leftSide = padState < 0;
-                this.playRocketAnimation(leftSide).then(() => (leftSide ? this.player1 : this.player2).takeObjectiveDamage());
+                this.playRocketAnimation(leftSide).then(() => {
+                    (leftSide ? this.player1 : this.player2).takeObjectiveDamage();
+                    this.lightning.strike(this.nukePos, this.systems.hexToPos((leftSide ? this.player1 : this.player2).base!.hex));
+                });
                 this.currentCoolDown = 0;
                 this.peaceCoolDown = this.maxPeaceCoolDown;
             }
         } else if (this.currentCoolDown > this.bufferZone) {
             this.currentCoolDown = Math.max(this.bufferZone, this.currentCoolDown - delta | 0);
         }
-        // console.log("Pad state cooldown", this.currentCoolDown / 1000 | 0);
+        this.healthBar.update(this.nukePos.x + 1, this.nukePos.y + 20, this.currentCoolDown / this.maxCoolDown);
+        console.log("Pad state cooldown", this.currentCoolDown / 1000 | 0);
     }
 
     /**
@@ -50,8 +78,7 @@ export default class Objective {
      */
     async playRocketAnimation(leftSide: boolean): Promise<void> {
         return new Promise(resolve => {
-            console.log("Rocket goes brrrrrr to the " + (leftSide ? "left" : "right"));
-            setTimeout(() => resolve(), 3000);
+            setTimeout(() => resolve(), this.bufferTime);
         });
     }
 

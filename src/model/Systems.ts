@@ -4,8 +4,6 @@ import Objective from "../entities/Objective";
 import Resource from "../entities/Resource";
 import Phaser from "phaser";
 import {getPropertyValue, LAYERS, TILESETS} from "../helpers/tilemap.helper";
-import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
-import Vector2 = Phaser.Math.Vector2;
 import {Hex} from "./hexgrid";
 import type Player from "./player/Player";
 import {Images, Tilemaps} from "../scenes/PreloadScene";
@@ -13,6 +11,8 @@ import type GameScene from "../scenes/GameScene";
 import HumanPlayer from "./player/HumanPlayer";
 import AiPlayer from "./player/AiPlayer";
 import type GameTile from "./GameTile";
+import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
+import Vector2 = Phaser.Math.Vector2;
 
 
 export default class Systems {
@@ -45,6 +45,7 @@ export default class Systems {
         base: Phaser.Tilemaps.TilemapLayer
     };
     tileMap: Phaser.Tilemaps.Tilemap;
+    nukeGameTile: GameTile;
     pad1GameTiles: GameTile[];
     pad2GameTiles: GameTile[];
     pad3GameTiles: GameTile[];
@@ -68,11 +69,7 @@ export default class Systems {
         this.calculatePadGameTiles();
         this.navigation = new Navigation(this.map, this.baseOffset, this.scaleFactor);
         this.hexes = this.createMapRepresentation(this.layers.base.tilemap.width, this.layers.base.tilemap.height);
-        this.objective = new Objective({
-            pad1: this.pad1GameTiles,
-            pad2: this.pad2GameTiles,
-            pad3: this.pad3GameTiles
-        }, this.player1, this.player2);
+        this.objective = this.createObjective();
         this.resources = this.createResources(gameScene);
     }
 
@@ -182,8 +179,18 @@ export default class Systems {
     }
 
     private calculatePadGameTiles() {
+        this.nukeGameTile = this.layers.nuke.objects.map(value => this.map.pixelToTile(value.x!, value.y!)!)[0];
         this.pad1GameTiles = this.layers.pad1.objects.map(value => this.map.pixelToTile(value.x!, value.y!)!);
         this.pad2GameTiles = this.layers.pad2.objects.map(value => this.map.pixelToTile(value.x!, value.y!)!);
         this.pad3GameTiles = this.layers.pad3.objects.map(value => this.map.pixelToTile(value.x!, value.y!)!);
+    }
+
+    private createObjective() {
+        return new Objective(this, {
+            nuke: this.nukeGameTile,
+            pad1: this.pad1GameTiles,
+            pad2: this.pad2GameTiles,
+            pad3: this.pad3GameTiles
+        });
     }
 }

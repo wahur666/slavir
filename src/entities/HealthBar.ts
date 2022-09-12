@@ -11,11 +11,16 @@ export default class HealthBar {
         private x: number,
         private y: number,
         private width: number,
-        private height: number) {
+        private height: number,
+        color = 0x00FF00) {
 
         this.bg = this.gameScene.add.rectangle(x, y, width, height, 0x000000).setDepth(16);
-        this.fg = this.gameScene.add.rectangle(x  - width / 2 | 0, y, width - 2, height - 2, 0x00FF00).setOrigin(0, 0.5).setDepth(16);
+        this.fg = this.gameScene.add.rectangle(x  - width / 2 | 0, y, width - 2, height - 2, color).setOrigin(0, 0.5).setDepth(16);
 
+    }
+
+    setColor(color: number) {
+        this.fg.fillColor = color;
     }
 
     update(x: number, y: number, percent: number) {
