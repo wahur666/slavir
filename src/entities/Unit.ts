@@ -314,6 +314,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.graphics.stroke();
     }
 
+    setActivelyVisible(visible: boolean) {
+        this.setVisible(visible);
+        this.healthBar.setActivelyVisible(visible);
+    }
+
+
     generateAnimations() {
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_DOWN,

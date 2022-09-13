@@ -83,7 +83,12 @@ export default class Building extends Phaser.GameObjects.Sprite {
             this.setScale(this.stat.scale.x, this.stat.scale.y);
         }
         this.systems.gameScene.add.existing(this);
+        this.setVisible(this.revealed);
+    }
 
+    setRevealed(revealed: boolean) {
+        this.revealed = revealed;
+        this.setVisible(this.revealed);
     }
 
     gameTile(): GameTile {

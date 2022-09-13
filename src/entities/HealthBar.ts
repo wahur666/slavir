@@ -19,6 +19,11 @@ export default class HealthBar {
 
     }
 
+    setActivelyVisible(visible: boolean) {
+        this.fg.setVisible(visible);
+        this.bg.setVisible(visible);
+    }
+
     setColor(color: number) {
         this.fg.fillColor = color;
     }

@@ -113,10 +113,20 @@ export default class GameScene extends Phaser.Scene {
                 visibleTiles.add(visibleTile);
             }
         }
+        for (const building of this.player2.buildings) {
+            if(!building.revealed && visibleTiles.has(building.gameTile())) {
+                building.setRevealed(true);
+            }
+        }
+        for (const unit of this.player2.units) {
+            unit.setActivelyVisible(visibleTiles.has(unit.gameTile()));
+        }
         for (const tile of this.systems.map.tiles) {
             this.drawVisibility(tile, visibleTiles.has(tile));
         }
     }
+
+
 
     drawVisibility(tile: GameTile, visible: boolean) {
         if (tile.tile.index !== -1) {

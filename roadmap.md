@@ -2,8 +2,7 @@
 
 ## Building
 
-- [X] Add unit building requirement before creating units
-- [ ] Hide enemy buildings when not visible
+- [x] Hide enemy buildings when not visible
 
 ## Units
 
