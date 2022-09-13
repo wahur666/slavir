@@ -17,7 +17,6 @@ export default class BuildingCard extends Phaser.GameObjects.Image {
         this.gameScene.add.existing(this);
         const wideConst = 2;
         const scaleConst = wideConst * this.width * 0.8 + (wideConst - 1) * 10;
-        console.log("sc", scaleConst);
         this.setScale(scaleConst / this.width, 1.4);
         this.setDepth(14);
 

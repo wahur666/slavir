@@ -70,7 +70,6 @@ export default class Objective {
             this.currentCoolDown = Math.max(this.bufferZone, this.currentCoolDown - delta | 0);
         }
         this.healthBar.update(this.nukePos.x + 1, this.nukePos.y + 20, this.currentCoolDown / this.maxCoolDown);
-        console.log("Pad state cooldown", this.currentCoolDown / 1000 | 0);
     }
 
     /**

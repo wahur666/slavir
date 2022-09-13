@@ -15,6 +15,7 @@ import HealthBar from "../../entities/HealthBar";
 export default abstract class Player {
 
     units: Unit[] = [];
+    visibleEnemyUnits: Unit[] = [];
     buildings: Building[] = [];
     selectedUnit: Unit | null = null;
     resources: Resource[] = [];
@@ -150,6 +151,10 @@ export default abstract class Player {
         }
     }
 
+    get enemyPlayer(): Player {
+        return this.systems.enemyPlayer(this);
+    }
+
     private addBuilding(building: Building, tile: GameTile) {
         if (building.stat.type === "castle") {
             this.base = tile;
@@ -199,7 +204,6 @@ export default abstract class Player {
                     break;
             }
         }
-        console.log("player monny", this.resource);
     }
 
     private buildSpawnAndBase() {

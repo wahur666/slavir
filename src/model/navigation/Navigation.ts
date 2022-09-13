@@ -30,7 +30,8 @@ class Node {
 
 export class Navigation {
 
-    constructor(private hexMap: HexMap, private baseOffset: Vector2, private scaleFactor: number ) {}
+    constructor(private hexMap: HexMap, private baseOffset: Vector2, private scaleFactor: number) {
+    }
 
     private createNode(tile: GameTile, mask: number, start: GameTile, end: GameTile): Node {
         return new Node(tile, Boolean(tile.pathfinding & mask), start, end);
@@ -47,7 +48,7 @@ export class Navigation {
         return neighbours;
     }
 
-    private findPath(start: GameTile, end: GameTile, mask: number, nearestFree = 0): GameTile[] {
+    private findPath(start: GameTile, end: GameTile, mask: number, nearestFree = 0, dynamicObstacles: GameTile[]): GameTile[] {
         if ((!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask))) {
             return [];
         }
@@ -55,19 +56,22 @@ export class Navigation {
             return a.fCost - b.fCost || a.hCost - b.hCost;
         });
         open.push(this.createNode(start, mask, start, end));
-        const closed = new Set<Node>();
+        const closed: Node[] = [];
         while (open.size() !== 0) {
             const current = open.pop();
             if (!current) {
                 continue;
             }
-            closed.add(current);
+            closed.push(current);
             if (current.tile === end) {
-                return this.retracePath(start, current, mask, nearestFree);
+                return this.retracePath(start, current, mask, nearestFree, dynamicObstacles);
             }
 
             for (const node of this.nodeNeighbours(current, mask, start, end)) {
-                if (!node.walkable || closed.has(node)) {
+                if (!node.walkable || closed.find(e => e.tile.equals(node.tile))) {
+                    continue;
+                }
+                if (dynamicObstacles.find(dynOb => node.tile.equals(dynOb))) {
                     continue;
                 }
                 const newMovementCostToNeighbour = current.cost(start) + current.cost(node.tile);
@@ -75,7 +79,7 @@ export class Navigation {
                     node.gCost = newMovementCostToNeighbour;
                     node.hCost = node.cost(end);
                     node.parent = current;
-                    if (!open.contains(node)) {
+                    if (!open.contains(node, (a, b) => a.tile.equals(b.tile))) {
                         open.add(node);
                     }
                 }
@@ -84,22 +88,22 @@ export class Navigation {
         return [];
     }
 
-    public findPathAsVector2(start: GameTile, end: GameTile, mask: number, nearestFree = 0): Vector2[] {
-        return this.findPath(start, end, mask, nearestFree).map(e => this.calculateNavPoint(e));
+    public findPathAsVector2(start: GameTile, end: GameTile, mask: number, nearestFree = 0, dynamicObstacles: GameTile[]): Vector2[] {
+        return this.findPath(start, end, mask, nearestFree, dynamicObstacles).map(e => this.calculateNavPoint(e));
     }
 
     public checkBlockade(start: GameTile, end: GameTile): boolean {
         return this.hexMap.getTileHits(start, end).every(e => e.tile.pathfinding !== Pathfinding.OBSTACLE);
     }
 
-    private retracePath(start: GameTile, current: Node, mask: number, nearestFree: number): GameTile[] {
+    private retracePath(start: GameTile, current: Node, mask: number, nearestFree: number, dynamicObstacles: GameTile[]): GameTile[] {
         let path: GameTile[] = [];
         while (current.parent) {
             path.unshift(current.tile);
             current = current.parent;
         }
         path.unshift(start);
-        for(let i = 0; i < nearestFree; i++) {
+        for (let i = 0; i < nearestFree; i++) {
             path.pop();
         }
         if (path.length > 2) {
@@ -110,8 +114,11 @@ export class Navigation {
                     for (let j = i + 1; j < path.length; j++) {
                         const currentTile = path[i];
                         const destTile = path[j];
-                        if (this.hexMap.getTileHits(currentTile, destTile).every(e => (e.tile.pathfinding & mask)
-                            && this.checkNavMesh(currentTile, destTile, mask))) {
+                        if (this.hexMap.getTileHits(currentTile, destTile).every(e => {
+                            return (e.tile.pathfinding & mask)
+                                && (!dynamicObstacles.find(dynOb => dynOb.equals(e.tile)))
+                                && this.checkNavMesh(currentTile, destTile, mask);
+                        })) {
                             bestForwardPosition = j;
                         } else {
                             break;
@@ -146,7 +153,7 @@ export class Navigation {
     }
 
     // returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
-    private intersects(a: number,b: number,c: number,d: number,p: number,q: number,r: number,s: number): boolean {
+    private intersects(a: number, b: number, c: number, d: number, p: number, q: number, r: number, s: number): boolean {
         const det = (c - a) * (s - q) - (r - p) * (d - b);
         if (det === 0) {
             return false;
@@ -173,7 +180,7 @@ export class Navigation {
         for (const polygon of polygons) {
             for (let i = 0; i < polygon.length - 1; i++) {
                 const point3 = polygon[i];
-                const point4 = polygon[i+1];
+                const point4 = polygon[i + 1];
                 if (this.intersects2(point1, point2, point3, point4)) {
                     intersections.push(polygon);
                     break;

@@ -37,7 +37,7 @@ export default class HumanPlayer extends Player {
             }
         });
         this.gameScene.input.on("pointerdown", (ev: Pointer) => {
-            if (ev.rightButtonDown()) {
+            if (ev.leftButtonDown()) {
                 // this.deselectUnit();
                 if (ev.x < this.systems.scaledBaseOffset.x || ev.x > this.systems.width - this.systems.scaledBaseOffset.x
                     || ev.y < this.systems.scaledBaseOffset.y || ev.y > this.systems.height - this.systems.scaledBaseOffset.y) {
@@ -46,30 +46,6 @@ export default class HumanPlayer extends Player {
                 // target tile, to check does have unit on it
                 const target = this.systems.pointToTile(ev.x, ev.y);
                 // unit on the target tile
-                const unit = this.systems.player2.units.find(e => this.systems.pointToTile(e.pos.x, e.pos.y) === target);
-                if (unit) {
-                    if (target) {
-                        this.gameScene.setCurrentTile(target);
-                        if (this.selectedUnit) {
-                            if (unit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
-                                && this.systems.navigation.checkBlockade(this.selectedUnit.gameTile(), unit.gameTile())) {
-                                this.selectedUnit?.moveToGameTile(null, unit);
-                            } else {
-                                const start = this.systems.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
-                                if (start) {
-                                    this.selectedUnit.moveToGameTile(target, unit);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (ev.leftButtonDown()) {
-                if (ev.x < this.systems.scaledBaseOffset.x || ev.x > this.systems.width - this.systems.scaledBaseOffset.x
-                    || ev.y < this.systems.scaledBaseOffset.y || ev.y > this.systems.height - this.systems.scaledBaseOffset.y) {
-                    return;
-                }
-                const target = this.systems.pointToTile(ev.x, ev.y);
                 const unit = this.units.find(e => this.systems.pointToTile(e.pos.x, e.pos.y) === target);
                 if (unit) {
                     this.selectUnit(unit);
@@ -77,14 +53,25 @@ export default class HumanPlayer extends Player {
                     if (target) {
                         this.gameScene.setCurrentTile(target);
                         if (this.selectedUnit) {
-                            const start = this.systems.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
-                            if (start) {
-                                this.selectedUnit.moveToGameTile(target);
+                            const enemyUnit = this.enemyPlayer.units.find(e => this.systems.pointToTile(e.pos.x, e.pos.y) === target);
+                            if (enemyUnit) {
+                                if (enemyUnit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
+                                    && this.systems.navigation.checkBlockade(this.selectedUnit.gameTile(), enemyUnit.gameTile())) {
+                                    this.selectedUnit?.moveToGameTile(null, enemyUnit);
+                                } else {
+                                    this.selectedUnit.moveToGameTile(target, enemyUnit);
+                                }
+                            } else {
+                                const start = this.systems.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
+                                if (start) {
+                                    this.selectedUnit.moveToGameTile(target);
+                                }
                             }
                         }
                     }
                 }
             }
+
         });
     }
 

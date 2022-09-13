@@ -98,28 +98,41 @@ export default class GameScene extends Phaser.Scene {
         this.graphics.strokeCircle(center.x, center.y, 5).setScale(this.scaleFactor);
     }
 
-    drawVisibleTiles() {
+    calculateVisibleTilesForPlayer(player: Player): Set<GameTile> {
         const visibleTiles = new Set<GameTile>();
-        for (const player1Unit of this.player1.units) {
-            const tile = this.systems.pointToTile(player1Unit.pos.x, player1Unit.pos.y);
+        for (const playerUnit of player.units) {
+            const tile = this.systems.pointToTile(playerUnit.pos.x, playerUnit.pos.y);
             if (tile) {
-                for (const visibleTile of this.systems.map.visibleTiles(tile, player1Unit.stat.visionRadius)) {
+                for (const visibleTile of this.systems.map.visibleTiles(tile, playerUnit.stat.visionRadius)) {
                     visibleTiles.add(visibleTile);
                 }
             }
         }
-        if (this.player1.base) {
-            for (const visibleTile of this.systems.map.visibleTiles(this.player1.base, 3, true)) {
+        if (player.base) {
+            for (const visibleTile of this.systems.map.visibleTiles(player.base, 3, true)) {
                 visibleTiles.add(visibleTile);
             }
+        }
+
+        player.visibleEnemyUnits = [];
+        for (const unit of player.enemyPlayer.units) {
+            if (visibleTiles.has(unit.gameTile())) {
+                player.visibleEnemyUnits.push(unit);
+            }
+        }
+        return visibleTiles;
+    }
+
+    drawVisibleTiles() {
+        const visibleTiles = this.calculateVisibleTilesForPlayer(this.player1);
+        this.calculateVisibleTilesForPlayer(this.player2);
+        for (const p2unit of this.player2.units) {
+            p2unit.setActivelyVisible(this.player1.visibleEnemyUnits.includes(p2unit));
         }
         for (const building of this.player2.buildings) {
             if(!building.revealed && visibleTiles.has(building.gameTile())) {
                 building.setRevealed(true);
             }
-        }
-        for (const unit of this.player2.units) {
-            unit.setActivelyVisible(visibleTiles.has(unit.gameTile()));
         }
         for (const tile of this.systems.map.tiles) {
             this.drawVisibility(tile, visibleTiles.has(tile));

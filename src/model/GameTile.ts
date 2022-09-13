@@ -24,6 +24,10 @@ export default class GameTile {
 
     distance: (tile: GameTile) => number;
 
+    equals(gameTile: GameTile): boolean {
+        return this.hex.equals(gameTile.hex);
+    }
+
     constructor(tile: Tile) {
         this.tile = tile;
         this.x = tile.x;

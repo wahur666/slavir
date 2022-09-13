@@ -132,6 +132,10 @@ export default class Systems {
         return hexes;
     }
 
+    enemyPlayer(player: Player): Player {
+        return player === this.player1 ? this.player2 : this.player1;
+    }
+
     private createResources(gameScene: GameScene): Resource[] {
         const a = this.layers.resources;
         const resources: Resource[] = [];

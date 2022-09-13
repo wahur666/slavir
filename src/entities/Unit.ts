@@ -442,7 +442,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     moveToGameTile(gameTile: GameTile | null = null, target: Unit | null = null) {
-        const path = this.systems.navigation.findPathAsVector2(this.gameTile(), gameTile ? gameTile : this.gameTile(), this.pathfinding, target ? this.stat.attackRange : 0);
+        const dynamicObstacles: GameTile[] = [];
+        for (const enemyUnit of this.player.visibleEnemyUnits) {
+            if (this.stat.flying === enemyUnit.stat.flying && enemyUnit !== target) {
+                dynamicObstacles.push(enemyUnit.gameTile());
+            }
+        }
+        const path = this.systems.navigation.findPathAsVector2(this.gameTile(), gameTile ? gameTile : this.gameTile(), this.pathfinding, target ? this.stat.attackRange : 0, dynamicObstacles);
         this.setNav(path, target);
     }
 }

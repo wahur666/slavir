@@ -85,6 +85,10 @@ export default class Harvester extends Unit {
     update(delta: number) {
         super.update(delta);
         if (this.markedForDeletion) {
+            const resource = this.systems.resources.find(e => e.gameTile === this.gameTile());
+            if (resource) {
+                resource.occupied = false;
+            }
             return;
         }
         const resource = this.systems.resources.find(e => e.gameTile === this.gameTile());
