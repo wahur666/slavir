@@ -34,6 +34,7 @@ export default class BuildingCard extends Phaser.GameObjects.Image {
                 return;
             }
             player.createBuilding(buildingStat.type);
+            player.buildings[player.buildings.length - 1].setRevealed(true);
             this.cleanup();
         });
     }
