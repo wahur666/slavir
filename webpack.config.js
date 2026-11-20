@@ -1,5 +1,4 @@
 const path = require("path");
-const WebpackBar = require("webpackbar");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 
@@ -31,7 +30,7 @@ module.exports = {
         exclude: [/node_modules/],
         loader: "ts-loader",
         options: {
-          configFile: path.resolve(__dirname, "tsconfig.json"),
+          configFile: path.resolve(__dirname, "src", "tsconfig.json"),
         },
       },
       {
@@ -56,7 +55,6 @@ module.exports = {
     extensions: [".ts", ".js"],
   },
   plugins: [
-    new WebpackBar(),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src", "index.html"),
       favicon: path.resolve(__dirname, "src", "assets", "favicon.png")
