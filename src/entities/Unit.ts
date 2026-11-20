@@ -57,7 +57,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     navigation: Navigation;
     attackCoolDown = 0;
     destination: GameTile | null = null;
-    private trackingCoolDown = 0;
 
     stat: UnitStat;
     moving = false;
@@ -187,7 +186,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             this.stopUnitWhenHexCenterIsReached()
             this.attackAnimationPlaying = false;
         }
-        this.trackingCoolDown = Math.max(0, this.trackingCoolDown - delta);
         if (!this.target && !this.moving && this.navPoints.length === 0 && this.stat.canAttack) {
             this.target = this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy)) || null;
         }
@@ -197,9 +195,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.navPoints = [];
                     this.destination = null;
                 }
-            } else if (this.trackingCoolDown === 0) {
-                this.moveToGameTile(this.target.gameTile(), this.target);
-                this.trackingCoolDown = 500;
             }
         }
         this.playAnimation();

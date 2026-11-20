@@ -89,6 +89,3 @@
 - [x] Add basic build order
 - [x] Add basic counter logic
 
-Target following now refreshes an attack order every 500 ms while the enemy remains visible.
-Navigation work remains for blocked destinations, changing obstacles on movement orders,
-and reserving separate destination tiles for friendly units.

@@ -9,7 +9,7 @@ Slavir is an Open-Source Real Time Tactics game inspired by CNC Rivals.
 
 ## Tech Stack
 
-+ [Phaser 3](https://phaser.io/)
++ [Phaser 4](https://phaser.io/)
 + [Typescript](https://www.typescriptlang.org/)
 + CSS
 + Webpack
@@ -38,9 +38,9 @@ eligible enemies in range and follow ordered targets while they remain visible.
 Harvesters gather resources automatically. Hold the objective pads to damage the
 enemy base with missile strikes.
 
-You can field six units, including at most two harvesters. Recruiting starts a
-cooldown of five seconds per fielded unit before the next recruitment; losing a
-unit reduces the remaining cooldown by five seconds.
+You can field 10 units, including at most two harvesters. Recruiting starts a
+cooldown of 2.5 seconds per fielded unit before the next recruitment; losing a
+unit reduces the remaining cooldown by 2.5 seconds.
 
 Press Escape or click Pause to freeze the match, including movement, combat,
 resource income, countdowns, and pending missile strikes. Resume with Escape or
