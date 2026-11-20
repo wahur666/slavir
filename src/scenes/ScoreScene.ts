@@ -35,9 +35,7 @@ export default class ScoreScene extends Phaser.Scene {
         });
         this.startButton.setInteractive();
         this.startButton.on("pointerup", () => {
-            // this.scene.start(SceneRegistry.MENU);
-            console.log("There is a bug, so");
-            window.location.reload();
+            this.scene.start(SceneRegistry.MENU);
         });
     }
 }
