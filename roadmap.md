@@ -10,7 +10,7 @@
 
 - [x] Add win graphics
 - [x] Add loose graphics
-- [ ] Add pause menu
+- [x] Add pause menu
 - [x] Add back to menu button
 - [x] Add in game time timer
 - [x] Add resource animation
@@ -28,7 +28,7 @@
 ## Building
 
 - [x] Create building class
-- [ ] Make create building part of the user event listener
+- [x] Make create building part of the user event listener
 - [x] Add unit building requirement before creating units
 - [x] Add base health
 - [x] Hide enemy buildings when not visible
@@ -47,11 +47,11 @@
 
 ## Gameplay
 
-- [ ] Add 3 sec delay before the game starts
+- [x] Add 3 sec delay before the game starts
 - [ ] Add unit tracking to target
   - [x] Add dynamic obstacles
   - [ ] Recalculate navigation if needed
-  - [ ] Auto attack target if not attacking, and it is in range
+  - [x] Auto attack target if not attacking, and it is in range
   - [ ] Block targets, and make it to move to the closest tile
   - [ ] Move through friendly units, but prevent same end tile
   - [x] Move through enemy if its flying
@@ -66,7 +66,7 @@
   - [x] Set newly created harvester target the next in line of priory resource
   - [x] Add bounty for killing harvester, 80
   - [x] Add start money 100
-- [ ] Add unit creation delay based on how many already existing
+- [x] Add unit creation delay based on how many already existing
 - [x] Add objective
   - [ ] Add sprite
   - [x] Add capture logic
@@ -85,6 +85,10 @@
 
 ## AI
 
-- [ ] Add unit creation logic
-- [ ] Add basic build order
-- [ ] Add basic counter logic
+- [x] Add unit creation logic
+- [x] Add basic build order
+- [x] Add basic counter logic
+
+Target following now refreshes an attack order every 500 ms while the enemy remains visible.
+Navigation work remains for blocked destinations, changing obstacles on movement orders,
+and reserving separate destination tiles for friendly units.
