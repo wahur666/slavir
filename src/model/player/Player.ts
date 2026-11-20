@@ -36,7 +36,10 @@ export default abstract class Player {
     harvestTime = 5000;
 
     baseCreateCoolDown = 2500;
+    // The cooldown counter which counts down
     createCoolDown = 0;
+    // The current cooldown is started counting down
+    createCoolDownDuration = 0;
     protected gameScene: GameScene;
     private baseHealthBar?: HealthBar;
 
@@ -46,7 +49,7 @@ export default abstract class Player {
 
     update(delta: number) {
         this.currentHarvestTime +=  delta * 5 / (5 - this.numberOfHarvesters * 2);
-        if (this.currentHarvestTime > this.harvestTime) {
+        while (this.currentHarvestTime >= this.harvestTime) {
             this.resource += 10;
             this.currentHarvestTime -= this.harvestTime;
             console.log(this.resource);
@@ -62,7 +65,8 @@ export default abstract class Player {
     }
 
     private resetCreateCoolDown() {
-        this.createCoolDown = this.baseCreateCoolDown * this.units.length;
+        this.createCoolDownDuration = this.baseCreateCoolDown * this.units.length;
+        this.createCoolDown = this.createCoolDownDuration;
     }
 
     takeObjectiveDamage() {

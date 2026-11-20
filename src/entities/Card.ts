@@ -77,7 +77,7 @@ export default class Card extends Phaser.GameObjects.Sprite {
             this.cooldownLine.setVisible(true);
             const maxHeight = this.y - 63;
             const minHeight = this.y + 48;
-            const percent = this.player.createCoolDown / this.player.baseCreateCoolDown / this.player.units.length;
+            const percent = Math.min(1, this.player.createCoolDown / Math.max(1, this.player.createCoolDownDuration));
             this.cooldownLine.setY(Phaser.Math.Linear(maxHeight, minHeight, percent));
         }
     }
