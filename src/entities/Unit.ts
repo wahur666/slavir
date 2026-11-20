@@ -56,6 +56,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     player: Player;
     navigation: Navigation;
     attackCoolDown = 0;
+    destination: GameTile | null = null;
+    private trackingCoolDown = 0;
 
     stat: UnitStat;
     moving = false;
@@ -107,16 +109,16 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      * @param target
      */
     private setNav(points: Vector2[], target: Unit | null = null): void {
-        if (points.length > 1) {
-            this.navPoints = points.slice(1);
-        }
+        this.navPoints = points.slice(1);
+        this.body.stop();
+        this.moving = this.navPoints.length > 0;
         // When we can target?
         // 1. We have a target
         // 2. That is not the same unit
         // 3. Which can attack
         // 4. If not airborne we can attack
         // 5. And if the target is airborne the unit also can attack air
-        if (target && target !== this && this.stat.canAttack && (target.stat.type !== "aircraft" || this.stat.canAttackAir)) {
+        if (target && this.canAttack(target)) {
             this.target = target;
         } else {
             this.target = null;
@@ -153,6 +155,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.body.stop();
         this.moving = false;
         this.target = null;
+        this.destination = null;
     }
 
     prepForDestroy(): Promise<void> {
@@ -171,13 +174,33 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
+    stopUnitWhenHexCenterIsReached() {
+        this.moveToGameTile(this.gameTile())
+        this.stopUnit();
+    }
+
     update(delta: number) {
         if (this.markedForDeletion) {
             return;
         }
-        if (this.target?.markedForDeletion) {
-            this.target = null;
+        if (this.target && (!this.canAttack(this.target) || !this.player.visibleEnemyUnits.includes(this.target))) {
+            this.stopUnitWhenHexCenterIsReached()
             this.attackAnimationPlaying = false;
+        }
+        this.trackingCoolDown = Math.max(0, this.trackingCoolDown - delta);
+        if (!this.target && !this.moving && this.navPoints.length === 0 && this.stat.canAttack) {
+            this.target = this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy)) || null;
+        }
+        if (this.target) {
+            if (this.inAttackRange(this.target)) {
+                if (this.moving === false) {
+                    this.navPoints = [];
+                    this.destination = null;
+                }
+            } else if (this.trackingCoolDown === 0) {
+                this.moveToGameTile(this.target.gameTile(), this.target);
+                this.trackingCoolDown = 500;
+            }
         }
         this.playAnimation();
         if (this.navPoints.length > 0) {
@@ -187,6 +210,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.body.stop();
                     this.graphics.clear();
                     this.moving = false;
+                    this.destination = null;
                 }
             } else {
                 this.moving = true;
@@ -203,16 +227,21 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         if (this.attackCoolDown > 0) {
             this.attackCoolDown = Math.max(0, this.attackCoolDown - delta);
         }
-        if (!this.moving && this.target) {
-            if(this.target.gameTile().distance(this.gameTile()) > this.stat.attackRange) {
-                this.target = null;
-            }
-        }
         this.healthBar.update(this.x, this.y - 100, this.currentHealth / this.stat.health / this.stat.squadSize);
     }
 
+    canAttack(target: Unit): boolean {
+        return target !== this && target.player !== this.player && !target.markedForDeletion
+            && this.stat.canAttack && (target.stat.type !== "aircraft" || this.stat.canAttackAir);
+    }
+
+    private inAttackRange(target: Unit): boolean {
+        return target.gameTile().distance(this.gameTile()) <= this.stat.attackRange
+            && this.navigation.checkBlockade(this.gameTile(), target.gameTile());
+    }
+
     attackTarget() {
-        if (this.target && this.target.gameTile().distance(this.gameTile()) <= this.stat.attackRange) {
+        if (this.target && this.canAttack(this.target) && this.inAttackRange(this.target)) {
             this.target.takeDamage(this);
             this.attackCoolDown = this.stat.rateOfFire * 1000;
             this.attackAnimationPlaying = true;
@@ -222,7 +251,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            if (this.target && this.attackCoolDown === 0) {
+            if (this.target && this.inAttackRange(this.target) && this.attackCoolDown === 0) {
                 if (this.target.pos.x <= this.pos.x) {
                     this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
                     this.lastDirection = "left";
@@ -304,7 +333,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     const out: any[] = [];
                     point2 = points[i + 2];
                     GetLineToCircle(new Line(points[i + 1].x, points[i + 1].y, point2.x, point2.y), new Circle(this.pos.x, this.pos.y, this.radius), out);
-                    point1 = new Vector2(Math.round(out[0].x), Math.round(out[0].y));
+                    if (out[0]) point1 = new Vector2(Math.round(out[0].x), Math.round(out[0].y));
                     i++;
                 }
             }
@@ -442,13 +471,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     moveToGameTile(gameTile: GameTile | null = null, target: Unit | null = null) {
+        if (this.markedForDeletion) return;
+        if (target && !this.canAttack(target)) target = null;
         const dynamicObstacles: GameTile[] = [];
         for (const enemyUnit of this.player.visibleEnemyUnits) {
             if (this.stat.flying === enemyUnit.stat.flying && enemyUnit !== target) {
                 dynamicObstacles.push(enemyUnit.gameTile());
             }
         }
-        const path = this.systems.navigation.findPathAsVector2(this.gameTile(), gameTile ? gameTile : this.gameTile(), this.pathfinding, target ? this.stat.attackRange : 0, dynamicObstacles);
+        const end = target ? target.gameTile() : gameTile || this.gameTile();
+        const path = this.systems.navigation.findPathAsVector2(this.gameTile(), end, this.pathfinding, target ? this.stat.attackRange : 0, dynamicObstacles);
         this.setNav(path, target);
+        this.destination = this.navPoints.length > 0 ? this.systems.pointToTile(this.navPoints[this.navPoints.length - 1].x, this.navPoints[this.navPoints.length - 1].y) || null : null;
     }
 }
