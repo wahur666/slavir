@@ -31,6 +31,7 @@ export default abstract class Player {
         TECH: false
     };
 
+    protected maxUnitCount: number = 10;
     numberOfHarvesters = 0;
     currentHarvestTime = 0;
     harvestTime = 5000;
@@ -86,26 +87,31 @@ export default abstract class Player {
         this.numberOfHarvesters = Math.max(this.numberOfHarvesters - 1 , 0);
     }
 
-    createUnit(e: UnitName): Unit | null {
+    canCreateUnit(e: UnitName): boolean {
         const unitStat = unitStatMap.get(e);
-        if (!unitStat) {
-            return null;
+        if (!unitStat) return false;
+
+        if (!this.gameScene.canIssueCommands) return false;
+        if (this.createCoolDown !== 0) return false;
+        if (this.units.length >= this.maxUnitCount) return false;
+        if (this.resource < unitStat.cost) return false;
+
+        if (!this.buildings.some(b => b.stat.type === unitStat.building)) return false;
+
+        if (unitStat.limit !== -1) {
+            const count = this.units.filter(u => u.stat.texture === e).length;
+            if (count >= unitStat.limit) return false;
         }
-        if (this.createCoolDown !== 0) {
-            return null;
-        }
-        if (!this.buildings.find(e => e.stat.type === unitStat.building)) {
-            return null;
-        }
-        if (this.units.length > 5) {
-            return null;
-        }
-        if (this.resource < unitStat.cost) {
-            return null;
-        }
-        this.resource -= unitStat.cost;
-        console.log("Player", this.index, "index", this.resource);
-        const alreadyOccupiedPositions: GameTile[] = [...this.units.map(unit => this.systems.pointToTile(unit.pos.x, unit.pos.y)!)];
+
+        return true;
+    }
+
+    createUnit(e: UnitName): Unit | null {
+        if (!this.canCreateUnit(e)) return null;
+        const unitStat = unitStatMap.get(e)!;
+        const alreadyOccupiedPositions = this.systems.players.flatMap(player => player.units)
+            .filter(unit => !unit.markedForDeletion && unit.stat.flying === unitStat.flying)
+            .map(unit => unit.gameTile());
         const possibleTiles: { distance: number; tile: GameTile }[] = this.systems.map.tiles
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({
@@ -113,8 +119,9 @@ export default abstract class Player {
                 distance: this.systems.map.tileDistance(tile, this.base!) + this.systems.map.tileDistance(tile, this.spawn!)
             }))
             .sort((a, b) => a.distance - b.distance);
-        if (possibleTiles.length > 0 && this.units.length < 6 && (unitStat.limit === -1 || unitStat.limit > this.units.filter(u => u.stat.texture === unitStat.texture).length)) {
+        if (possibleTiles.length > 0) {
             const unit = this.createUnitWithPos(possibleTiles[0].tile.hex, unitStat.texture, unitStat);
+            this.resource -= unitStat.cost;
             this.units.push(unit);
             this.resetCreateCoolDown();
             this.selectUnit(unit);
@@ -124,7 +131,7 @@ export default abstract class Player {
     }
 
     protected async freeHandler(unit: Unit): Promise<void> {
-        const unitToFreeInd = unit.player.units.indexOf(unit);
+        if (unit.markedForDeletion || !this.units.includes(unit)) return;
         unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
         if (unit instanceof Harvester) {
             const playerToReward = this.systems.players.filter(e => e !== this)[0];
@@ -136,11 +143,12 @@ export default abstract class Player {
         }
         await unit.prepForDestroy();
         unit.destroy();
-        unit.player.units.splice(unitToFreeInd, 1);
+        const unitToFreeInd = this.units.indexOf(unit);
+        if (unitToFreeInd !== -1) this.units.splice(unitToFreeInd, 1);
         // console.log(unit.player.units);
     }
 
-    protected selectUnit(unit: Unit) {
+    protected selectUnit(unit: Unit): void {
         if (this.selectedUnit && unit !== this.selectedUnit) {
             this.selectedUnit.selected = false;
         }
@@ -148,7 +156,7 @@ export default abstract class Player {
         this.selectedUnit.selected = true;
     }
 
-    protected deselectUnit() {
+    protected deselectUnit(): void {
         if (this.selectedUnit) {
             this.selectedUnit.selected = false;
             this.selectedUnit = null;
@@ -159,7 +167,7 @@ export default abstract class Player {
         return this.systems.enemyPlayer(this);
     }
 
-    private addBuilding(building: Building, tile: GameTile) {
+    private addBuilding(building: Building, tile: GameTile): void {
         if (building.stat.type === "castle") {
             this.base = tile;
         } else if (building.stat.type === "spawn") {
@@ -168,31 +176,44 @@ export default abstract class Player {
         this.buildings.push(building);
     }
 
-    public createBuilding(building: Buildings) {
-        const buildingConst = buildingStat.get(building)!.cost;
-        if (this.resource < buildingConst) {
-            return;
+    public createBuilding(building: Buildings): Building | null {
+        const stats = buildingStat.get(building);
+        if (!stats) {
+            return null;
         }
-        this.resource -= buildingConst;
-        let baseTile;
+        const initialBuilding = building === Buildings.CASTLE || building === Buildings.SPAWN;
+        if (!initialBuilding && !this.gameScene.canIssueCommands) {
+            return null
+        }
+        if (this.buildings.some(existing => existing.stat.type === building)) {
+            return null
+        }
+        if (this.resource < stats.cost) {
+            return null
+        }
+
+        let baseTile: Phaser.Types.Tilemaps.TiledObject = null;
         if (building === Buildings.CASTLE || building == Buildings.SPAWN) {
             const id = building === Buildings.CASTLE ? 0 : 5;
             baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", id);
-            if (building === Buildings.CASTLE) {
-                this.baseHealthBar = new HealthBar(this.gameScene, baseTile.x, baseTile.y - 60, 100, 15);
-            }
         } else {
             baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", Object.values(this.hasBuildings).filter(e => !!e).length + 1);
         }
-        let a;
-        if (baseTile && baseTile.x && baseTile.y) {
-            a = this.systems.map.pixelToTile(baseTile.x, baseTile.y);
+        let gameTile: GameTile | undefined;
+        if (baseTile && baseTile.x !== undefined && baseTile.y !== undefined) {
+            gameTile = this.systems.map.pixelToTile(baseTile.x, baseTile.y);
         }
-        const hex = a?.hex;
+        const hex = gameTile?.hex;
         if (hex) {
             const pos = this.systems.hexToPos(hex);
             const tile = this.systems.map.tiles.find(e => e.hex.equals(hex))!;
-            this.addBuilding(new Building(this.systems, pos.x, pos.y, buildingStat.get(building)!), tile);
+            const created = new Building(this.systems, pos.x, pos.y, stats);
+            this.addBuilding(created, tile);
+            this.resource -= stats.cost;
+            if (this === this.systems.player1) created.setRevealed(true);
+            if (building === Buildings.CASTLE) {
+                this.baseHealthBar = new HealthBar(this.gameScene, pos.x, pos.y - 60, 100, 15);
+            }
             switch (building) {
                 case Buildings.BARRACK:
                     this.hasBuildings.BARRACK = true;
@@ -207,36 +228,35 @@ export default abstract class Player {
                     this.hasBuildings.TECH = true;
                     break;
             }
+            return created;
         }
+        return null;
     }
 
-    private buildSpawnAndBase() {
+    private buildSpawnAndBase(): void {
         this.createBuilding(Buildings.CASTLE);
         this.createBuilding(Buildings.SPAWN);
     }
 
-    buildBarrack() {
-        this.createBuilding(Buildings.BARRACK);
-        this.hasBuildings.BARRACK = true;
+    buildBarrack(): Building | null {
+        return this.createBuilding(Buildings.BARRACK);
     }
 
-    buildFactory() {
-        this.createBuilding(Buildings.FACTORY);
-        this.hasBuildings.FACTORY = true;
+    buildFactory(): Building | null {
+        return this.createBuilding(Buildings.FACTORY);
     }
 
-    buildHangar() {
-        this.createBuilding(Buildings.HANGAR);
-        this.hasBuildings.HANGAR = true;
+    buildHangar(): Building | null {
+        return this.createBuilding(Buildings.HANGAR);
     }
 
-    private buildTech() {
+    private buildTech(): Building | null | never {
         // this.createBuilding(Buildings.TECH);
         // this.hasBuildings.TECH = true;
         throw Error("Unsupported");
     }
 
-    create() {
+    create(): void {
         this.buildSpawnAndBase();
     }
 }
