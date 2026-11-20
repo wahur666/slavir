@@ -32,11 +32,12 @@ export default class HumanPlayer extends Player {
     private setupInput() {
         this.gameScene.input.setDefaultCursor(`url(${cursorGauntlet_grey}), default`);
         this.gameScene.input.keyboard.on("keyup-F", () => {
-            if (this.selectedUnit) {
+            if (this.gameScene.canIssueCommands && this.selectedUnit) {
                 this.freeHandler(this.selectedUnit);
             }
         });
         this.gameScene.input.on("pointerdown", (ev: Pointer) => {
+            if (!this.gameScene.canIssueCommands) return;
             if (ev.leftButtonDown()) {
                 // this.deselectUnit();
                 if (ev.x < this.systems.scaledBaseOffset.x || ev.x > this.systems.width - this.systems.scaledBaseOffset.x
@@ -53,7 +54,7 @@ export default class HumanPlayer extends Player {
                     if (target) {
                         this.gameScene.setCurrentTile(target);
                         if (this.selectedUnit) {
-                            const enemyUnit = this.enemyPlayer.units.find(e => this.systems.pointToTile(e.pos.x, e.pos.y) === target);
+                            const enemyUnit = this.visibleEnemyUnits.find(e => !e.markedForDeletion && e.gameTile() === target);
                             if (enemyUnit) {
                                 if (enemyUnit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
                                     && this.systems.navigation.checkBlockade(this.selectedUnit.gameTile(), enemyUnit.gameTile())) {
