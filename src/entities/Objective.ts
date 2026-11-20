@@ -77,7 +77,8 @@ export default class Objective {
      */
     async playRocketAnimation(leftSide: boolean): Promise<void> {
         return new Promise(resolve => {
-            setTimeout(() => resolve(), this.bufferTime);
+            // TODO: Add some animation here or something IDK, this is just a delay here now
+            this.systems.gameScene.time.delayedCall(this.bufferTime, () => resolve());
         });
     }
 
@@ -90,7 +91,7 @@ export default class Objective {
         };
         const checkAllPadsForPlayer = (player: Player): number[] => {
             const playerPads: number[] = [];
-            const playerUnits = player.units.map(e => e.gameTile()!);
+            const playerUnits = player.units.filter(e => !e.markedForDeletion).map(e => e.gameTile()!);
             if (playerUnits.length === 0) {
                 return [0, 0, 0];
             }

@@ -14,6 +14,20 @@ import type GameTile from "./GameTile";
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 import Vector2 = Phaser.Math.Vector2;
 
+interface TileMapSet {
+    obstacle: Phaser.Tilemaps.ObjectLayer;
+    nuke: Phaser.Tilemaps.ObjectLayer;
+    base1: Phaser.Tilemaps.ObjectLayer;
+    base2: Phaser.Tilemaps.ObjectLayer;
+    pad3: Phaser.Tilemaps.ObjectLayer;
+    resources: Phaser.Tilemaps.ObjectLayer;
+    pad1: Phaser.Tilemaps.ObjectLayer;
+    pad2: Phaser.Tilemaps.ObjectLayer;
+    water: Phaser.Tilemaps.ObjectLayer;
+    terrain: Phaser.Tilemaps.ObjectLayer;
+    base: Phaser.Tilemaps.TilemapLayer
+}
+
 
 export default class Systems {
 
@@ -31,19 +45,7 @@ export default class Systems {
     readonly player2: Player;
     readonly players: Player[];
     gameScene: GameScene;
-    layers: {
-        obstacle: Phaser.Tilemaps.ObjectLayer;
-        nuke: Phaser.Tilemaps.ObjectLayer;
-        base1: Phaser.Tilemaps.ObjectLayer;
-        base2: Phaser.Tilemaps.ObjectLayer;
-        pad3: Phaser.Tilemaps.ObjectLayer;
-        resources: Phaser.Tilemaps.ObjectLayer;
-        pad1: Phaser.Tilemaps.ObjectLayer;
-        pad2: Phaser.Tilemaps.ObjectLayer;
-        water: Phaser.Tilemaps.ObjectLayer;
-        terrain: Phaser.Tilemaps.ObjectLayer;
-        base: Phaser.Tilemaps.TilemapLayer
-    };
+    layers: TileMapSet;
     tileMap: Phaser.Tilemaps.Tilemap;
     nukeGameTile: GameTile;
     pad1GameTiles: GameTile[];
@@ -81,10 +83,10 @@ export default class Systems {
         return map;
     }
 
-    private createLayers(map: Phaser.Tilemaps.Tilemap) {
+    private createLayers(map: Phaser.Tilemaps.Tilemap): TileMapSet {
         const baseTileset = map.getTileset(TILESETS.Hex_v01_grid);
         const base = map.createLayer(LAYERS.BASE, baseTileset, 0, 0)
-            .setScale(this.scaleFactor);
+            .setScale(this.scaleFactor) as TilemapLayer;
         const base1 = map.getObjectLayer("Bases/Base1");
         const base2 = map.getObjectLayer("Bases/Base2");
         const pad1 = map.getObjectLayer("Pads/Pad1");
