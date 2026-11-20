@@ -27,16 +27,18 @@ const shadeValues = range(shadeSteps)
 export default class GameScene extends Phaser.Scene {
 
     currentTile: GameTile;
-    scaleFactor = 3;
+    scaleFactor: number = 3;
     graphics: Graphics;
     graphics2: Graphics;
-    gameEnded = false;
+    gameEnded: boolean = false;
     systems: Systems;
     player1: Player;
     player2: Player;
     bg: Phaser.GameObjects.Sprite;
     fpsText: Phaser.GameObjects.Text;
-    startDate: number;
+    elapsedTime: number = 0;
+    countdownRemaining: number = 3000;
+    private countdownText: Phaser.GameObjects.Text;
     currentTimeText: Phaser.GameObjects.Text;
     private config: typeof SHARED_CONFIG;
 
@@ -48,7 +50,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.startDate = Date.now();
+        this.gameEnded = false;
+        this.elapsedTime = 0;
+        this.countdownRemaining = 3000;
         this.bg = this.add.sprite(this.config.width / 2 , this.config.height / 2, Images.BROWN_BG).setScale(1.25);
 
         this.systems = new Systems(this, {
@@ -87,6 +91,33 @@ export default class GameScene extends Phaser.Scene {
         this.player1.create();
         this.player2.create();
         this.setupRetireButton();
+        this.setupPauseButton();
+        this.countdownText = this.add.text(this.config.width / 2, this.config.height / 2, "3", {
+            fontFamily: defaultFont,
+            fontSize: "90px",
+            stroke: "#000000",
+            strokeThickness: 8
+        }).setOrigin(0.5).setDepth(100);
+        this.physics.pause();
+        this.drawVisibleTiles();
+    }
+
+    get canIssueCommands(): boolean {
+        return this.countdownRemaining === 0 && !this.gameEnded && this.scene.isActive();
+    }
+
+    private setupPauseButton() {
+        const pause = () => {
+            if (!this.gameEnded) {
+                this.scene.launch(SceneRegistry.PAUSE);
+                this.scene.pause();
+            }
+        };
+        this.add.image(1200, 60, Images.BUTTON).setScale(0.7, 0.9)
+            .setInteractive().on("pointerup", pause);
+        this.add.text(1200, 60, "Pause", {fontFamily: defaultFont, fontSize: "28px"}).setOrigin(0.5);
+        this.input.keyboard.on("keyup-ESC", pause);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keyup-ESC", pause));
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -154,10 +185,22 @@ export default class GameScene extends Phaser.Scene {
 
     update(time: number, delta: number) {
         this.fpsText.setText(`${1000 / delta | 0} FPS`);
-        this.currentTimeText.setText(formatTime((Date.now() - this.startDate) / 1000 | 0));
         if (this.gameEnded) {
             return;
         }
+        if (this.countdownRemaining > 0) {
+            this.currentTimeText.setText(formatTime(0))
+            this.countdownRemaining = Math.max(0, this.countdownRemaining - delta);
+            this.countdownText.setText(`${Math.ceil(this.countdownRemaining / 1000)}`);
+            if (this.countdownRemaining === 0) {
+                this.countdownText.destroy();
+                this.physics.resume();
+            }
+            return;
+        }
+        this.elapsedTime += delta;
+        this.currentTimeText.setText(formatTime(this.elapsedTime / 1000 | 0));
+        this.drawVisibleTiles();
         for (const unit of this.player1.units) {
             unit.update(delta);
         }
@@ -170,7 +213,6 @@ export default class GameScene extends Phaser.Scene {
         this.systems.objective.update(delta);
         this.player1.update(delta);
         this.player2.update(delta);
-        this.drawVisibleTiles();
         if (this.player1.currentBaseHealth <= 0) {
             console.log("You lost");
             this.endGame(false);
@@ -182,11 +224,12 @@ export default class GameScene extends Phaser.Scene {
     }
 
     endGame(result) {
+        if (this.gameEnded) return;
         this.gameEnded = true;
         this.stopUnits();
-        setTimeout(() => {
+        this.time.delayedCall(3000, () => {
             this.scene.start(SceneRegistry.SCORE, {result});
-        }, 3000);
+        });
     }
 
     stopUnits() {
@@ -230,7 +273,7 @@ export default class GameScene extends Phaser.Scene {
         const retireButton = this.add.image(1200, 600, Images.BUTTON);
         retireButton.setInteractive();
         retireButton.on("pointerup", () => {
-            this.scene.start(SceneRegistry.SCORE, {result: false});
+            if (this.canIssueCommands) this.endGame(false);
         });
         retireButton.setScale(0.7, 0.9);
         const retireButtonText = this.add.text(1170, 580, "Retire", {
