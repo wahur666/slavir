@@ -30,12 +30,7 @@ export default class BuildingCard extends Phaser.GameObjects.Image {
         this.costText.setDepth(15);
 
         this.on("pointerup", () => {
-            if (player.resource < buildingStat.cost) {
-                return;
-            }
-            player.createBuilding(buildingStat.type);
-            player.buildings[player.buildings.length - 1].setRevealed(true);
-            this.cleanup();
+            if (player.createBuilding(buildingStat.type)) this.cleanup();
         });
     }
 
