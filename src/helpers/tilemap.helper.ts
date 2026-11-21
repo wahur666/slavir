@@ -1,9 +1,9 @@
-import Phaser from "phaser";
-export const enum TILESETS {
+import type Phaser from "phaser";
+export enum TILESETS {
     Hex_v01_grid = "Hex_v01_grid",
 }
 
-export const enum LAYERS {
+export enum LAYERS {
     BASE = "base",
 }
 

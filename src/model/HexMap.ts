@@ -1,6 +1,6 @@
 import GameTile from "./GameTile";
 import Phaser from "phaser";
-import {Hex, Layout, OffsetCoordinate} from "./hexgrid";
+import {type Hex, Layout, OffsetCoordinate} from "./hexgrid";
 import Tile = Phaser.Tilemaps.Tile;
 import Vector2 = Phaser.Math.Vector2;
 
@@ -153,7 +153,7 @@ export default class HexMap {
     /** Finds the boundaries of the map multiplied with scale
      * @param scale - scale factor */
     getFurthersPoints(scale: number): Vector2 {
-        const polys = this.tiles.map(e => this.layout.polygonCorners(e.hex).map(e => new Vector2(e.x, e.y))).flat();
+        const polys = this.tiles.flatMap(e => this.layout.polygonCorners(e.hex).map(e => new Vector2(e.x, e.y)));
         const maxX = Math.max(...polys.map(e => e.x));
         const maxY = Math.max(...polys.map(e => e.y));
         return new Vector2(maxX - 16, maxY).scale(scale);

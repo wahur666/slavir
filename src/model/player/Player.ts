@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import Unit from "../../entities/Unit";
 import Building, {Buildings, buildingStat} from "../../entities/Building";
 import type GameTile from "../GameTile";
@@ -6,7 +6,7 @@ import type Resource from "../../entities/Resource";
 import type Systems from "../Systems";
 import type GameScene from "../../scenes/GameScene";
 import type {UnitStat} from "../../entities/UnitsStats";
-import {UnitName, unitStatMap} from "../../entities/UnitsStats";
+import {type UnitName, unitStatMap} from "../../entities/UnitsStats";
 import {Pathfinding} from "../HexMap";
 import type {Hex} from "../hexgrid";
 import Harvester from "../../entities/Harvester";

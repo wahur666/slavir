@@ -5,7 +5,7 @@ import cursorGauntlet_grey from "../../assets/cursorGauntlet_grey.png";
 import type GameTile from "../GameTile";
 import type Systems from "../Systems";
 import type Unit from "../../entities/Unit";
-import {UnitName, unitStatMap} from "../../entities/UnitsStats";
+import {type UnitName, unitStatMap} from "../../entities/UnitsStats";
 import Card from "../../entities/Card";
 import {Images} from "../../scenes/PreloadScene";
 import {defaultFont} from "../../helpers/utils";

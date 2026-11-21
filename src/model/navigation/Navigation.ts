@@ -52,7 +52,7 @@ export class Navigation {
     }
 
     private findPath(start: GameTile, end: GameTile, mask: number, nearestFree = 0, dynamicObstacles: GameTile[]): GameTile[] {
-        if (!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask)) {
+        if (!(start.pathfinding & mask) || !(end.pathfinding & mask)) {
             return [];
         }
         const open = new Heap<Node>((a, b) => {

@@ -43,7 +43,7 @@ export default class GameScene extends Phaser.Scene {
 
     constructor() {
         super(SceneRegistry.GAME);
-        // @ts-ignore
+        // @ts-expect-error
         window.game = this;
         this.config = SHARED_CONFIG;
     }
