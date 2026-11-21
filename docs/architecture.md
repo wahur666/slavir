@@ -1,8 +1,8 @@
 # Game systems architecture
 
 How the pieces of a Slavir match fit together: the scene loop, the `Systems` container, players, buildings,
-units, and the `CommandHub` that sits between everything that *wants* something to happen and the simulation
-that *makes* it happen.
+units, and the `CommandHub` that sits between everything that _wants_ something to happen and the simulation
+that _makes_ it happen.
 
 ## The big picture
 
@@ -47,26 +47,26 @@ flowchart TB
 ```
 
 The rule of thumb: **nothing changes the match except through `systems.commands.issue(...)` or inside a
-simulation tick.** Input handlers, the AI, UI cards and even units themselves only *describe* what they want as a
+simulation tick.** Input handlers, the AI, UI cards and even units themselves only _describe_ what they want as a
 plain `Command`; the hub validates it and applies it.
 
 ## Key files
 
-| Area | File | Role |
-|---|---|---|
-| Scene / loop | [GameScene.ts](../src/scenes/GameScene.ts) | Fixed-tick loop, fog of war, win/lose, HUD |
-| Container | [Systems.ts](../src/model/Systems.ts) | Owns map, navigation, players, objective, resources, `commands` |
-| Commands | [Command.ts](../src/model/command/Command.ts) | Serializable command types |
-| Command hub | [CommandHub.ts](../src/model/command/CommandHub.ts) | Validates commands, runs per-unit orders, notifies listeners |
-| Orders | [Order.ts](../src/model/command/Order.ts) | `MoveOrder`, `AttackOrder` – what a unit is doing because of a command |
-| Players | [Player.ts](../src/model/player/Player.ts), [HumanPlayer.ts](../src/model/player/HumanPlayer.ts), [AiPlayer.ts](../src/model/player/AiPlayer.ts) | Economy, buildings, unit creation, input / AI |
-| Buildings | [Building.ts](../src/entities/Building.ts) | Building types, costs, sprite |
-| Units | [Unit.ts](../src/entities/Unit.ts), [UnitsStats.ts](../src/entities/UnitsStats.ts), [UnitRegistry.ts](../src/entities/units/UnitRegistry.ts) | Base unit, stat schema, list of playable units |
-| Squads / weapons | [Squad.ts](../src/entities/Squad.ts), [Volley.ts](../src/entities/Volley.ts) | Shared health pool, damage tables, burst fire |
-| Movement | [Navigation.ts](../src/model/navigation/Navigation.ts), [Occupancy.ts](../src/model/navigation/Occupancy.ts), [HexMap.ts](../src/model/HexMap.ts) | Pathfinding, body blocking, hex map |
-| Objective | [Objective.ts](../src/entities/Objective.ts) | Pads and the missile strike on the enemy base |
-| Economy | [Resource.ts](../src/entities/Resource.ts), [Harvester.ts](../src/entities/units/Harvester.ts) | Crystal patches and harvesters |
-| Replays | [Replay.ts](../src/model/replay/Replay.ts) | Recorder, verifier, file format |
+| Area             | File                                                                                                                                              | Role                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Scene / loop     | [GameScene.ts](../src/scenes/GameScene.ts)                                                                                                        | Fixed-tick loop, fog of war, win/lose, HUD                             |
+| Container        | [Systems.ts](../src/model/Systems.ts)                                                                                                             | Owns map, navigation, players, objective, resources, `commands`        |
+| Commands         | [Command.ts](../src/model/command/Command.ts)                                                                                                     | Serializable command types                                             |
+| Command hub      | [CommandHub.ts](../src/model/command/CommandHub.ts)                                                                                               | Validates commands, runs per-unit orders, notifies listeners           |
+| Orders           | [Order.ts](../src/model/command/Order.ts)                                                                                                         | `MoveOrder`, `AttackOrder` – what a unit is doing because of a command |
+| Players          | [Player.ts](../src/model/player/Player.ts), [HumanPlayer.ts](../src/model/player/HumanPlayer.ts), [AiPlayer.ts](../src/model/player/AiPlayer.ts)  | Economy, buildings, unit creation, input / AI                          |
+| Buildings        | [Building.ts](../src/entities/Building.ts)                                                                                                        | Building types, costs, sprite                                          |
+| Units            | [Unit.ts](../src/entities/Unit.ts), [UnitsStats.ts](../src/entities/UnitsStats.ts), [UnitRegistry.ts](../src/entities/units/UnitRegistry.ts)      | Base unit, stat schema, list of playable units                         |
+| Squads / weapons | [Squad.ts](../src/entities/Squad.ts), [Volley.ts](../src/entities/Volley.ts)                                                                      | Shared health pool, damage tables, burst fire                          |
+| Movement         | [Navigation.ts](../src/model/navigation/Navigation.ts), [Occupancy.ts](../src/model/navigation/Occupancy.ts), [HexMap.ts](../src/model/HexMap.ts) | Pathfinding, body blocking, hex map                                    |
+| Objective        | [Objective.ts](../src/entities/Objective.ts)                                                                                                      | Pads and the missile strike on the enemy base                          |
+| Economy          | [Resource.ts](../src/entities/Resource.ts), [Harvester.ts](../src/entities/units/Harvester.ts)                                                    | Crystal patches and harvesters                                         |
+| Replays          | [Replay.ts](../src/model/replay/Replay.ts)                                                                                                        | Recorder, verifier, file format                                        |
 
 ## `Systems`: the shared container
 
@@ -108,8 +108,8 @@ sequenceDiagram
 The order inside `simulationTick` matters and is part of the deterministic contract: change it and old replays
 desync.
 
-Commands issued **between** ticks (mouse clicks, card clicks) are *external* and take effect on the next tick.
-Commands issued **during** a tick (AI, auto attack, harvesters) are *internal* – they are derived from the
+Commands issued **between** ticks (mouse clicks, card clicks) are _external_ and take effect on the next tick.
+Commands issued **during** a tick (AI, auto attack, harvesters) are _internal_ – they are derived from the
 simulation state, so a replay reproduces them by itself and does not record them.
 
 ## The CommandHub
@@ -119,17 +119,17 @@ simulation state, so a replay reproduces them by itself and does not record them
 Commands are plain JSON objects (see [Command.ts](../src/model/command/Command.ts)). They reference units by `id`
 and tiles by `{col, row}`, never by object, so they can be logged, recorded, or sent over a network.
 
-| Kind | Payload | Effect |
-|---|---|---|
-| `move` | `unitIds`, `tile` | `MoveOrder` for each unit |
-| `attack` | `unitIds`, `targetId` | `AttackOrder` for each unit (target must be a *visible* enemy) |
-| `stop` | `unitIds` | Cancel order, stop at the next hex center |
-| `disband` | `unitIds` | `player.disband(unit)` (the F key) |
-| `build` | `building` | `player.createBuilding(building)` (castle and spawn are not buildable) |
-| `createUnit` | `unit` | `player.createUnit(unit)` |
-| `surrender` | – | `gameScene.endGame(...)` |
+| Kind         | Payload               | Effect                                                                 |
+| ------------ | --------------------- | ---------------------------------------------------------------------- |
+| `move`       | `unitIds`, `tile`     | `MoveOrder` for each unit                                              |
+| `attack`     | `unitIds`, `targetId` | `AttackOrder` for each unit (target must be a _visible_ enemy)         |
+| `stop`       | `unitIds`             | Cancel order, stop at the next hex center                              |
+| `disband`    | `unitIds`             | `player.disband(unit)` (the F key)                                     |
+| `build`      | `building`            | `player.createBuilding(building)` (castle and spawn are not buildable) |
+| `createUnit` | `unit`                | `player.createUnit(unit)`                                              |
+| `surrender`  | –                     | `gameScene.endGame(...)`                                               |
 
-Every command carries `playerIndex`, and the hub only lets a player command its *own* living units.
+Every command carries `playerIndex`, and the hub only lets a player command its _own_ living units.
 
 ### `issue(command)`
 
@@ -243,7 +243,7 @@ data-driven: cost, building, health, squad size, damage per target type, range, 
 2. Claim the hex the unit stepped into (body blocking via `Occupancy`); bounce back from enemy-held hexes.
 3. Drop the target if it is dead / invisible / unattackable; stop chasing a target that left range after engaging.
 4. **Auto attack:** an idle, stationary combat unit with a visible enemy in range issues an `attack` command
-   *for itself* through the hub, so the hub's order bookkeeping stays the single source of truth.
+   _for itself_ through the hub, so the hub's order bookkeeping stays the single source of truth.
 5. Trim the path when the target is already in range, repath if blocked, pick a fire target.
 6. Move toward the next nav point (arcade physics), snap to hex centers on arrival.
 7. Advance weapons (`Volley`) and fire; damage is applied with `target.takeDamage(this, shooters)`.
@@ -258,7 +258,7 @@ shots. Damage per member is picked from the attacker's `damageAgainstInfantry / 
 
 - Ground and flying units live on separate layers and never block each other while moving.
 - Enemies on the same layer can't enter each other's hex; friendlies walk through.
-- No two units ever *stand* on the same hex, whatever their side or layer.
+- No two units ever _stand_ on the same hex, whatever their side or layer.
 
 ### Death
 

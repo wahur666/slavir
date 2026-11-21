@@ -94,16 +94,16 @@ its outcome.
 
 `simulationTick(delta)` always receives exactly `TICK_MS` and does this, in this order:
 
-| Step | What happens |
-| --- | --- |
-| `physics.world.singleStep()` | Arcade physics moves every body by one 60 fps step and syncs sprite positions |
-| `drawVisibleTiles()` | Fog of war: recomputes each player's `visibleEnemyUnits` and fades tiles |
-| `unit.update(delta)` for player 1, then player 2 | Movement, targeting, auto-attack, firing, death countdown |
-| `commands.update(delta)` | Steps active orders and drops finished ones |
-| `resource.update(delta)` | Crystal depletion |
-| `objective.update(delta)` | Pad control, rocket countdown and strike |
-| `player.update(delta)` for player 1, then player 2 | Income, production cooldown. The AI decides here. |
-| Base health check | Calls `endGame()` if a castle is destroyed |
+| Step                                               | What happens                                                                  |
+| -------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `physics.world.singleStep()`                       | Arcade physics moves every body by one 60 fps step and syncs sprite positions |
+| `drawVisibleTiles()`                               | Fog of war: recomputes each player's `visibleEnemyUnits` and fades tiles      |
+| `unit.update(delta)` for player 1, then player 2   | Movement, targeting, auto-attack, firing, death countdown                     |
+| `commands.update(delta)`                           | Steps active orders and drops finished ones                                   |
+| `resource.update(delta)`                           | Crystal depletion                                                             |
+| `objective.update(delta)`                          | Pad control, rocket countdown and strike                                      |
+| `player.update(delta)` for player 1, then player 2 | Income, production cooldown. The AI decides here.                             |
+| Base health check                                  | Calls `endGame()` if a castle is destroyed                                    |
 
 Physics is stepped by hand: `create()` calls `physics.disableUpdate()`, so arcade physics
 no longer advances once per rendered frame on its own. `singleStep()` advances it by
@@ -116,11 +116,11 @@ exactly one physics frame, which matches `TICK_MS`.
 
 Commands come from three kinds of places:
 
-| Source | Example | When it happens | Recorded? |
-| --- | --- | --- | --- |
-| **External input** | Clicking the map, a unit card, a building card, F, Retire | Between ticks (DOM/Phaser input events) | **Yes** |
-| **AI** | `AiPlayer.play()` builds, produces, sends units to pads | Inside a tick (`player.update`) | No |
-| **Simulation** | A unit auto-attacks an enemy in range | Inside a tick (`unit.update`) | No |
+| Source             | Example                                                   | When it happens                         | Recorded? |
+| ------------------ | --------------------------------------------------------- | --------------------------------------- | --------- |
+| **External input** | Clicking the map, a unit card, a building card, F, Retire | Between ticks (DOM/Phaser input events) | **Yes**   |
+| **AI**             | `AiPlayer.play()` builds, produces, sends units to pads   | Inside a tick (`player.update`)         | No        |
+| **Simulation**     | A unit auto-attacks an enemy in range                     | Inside a tick (`unit.update`)           | No        |
 
 The AI and auto-attacks only read simulation state, and they run inside the tick, so
 the same state produces the same commands. They don't need saving: in a replay they
@@ -130,9 +130,9 @@ so only external input is recorded.
 `CommandHub` tells these apart with the tick brackets the scene puts around every tick:
 
 ```ts
-commands.beginTick(tick);   // inTick = true
-simulationTick(TICK_MS);    // AI and auto-attacks issue commands here
-commands.endTick();         // inTick = false, tick++
+commands.beginTick(tick); // inTick = true
+simulationTick(TICK_MS); // AI and auto-attacks issue commands here
+commands.endTick(); // inTick = false, tick++
 ```
 
 A command issued while `inTick` is false comes from outside the simulation. It counts as
@@ -155,7 +155,7 @@ tiles by tilemap `{col, row}`, so it serializes to JSON as-is (see
 [Command.ts](../src/model/command/Command.ts)):
 
 ```json
-{"kind": "move", "playerIndex": 1, "unitIds": [7], "tile": {"col": 12, "row": 5}}
+{ "kind": "move", "playerIndex": 1, "unitIds": [7], "tile": { "col": 12, "row": 5 } }
 ```
 
 Unit ids come from `Systems.nextUnitId()`, a counter that restarts at 1 every match.
@@ -180,7 +180,7 @@ does two things:
 
 When the match ends, `endGame()` notes `endTick = this.tick`. Three seconds later it
 calls `recorder.finish(endTick, result)` and passes the replay to the score screen. The
-delay matters: a `surrender` command ends the game *while it is being issued*, and the
+delay matters: a `surrender` command ends the game _while it is being issued_, and the
 recorder only stores it after `issue()` returns. Finishing later makes sure the
 surrender is in the file.
 
@@ -264,36 +264,33 @@ The replay keeps playing after a desync. It just no longer matches what happened
 
 ```json
 {
-  "format": "slavir-replay",
-  "version": 1,
-  "tickMs": 16.666666666666668,
-  "recordedAt": "2026-11-21T20:21:16.512Z",
-  "endTick": 8830,
-  "result": false,
-  "commands": [
-    {"tick": 0,    "command": {"kind": "build", "playerIndex": 1, "building": "barrack"}},
-    {"tick": 97,   "command": {"kind": "createUnit", "playerIndex": 1, "unit": "fantasy8"}},
-    {"tick": 211,  "command": {"kind": "move", "playerIndex": 1, "unitIds": [3], "tile": {"col": 9, "row": 6}}},
-    {"tick": 8830, "command": {"kind": "surrender", "playerIndex": 1}}
-  ],
-  "checkpoints": [
-    {"tick": 300, "hash": "9c1e04a7"},
-    {"tick": 600, "hash": "51f3bb20"}
-  ]
+    "format": "slavir-replay",
+    "version": 1,
+    "tickMs": 16.666666666666668,
+    "recordedAt": "2026-11-21T20:21:16.512Z",
+    "endTick": 8830,
+    "result": false,
+    "commands": [
+        { "tick": 0, "command": { "kind": "build", "playerIndex": 1, "building": "barrack" } },
+        { "tick": 97, "command": { "kind": "createUnit", "playerIndex": 1, "unit": "fantasy8" } },
+        { "tick": 211, "command": { "kind": "move", "playerIndex": 1, "unitIds": [3], "tile": { "col": 9, "row": 6 } } },
+        { "tick": 8830, "command": { "kind": "surrender", "playerIndex": 1 } }
+    ],
+    "checkpoints": [{ "tick": 300, "hash": "9c1e04a7" }, { "tick": 600, "hash": "51f3bb20" }]
 }
 ```
 
 (Shortened: a real file lists every command and a checkpoint every 300 ticks.)
 
-| Field | Meaning |
-| --- | --- |
+| Field               | Meaning                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
 | `format`, `version` | Identify the file. `parseReplay` rejects anything else. Bump `REPLAY_VERSION` when the format changes. |
-| `tickMs` | Tick length it was recorded with. It must equal `TICK_MS`. |
-| `recordedAt` | ISO timestamp. Only used for the download filename. |
-| `endTick` | Tick count when the match ended. |
-| `result` | `true` if player 1 won, `false` if they lost, `null` if unfinished. |
-| `commands` | External commands in tick order. `tick` is the tick at whose start the command runs. |
-| `checkpoints` | State hashes; `tick` is the number of ticks completed at that point. |
+| `tickMs`            | Tick length it was recorded with. It must equal `TICK_MS`.                                             |
+| `recordedAt`        | ISO timestamp. Only used for the download filename.                                                    |
+| `endTick`           | Tick count when the match ended.                                                                       |
+| `result`            | `true` if player 1 won, `false` if they lost, `null` if unfinished.                                    |
+| `commands`          | External commands in tick order. `tick` is the tick at whose start the command runs.                   |
+| `checkpoints`       | State hashes; `tick` is the number of ticks completed at that point.                                   |
 
 `parseReplay` checks the format, version, tick length and the shape of every command,
 and sorts `commands` by tick. A file that fails any check shows "Could not load replay:
@@ -306,19 +303,19 @@ cause an error. It shows up later as a replay that goes out of sync.
 
 **Change game state only inside `simulationTick`, and only with its `delta`.**
 That covers health, positions, targets, resources, cooldowns and timers. Input handlers,
-tweens, the scene clock and animation callbacks may *issue commands* or change *visuals*,
+tweens, the scene clock and animation callbacks may _issue commands_ or change _visuals_,
 nothing else.
 
-| Don't | Do instead |
-| --- | --- |
-| `scene.time.delayedCall(ms, …)` for gameplay | Count a field down by `delta` in an `update(delta)` (see `Objective.updateStrike`) |
-| React to `animationcomplete` for gameplay | Time it in game time (see `Unit.updateDeath`). Animation events are fine for visuals. |
-| `async` / `await` / `.then()` in game logic | Plain callbacks. Promises resolve after the frame, and a frame can hold several ticks. |
-| `Math.random()` in game logic | A seeded RNG that is part of the match state (none needed yet). Random is fine for visual effects (see `Shockwave`). |
-| `Date.now()`, `performance.now()`, frame `time` | The tick count or accumulated `delta` |
-| Changing game state from a click handler | Issue a command through `systems.commands.issue()` |
-| Iterating `player.units` while units may remove themselves | Iterate a copy: `[...player.units]` |
-| Adding a new kind of player input | Add a `Command` kind and handle it in `CommandHub` |
+| Don't                                                      | Do instead                                                                                                           |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `scene.time.delayedCall(ms, …)` for gameplay               | Count a field down by `delta` in an `update(delta)` (see `Objective.updateStrike`)                                   |
+| React to `animationcomplete` for gameplay                  | Time it in game time (see `Unit.updateDeath`). Animation events are fine for visuals.                                |
+| `async` / `await` / `.then()` in game logic                | Plain callbacks. Promises resolve after the frame, and a frame can hold several ticks.                               |
+| `Math.random()` in game logic                              | A seeded RNG that is part of the match state (none needed yet). Random is fine for visual effects (see `Shockwave`). |
+| `Date.now()`, `performance.now()`, frame `time`            | The tick count or accumulated `delta`                                                                                |
+| Changing game state from a click handler                   | Issue a command through `systems.commands.issue()`                                                                   |
+| Iterating `player.units` while units may remove themselves | Iterate a copy: `[...player.units]`                                                                                  |
+| Adding a new kind of player input                          | Add a `Command` kind and handle it in `CommandHub`                                                                   |
 
 Iteration order of `Map`, `Set` and arrays, and stable `Array.sort`, are deterministic
 in JavaScript, so those are safe.
@@ -360,7 +357,7 @@ game.tick;
 
 // Is a replay running, and has it diverged?
 !!game.replay;
-game.verifier?.desyncTick;            // null while in sync
+game.verifier?.desyncTick; // null while in sync
 
 // Replay of the match that just ended (on the score screen)
 game.game.scene.getScene("ScoreScene").sys.settings.data.replay;
@@ -374,7 +371,7 @@ const a = game.game.scene.getScene("ScoreScene").sys.settings.data.replay;
 game.game.scene.getScene("ScoreScene").scene.start("GameScene", {replay: a});
 // ...let it finish (8x speed helps), then on the new score screen:
 const b = game.game.scene.getScene("ScoreScene").sys.settings.data.replay;
-JSON.stringify(a.checkpoints) === JSON.stringify(b.checkpoints);   // must be true
+JSON.stringify(a.checkpoints) === JSON.stringify(b.checkpoints); // must be true
 ```
 
 If they differ, the first mismatching checkpoint brackets the problem to a 5-second
@@ -386,13 +383,13 @@ in that window that breaks one of the [rules](#rules-for-keeping-the-game-determ
 
 ## Code map
 
-| File | Role |
-| --- | --- |
-| [src/model/replay/Replay.ts](../src/model/replay/Replay.ts) | `TICK_MS`, file format, `ReplayRecorder`, `ReplayVerifier`, `stateHash`, `parseReplay`, download and file-picker helpers |
-| [src/model/command/CommandHub.ts](../src/model/command/CommandHub.ts) | Single entry point for commands. `beginTick`/`endTick`, external vs derived, `startPlayback`, `onCommand` |
-| [src/model/command/Command.ts](../src/model/command/Command.ts) | The serializable command types |
-| [src/scenes/GameScene.ts](../src/scenes/GameScene.ts) | Fixed-tick loop (`update` → `simulationTick`), manual physics stepping, recording, verification, replay HUD and speed |
-| [src/scenes/ScoreScene.ts](../src/scenes/ScoreScene.ts) | **Download replay** and **Load replay** buttons |
-| [src/entities/Unit.ts](../src/entities/Unit.ts) | `prepForDestroy` / `updateDeath`: unit removal timed in game time |
-| [src/entities/Objective.ts](../src/entities/Objective.ts) | `launchStrike` / `updateStrike`: rocket timed in game time |
-| [src/model/player/Player.ts](../src/model/player/Player.ts) | Synchronous `freeHandler` and the `onUnitRemoved` hook |
+| File                                                                  | Role                                                                                                                     |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [src/model/replay/Replay.ts](../src/model/replay/Replay.ts)           | `TICK_MS`, file format, `ReplayRecorder`, `ReplayVerifier`, `stateHash`, `parseReplay`, download and file-picker helpers |
+| [src/model/command/CommandHub.ts](../src/model/command/CommandHub.ts) | Single entry point for commands. `beginTick`/`endTick`, external vs derived, `startPlayback`, `onCommand`                |
+| [src/model/command/Command.ts](../src/model/command/Command.ts)       | The serializable command types                                                                                           |
+| [src/scenes/GameScene.ts](../src/scenes/GameScene.ts)                 | Fixed-tick loop (`update` → `simulationTick`), manual physics stepping, recording, verification, replay HUD and speed    |
+| [src/scenes/ScoreScene.ts](../src/scenes/ScoreScene.ts)               | **Download replay** and **Load replay** buttons                                                                          |
+| [src/entities/Unit.ts](../src/entities/Unit.ts)                       | `prepForDestroy` / `updateDeath`: unit removal timed in game time                                                        |
+| [src/entities/Objective.ts](../src/entities/Objective.ts)             | `launchStrike` / `updateStrike`: rocket timed in game time                                                               |
+| [src/model/player/Player.ts](../src/model/player/Player.ts)           | Synchronous `freeHandler` and the `onUnitRemoved` hook                                                                   |

@@ -50,13 +50,13 @@ flowchart LR
 The observation is built by [`ObservationBuilder.ts`](../src/model/player/ObservationBuilder.ts) from the
 player's own fog of war:
 
-| Sent | Not sent |
-|---|---|
+| Sent                                                                                                                                                                  | Not sent                                      |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | Own state in full: resource, base health, cooldowns, unit cap, buildings, resource patches, powers, every own unit (tile, health, order state, enemies it gave up on) | Enemy resource, cooldowns, production, orders |
-| Enemy units in `player.visibleEnemyUnits` right now | Enemy units outside vision |
-| Enemy buildings once seen | Unseen enemy buildings |
-| What both players see on screen: match time, both base health values, pad control, nuke charge | |
-| The map (tiles, pads, both base locations) and the unit / building / power rules | |
+| Enemy units in `player.visibleEnemyUnits` right now                                                                                                                   | Enemy units outside vision                    |
+| Enemy buildings once seen                                                                                                                                             | Unseen enemy buildings                        |
+| What both players see on screen: match time, both base health values, pad control, nuke charge                                                                        |                                               |
+| The map (tiles, pads, both base locations) and the unit / building / power rules                                                                                      |                                               |
 
 The host also enforces it on the way back: every incoming command's `playerIndex` is overwritten with the
 networked player's index, batches decided on observations older than 3 s are dropped, and `CommandHub` validates
@@ -70,16 +70,16 @@ JSON text frames, types in [`protocol.ts`](../src/net/protocol.ts). The full ref
 for every message and command and what a client has to do with each server message, is
 **[network-protocol.md](network-protocol.md)**. In short:
 
-| From | Message | |
-|---|---|---|
-| client | `hello {role, name, protocol}` | first message; role `human` or `bot` |
-| human | `listRooms`, `createRoom {name}`, `joinRoom {roomId}`, `leaveRoom` | lobby |
-| bot | `joinRoom {roomId}` | |
-| host | `spawnBot` | server starts a bot process for the room |
-| host | `startMatch` | needs a bot in the room; everyone gets `matchStarting` |
-| host → bot | `matchStart {info}`, `observation {obs}`, `matchEnd {winnerIndex}` | relayed |
-| bot → host | `commands {tick, commands}` | relayed |
-| server | `welcome`, `rooms`, `roomState`, `matchStarting`, `peerLeft`, `error` | |
+| From       | Message                                                               |                                                        |
+| ---------- | --------------------------------------------------------------------- | ------------------------------------------------------ |
+| client     | `hello {role, name, protocol}`                                        | first message; role `human` or `bot`                   |
+| human      | `listRooms`, `createRoom {name}`, `joinRoom {roomId}`, `leaveRoom`    | lobby                                                  |
+| bot        | `joinRoom {roomId}`                                                   |                                                        |
+| host       | `spawnBot`                                                            | server starts a bot process for the room               |
+| host       | `startMatch`                                                          | needs a bot in the room; everyone gets `matchStarting` |
+| host → bot | `matchStart {info}`, `observation {obs}`, `matchEnd {winnerIndex}`    | relayed                                                |
+| bot → host | `commands {tick, commands}`                                           | relayed                                                |
+| server     | `welcome`, `rooms`, `roomState`, `matchStarting`, `peerLeft`, `error` |                                                        |
 
 The server checks that relay messages come from the right role. When the host leaves, the room closes and any bot
 process started for it is stopped. When the bot leaves mid-match the game continues and shows

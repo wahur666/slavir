@@ -4,7 +4,7 @@ import Tile = Phaser.Tilemaps.Tile;
 import Vector2 = Phaser.Math.Vector2;
 import {Layout} from "./hexgrid/Layout.js";
 import {OffsetCoordinate} from "./hexgrid/OffsetCoordinates.js";
-import {Hex} from "./hexgrid/Hex.js";
+import type {Hex} from "./hexgrid/Hex.js";
 
 export enum Pathfinding {
     WATER = 1,

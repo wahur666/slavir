@@ -2,7 +2,7 @@ import type {Pathfinding} from "./HexMap.js";
 import Phaser from "phaser";
 import Tile = Phaser.Tilemaps.Tile;
 import {OffsetCoordinate} from "./hexgrid/OffsetCoordinates.js";
-import {Hex} from "./hexgrid/Hex.js";
+import type {Hex} from "./hexgrid/Hex.js";
 
 export default class GameTile {
     // Hex

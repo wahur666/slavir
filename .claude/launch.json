@@ -4,19 +4,13 @@
         {
             "name": "dev",
             "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run",
-                "dev"
-            ],
+            "runtimeArgs": ["run", "dev"],
             "port": 8081
         },
         {
             "name": "net-server",
             "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run",
-                "server"
-            ],
+            "runtimeArgs": ["run", "server"],
             "port": 8090
         }
     ]
