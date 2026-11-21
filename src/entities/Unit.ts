@@ -96,6 +96,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     private freeTileCoolDown = 0;
     /** The target's hex when the chase path was planned, a new path is needed once the target leaves it */
     private chaseTile: GameTile | null = null;
+    /**
+     * The unit stood on a hex center with its target in range, i.e. the fight has started. An engaged unit never chases:
+     * once the target leaves its range the attack is dropped and the unit stays where it is.
+     */
+    private engaged = false;
 
     stat: UnitStat;
     volley: Volley;
@@ -111,7 +116,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     private dyingFollowers: Phaser.GameObjects.Sprite[] = [];
     private formation: {x: number; y: number}[] = [];
 
-    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
+    /** Simulation time left until a dying unit is removed, and what to call then; see {@link prepForDestroy} */
+    private death: {remaining: number; onRemoved: () => void} | null = null;
+
+    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => void) {
         super(systems.gameScene, x, y, texture);
         this.systems = systems;
         this.id = systems.nextUnitId();
@@ -310,24 +318,33 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.destination = null;
         this.goal = null;
         this.retreating = false;
+        this.engaged = false;
     }
 
-    prepForDestroy(): Promise<void> {
+    /**
+     * Starts the death animation; `onRemoved` is called from {@link update} once the animation's length passed in
+     * simulation time. The removal is timed by the simulation, not by the animation, so it happens on the same
+     * tick in a replay.
+     */
+    prepForDestroy(onRemoved: () => void): void {
         this.stopUnit();
         this.healthBar.free();
         this.ammoBar?.free();
         this.killFollowers(0);
         this.markedForDeletion = true;
         this.play("unit-die-" + this.lastDirection);
-        return new Promise<void>(resolve => {
-            this.on("animationcomplete", e => {
-                if ((e.key as string).includes("die")) {
-                    this.graphics.destroy();
-                    this.selectedGraphics.destroy();
-                    resolve();
-                }
-            });
-        });
+        this.death = {remaining: this.anims.currentAnim?.duration ?? 1000, onRemoved};
+    }
+
+    private updateDeath(delta: number) {
+        if (!this.death) return;
+        this.death.remaining -= delta;
+        if (this.death.remaining > 0) return;
+        const {onRemoved} = this.death;
+        this.death = null;
+        this.graphics.destroy();
+        this.selectedGraphics.destroy();
+        onRemoved();
     }
 
     /** Drops the order and target, but keeps walking until the center of the current hex is reached */
@@ -339,6 +356,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     update(delta: number) {
         if (this.markedForDeletion) {
+            this.updateDeath(delta);
             return;
         }
         this.repathCoolDown = Math.max(0, this.repathCoolDown - delta);
@@ -350,6 +368,14 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         if (this.target && (!this.canAttack(this.target) || !this.player.visibleEnemyUnits.includes(this.target))) {
             this.stopUnitWhenHexCenterIsReached();
             this.attackAnimationPlaying = false;
+        }
+        if (!this.target) {
+            this.engaged = false;
+        } else if (this.engaged && !this.inAttackRange(this.target)) {
+            // The target retreated out of range after the fight started: stand still instead of chasing it
+            this.stopUnitWhenHexCenterIsReached();
+            this.attackAnimationPlaying = false;
+            this.engaged = false;
         }
         if (!this.target && this.stat.canAttack && this.isStationaryAtCenter()) {
             // Auto attack an enemy in range, as an order like any other so the command hub knows about it
@@ -375,6 +401,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.leaveSharedTile(delta);
         this.recalculateNavigationIfNeeded();
         this.fireTarget = this.findFireTarget();
+        if (this.target && this.fireTarget === this.target && this.isStationaryAtCenter()) this.engaged = true;
         this.playAnimation();
         if (this.navPoints.length > 0) {
             // Never overshoot a center in one step, even on a long frame
@@ -733,6 +760,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         if (target && !this.canAttack(target)) target = null;
         this.goal = target ? null : gameTile;
         this.bumpedTiles = [];
+        // A new order starts unengaged, so an ordered target may be chased until it is first in range
+        this.engaged = false;
         if (this.retreating) {
             // Finish walking back to the held hex first, the new order is planned from there, see arrive()
             this.target = target;

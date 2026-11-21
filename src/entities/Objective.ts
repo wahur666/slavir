@@ -17,6 +17,8 @@ export default class Objective {
     peaceCoolDown = 0;
 
     bufferTime = 3000;
+    /** A launched rocket: the side it hits and the simulation time until it lands */
+    private incomingStrike: {leftSide: boolean; remaining: number} | null = null;
 
     pads: number[] = Array(3).fill(0);
 
@@ -49,6 +51,7 @@ export default class Objective {
     }
 
     update(delta: number) {
+        this.updateStrike(delta);
         if (this.peaceCoolDown > 0) {
             this.peaceCoolDown = Math.max(0, this.peaceCoolDown - delta);
             this.healthBar.update(
@@ -65,11 +68,7 @@ export default class Objective {
         if (padState !== 0) {
             this.currentCoolDown += delta | 0;
             if (this.currentCoolDown >= this.maxCoolDown) {
-                const leftSide = padState < 0;
-                this.playRocketAnimation(leftSide).then(() => {
-                    (leftSide ? this.player1 : this.player2).takeObjectiveDamage();
-                    this.lightning.strike(this.nukePos, this.systems.hexToPos((leftSide ? this.player1 : this.player2).base!.hex));
-                });
+                this.launchStrike(padState < 0);
                 this.currentCoolDown = 0;
                 this.peaceCoolDown = this.maxPeaceCoolDown;
             }
@@ -80,13 +79,27 @@ export default class Objective {
     }
 
     /**
-     * @param leftSide - Shoot rocket to the left side
+     * Fires the rocket, it hits the base {@link bufferTime} later
+     * @param leftSide - Shoot rocket to the left side (player 1)
      */
-    async playRocketAnimation(leftSide: boolean): Promise<void> {
-        return new Promise(resolve => {
-            // TODO: Add some animation here or something IDK, this is just a delay here now
-            this.systems.gameScene.time.delayedCall(this.bufferTime, () => resolve());
-        });
+    launchStrike(leftSide: boolean) {
+        // TODO: Add a rocket animation, this is just a delay now
+        this.incomingStrike = {leftSide, remaining: this.bufferTime};
+    }
+
+    get strikePending(): boolean {
+        return this.incomingStrike !== null;
+    }
+
+    /** Counted in simulation time (not the scene clock) so the strike lands on the same tick in a replay */
+    private updateStrike(delta: number) {
+        if (!this.incomingStrike) return;
+        this.incomingStrike.remaining -= delta;
+        if (this.incomingStrike.remaining > 0) return;
+        const target = this.incomingStrike.leftSide ? this.player1 : this.player2;
+        this.incomingStrike = null;
+        target.takeObjectiveDamage();
+        this.lightning.strike(this.nukePos, this.systems.hexToPos(target.base!.hex));
     }
 
     private calculatePadState() {

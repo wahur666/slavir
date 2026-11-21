@@ -286,16 +286,15 @@ describe("gameplay in a headless browser", () => {
     });
 
     it("freezes the simulation and pending rocket timers while paused", async () => {
-        await evaluate(`window.rocketFinished = false;
-            game.systems.objective.playRocketAnimation(false).then(() => window.rocketFinished = true); void 0`);
+        await evaluate("game.systems.objective.launchStrike(false)");
         await pressEscape();
         await until("game.scene.isPaused()");
         const pausedState = await state();
         await delay(3200);
         expect(await state(), "Pause must freeze movement, economy, combat, and objective").toBe(pausedState);
-        expect(await evaluate("window.rocketFinished"), "Rocket timer must pause").toBe(false);
+        expect(await evaluate("game.systems.objective.strikePending"), "Rocket timer must pause").toBe(true);
         await pressEscape();
-        await until("window.rocketFinished");
+        await until("!game.systems.objective.strikePending");
     });
 
     it("auto-attacks when idle, keeps visible ordered targets, drops dead targets, and keeps harvesters peaceful", async () => {

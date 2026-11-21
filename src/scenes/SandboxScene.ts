@@ -126,13 +126,13 @@ export default class SandboxScene extends GameScene {
         }
     }
 
-    update(_time: number, delta: number) {
-        this.fpsText.setText(`${(1000 / delta) | 0} FPS`);
+    protected simulationTick(delta: number) {
+        this.physics.world.singleStep();
         this.drawVisibleTiles();
-        for (const unit of this.player1.units) {
+        for (const unit of [...this.player1.units]) {
             unit.update(delta);
         }
-        for (const unit of this.player2.units) {
+        for (const unit of [...this.player2.units]) {
             unit.update(delta);
         }
         this.systems.commands.update(delta);

@@ -57,6 +57,11 @@ export interface CreateUnitCommand extends BaseCommand {
     unit: UnitName;
 }
 
-export type Command = MoveCommand | AttackCommand | StopCommand | DisbandCommand | BuildCommand | CreateUnitCommand;
+/** Give up the match (the "Retire" button) */
+export interface SurrenderCommand extends BaseCommand {
+    kind: "surrender";
+}
+
+export type Command = MoveCommand | AttackCommand | StopCommand | DisbandCommand | BuildCommand | CreateUnitCommand | SurrenderCommand;
 
 export type CommandKind = Command["kind"];

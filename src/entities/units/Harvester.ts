@@ -40,7 +40,7 @@ export default class Harvester extends Unit {
     /** Looks for a resource on the next update; the move order needs the unit to be registered with its player first */
     private needsResource = true;
 
-    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
+    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => void) {
         super(systems, x, y, texture, stat, player, free);
     }
 
@@ -99,12 +99,11 @@ export default class Harvester extends Unit {
         }
     }
 
-    prepForDestroy(): Promise<void> {
-        const a = super.prepForDestroy();
+    prepForDestroy(onRemoved: () => void): void {
+        super.prepForDestroy(onRemoved);
         if (this.harvesting) {
             this.stopHarvesting();
         }
-        return a;
     }
 
     startHarvesting() {

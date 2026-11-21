@@ -159,10 +159,8 @@ export default class HumanPlayer extends Player {
         return unit;
     }
 
-    async freeHandler(unit: Unit): Promise<void> {
-        const res = await super.freeHandler(unit);
+    protected onUnitRemoved(_unit: Unit): void {
         this.updateUnitCounter();
-        return res;
     }
 
     updateUnitCounter() {

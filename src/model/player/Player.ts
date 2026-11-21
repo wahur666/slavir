@@ -147,7 +147,7 @@ export default abstract class Player {
         return null;
     }
 
-    protected async freeHandler(unit: Unit): Promise<void> {
+    protected freeHandler(unit: Unit): void {
         if (unit.markedForDeletion || !this.units.includes(unit)) return;
         unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
         if (unit instanceof Harvester) {
@@ -159,16 +159,20 @@ export default abstract class Player {
             this.deselectUnit();
         }
         this.systems.commands.forget(unit);
-        await unit.prepForDestroy();
-        unit.destroy();
-        const unitToFreeInd = this.units.indexOf(unit);
-        if (unitToFreeInd !== -1) this.units.splice(unitToFreeInd, 1);
-        // console.log(unit.player.units);
+        unit.prepForDestroy(() => {
+            unit.destroy();
+            const unitToFreeInd = this.units.indexOf(unit);
+            if (unitToFreeInd !== -1) this.units.splice(unitToFreeInd, 1);
+            this.onUnitRemoved(unit);
+        });
     }
 
+    /** Called once a dead unit finished dying and left {@link units} */
+    protected onUnitRemoved(_unit: Unit): void {}
+
     /** Removes the unit from the game; issue a "disband" command instead of calling this directly */
-    disband(unit: Unit): Promise<void> {
-        return this.freeHandler(unit);
+    disband(unit: Unit): void {
+        this.freeHandler(unit);
     }
 
     protected selectUnit(unit: Unit): void {

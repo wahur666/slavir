@@ -6,17 +6,38 @@ import type GameTile from "../GameTile.js";
 import type {Order} from "./Order.js";
 import {AttackOrder, MoveOrder} from "./Order.js";
 import {Buildings} from "../../entities/Building.js";
+import type {ReplayEntry} from "../replay/Replay.js";
 
-export type CommandListener = (command: Command) => void;
+export interface CommandInfo {
+    /** The simulation tick the command took effect on */
+    tick: number;
+    /**
+     * Player input from outside the simulation (human clicks, a network peer, a replay). Commands issued while a
+     * tick runs (AI, auto attack) are derived from the simulation state and come back on their own in a replay.
+     */
+    external: boolean;
+}
+
+export type CommandListener = (command: Command, info: CommandInfo) => void;
 
 /**
  * The single entry point for unit commands. Human input, the AI, and (later) network
  * peers all call {@link issue} with the same serializable {@link Command}; the hub
  * validates it, turns it into per-unit {@link Order}s, and steps those orders.
+ *
+ * The scene brackets every simulation tick with {@link beginTick} / {@link endTick}. Commands issued between
+ * two ticks are external input and take effect on the next tick; during playback external input is ignored
+ * and the recorded commands are executed at the start of their tick instead.
  */
 export default class CommandHub {
     private readonly orders = new Map<Unit, Order>();
     private readonly listeners: CommandListener[] = [];
+    /** The tick that runs now, or the next one when called between ticks */
+    private tick = 0;
+    private inTick = false;
+    private playback: {entries: ReplayEntry[]; cursor: number} | null = null;
+    /** Set while the recorded commands of a tick are executed */
+    private replaying = false;
 
     constructor(private readonly systems: Systems) {}
 
@@ -29,12 +50,44 @@ export default class CommandHub {
         };
     }
 
+    /** Feed the commands of a replay back instead of accepting external input */
+    startPlayback(entries: ReplayEntry[]): void {
+        this.playback = {entries, cursor: 0};
+    }
+
+    get isPlayingBack(): boolean {
+        return this.playback !== null;
+    }
+
+    /** Called by the scene before anything else happens in a simulation tick */
+    beginTick(tick: number): void {
+        this.tick = tick;
+        this.inTick = true;
+        if (!this.playback) return;
+        const {entries} = this.playback;
+        this.replaying = true;
+        while (this.playback.cursor < entries.length && entries[this.playback.cursor].tick <= tick) {
+            const {command, tick: recordedTick} = entries[this.playback.cursor++];
+            if (!this.issue(command)) console.warn(`Replay command rejected at tick ${tick} (recorded at ${recordedTick})`, command);
+        }
+        this.replaying = false;
+    }
+
+    /** Called by the scene after a simulation tick finished */
+    endTick(): void {
+        this.inTick = false;
+        this.tick++;
+    }
+
     /**
      * Validates and executes a command right away.
      * @returns false if the command was rejected (game not running, unknown player, no own living unit,
-     * invalid target, building or unit not affordable / not available / on cooldown / over the unit cap)
+     * invalid target, building or unit not affordable / not available / on cooldown / over the unit cap,
+     * external input during playback)
      */
     issue(command: Command): boolean {
+        const external = !this.inTick || this.replaying;
+        if (this.playback && external && !this.replaying) return false;
         if (!this.systems.gameScene.canIssueCommands) return false;
         const player = this.systems.players.find(p => p.index === command.playerIndex);
         if (!player) return false;
@@ -46,10 +99,14 @@ export default class CommandHub {
             case "createUnit":
                 accepted = player.createUnit(command.unit) !== null;
                 break;
+            case "surrender":
+                this.systems.gameScene.endGame(player !== this.systems.player1);
+                accepted = true;
+                break;
             default:
                 accepted = this.commandUnits(player, command);
         }
-        if (accepted) this.listeners.forEach(listener => listener(command));
+        if (accepted) this.listeners.forEach(listener => listener(command, {tick: this.tick, external}));
         return accepted;
     }
 
@@ -58,7 +115,7 @@ export default class CommandHub {
         return player.createBuilding(building) !== null;
     }
 
-    private commandUnits(player: Player, command: Exclude<Command, {kind: "build" | "createUnit"}>): boolean {
+    private commandUnits(player: Player, command: Exclude<Command, {kind: "build" | "createUnit" | "surrender"}>): boolean {
         const units = command.unitIds
             .map(id => player.units.find(unit => unit.id === id))
             .filter((unit): unit is Unit => !!unit && !unit.markedForDeletion);
@@ -83,7 +140,7 @@ export default class CommandHub {
             case "disband":
                 units.forEach(unit => {
                     this.forget(unit);
-                    void player.disband(unit);
+                    player.disband(unit);
                 });
                 break;
         }
