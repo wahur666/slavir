@@ -24,6 +24,7 @@ export default class Robot5 extends Unit {
         health: 1611,
         limit: -1,
         rateOfFire: 0.75,
+        initialChargeUp: 0.25,
         reference: "Rhino",
         speed: 120,
         squadSize: 1,

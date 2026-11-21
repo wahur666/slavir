@@ -24,6 +24,8 @@ export default class Guard extends Unit {
         health: 2823,
         limit: -1,
         rateOfFire: 3.44,
+        // Lock-on time; the reference rate of fire already includes the rest of the charge up
+        initialChargeUp: 0.25,
         reference: "Predator Tank",
         speed: 80,
         squadSize: 1,
