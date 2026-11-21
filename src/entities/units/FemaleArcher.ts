@@ -2,6 +2,7 @@ import Unit from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 
+/** Texture "female_archer", mapped to the reference unit: Missile Squad */
 export default class FemaleArcher extends Unit {
     static readonly stat: UnitStat = {
         attackRange: 1,

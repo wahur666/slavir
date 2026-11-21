@@ -2,6 +2,7 @@ import Unit from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 
+/** Texture "fantasy8", mapped to the reference unit: Riflemen */
 export default class Fantasy8 extends Unit {
     static readonly stat: UnitStat = {
         attackRange: 1,

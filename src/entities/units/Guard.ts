@@ -2,6 +2,7 @@ import Unit from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 
+/** Texture "guard", mapped to the reference unit: Predator Tank */
 export default class Guard extends Unit {
     static readonly stat: UnitStat = {
         attackRange: 1,

@@ -4,6 +4,7 @@ import {UnitName, type UnitStat} from "../UnitsStats.js";
 import type Player from "../../model/player/Player.js";
 import type Systems from "../../model/Systems.js";
 
+/** Texture "male_engineer", mapped to the reference unit: Harvester */
 export default class Harvester extends Unit {
     static readonly stat: UnitStat = {
         attackRange: 1,

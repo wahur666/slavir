@@ -2,6 +2,7 @@ import Unit from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 
+/** Texture "robot5", mapped to the reference unit: Rhino */
 export default class Robot5 extends Unit {
     static readonly stat: UnitStat = {
         attackRange: 1,

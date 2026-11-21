@@ -2,6 +2,7 @@ import Unit from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 
+/** Texture "black_dragon", mapped to the reference unit: Orca */
 export default class BlackDragon extends Unit {
     static readonly stat: UnitStat = {
         attackRange: 1,

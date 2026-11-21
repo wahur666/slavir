@@ -2,6 +2,13 @@ import Unit from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 
+/**
+ * Texture "demon_dragon", mapped to the reference unit: Talon
+ *
+ * Has two independent weapons:
+ * - Ground gun against infantry, vehicles and harvesters: 57 / 20 / 20 damage, one shot every 0.5s
+ * - Anti-air missile against aircraft: 345 damage, 0.1s wind-up, one shot every 2s
+ */
 export default class DemonDragon extends Unit {
     static readonly stat: UnitStat = {
         attackRange: 1,
