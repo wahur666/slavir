@@ -333,6 +333,82 @@ describe("gameplay in a headless browser", () => {
         expect(combat).toEqual({acquired: true, damaged: true, harvesterCannotAttack: true, keepsTarget: true, clearedDeadTarget: true});
     });
 
+    it("only attacks from a hex center and never stops between hex centers", async () => {
+        const result = await evaluate(`(() => {
+            game.game.loop.sleep();
+            const p = game.player1, ai = game.player2;
+            const unit = p.units.find(u => u.stat.canAttack && !u.markedForDeletion);
+            ai.resource = 1000; ai.createCoolDown = 0; ai.createBuilding('barrack');
+            const enemy = ai.createUnit('fantasy8') || ai.units.find(u => u.stat.canAttack && !u.markedForDeletion);
+            unit.stopUnit(); enemy.stopUnit();
+            unit.attackCoolDown = 0;
+            const start = unit.gameTile();
+            const center = game.systems.hexToPos(start.hex);
+            const adjacent = game.systems.map.tiles.find(t => t.distance(start) === 1 && t.pathfinding === 2
+                && game.systems.navigation.checkBlockade(start, t));
+            const enemyPos = game.systems.hexToPos(adjacent.hex);
+            enemy.setPosition(enemyPos.x, enemyPos.y);
+            p.visibleEnemyUnits = [enemy];
+            const offCenter = () => { unit.setPosition(center.x + 12, center.y); };
+            const atCenter = () => unit.x === center.x && unit.y === center.y;
+            const reach = () => { unit.setPosition(center.x + 2, center.y); unit.update(16); };
+
+            // Attack order while off-center with the target already in range: walk to the center first
+            offCenter();
+            const sameTile = unit.gameTile() === start;
+            const health = enemy.currentHealth;
+            unit.moveToGameTile(null, enemy);
+            unit.update(16);
+            const noAttackOffCenter = enemy.currentHealth === health && unit.target === enemy;
+            const headsToCenter = unit.moving && unit.navPoints.length === 1 && unit.navPoints[0].distance(center) < 1;
+            reach();
+            const snapped = atCenter() && !unit.moving;
+            unit.update(16);
+            const attacksAtCenter = enemy.currentHealth < health;
+
+            // Idle auto-acquire never fires off-center
+            unit.stopUnit(); unit.attackCoolDown = 0; offCenter();
+            const health2 = enemy.currentHealth;
+            unit.update(16);
+            const noAutoAttackOffCenter = enemy.currentHealth === health2;
+
+            // Stop order off-center keeps walking to the center
+            unit.stopUnit(); offCenter();
+            unit.stopUnitWhenHexCenterIsReached();
+            const stopHeadsToCenter = unit.moving && unit.navPoints.length === 1 && unit.target === null;
+            reach();
+            const stoppedAtCenter = atCenter() && !unit.moving;
+
+            // Moving with a target that comes into range: finish at the current hex's center, not mid-path
+            unit.stopUnit(); offCenter(); unit.attackCoolDown = 0;
+            const far = game.systems.map.tiles.find(t => t.distance(start) === 4 && t.pathfinding === 2);
+            unit.moveToGameTile(far);
+            unit.target = enemy;
+            const health3 = enemy.currentHealth;
+            unit.update(16);
+            const shortened = unit.navPoints.length === 1 && unit.navPoints[0].distance(center) < 1;
+            const noAttackWhileMoving = health3 === enemy.currentHealth;
+
+            unit.stopUnit();
+            enemy.markedForDeletion = true;
+            p.visibleEnemyUnits = [];
+            return {sameTile, noAttackOffCenter, headsToCenter, snapped, attacksAtCenter, noAutoAttackOffCenter,
+                stopHeadsToCenter, stoppedAtCenter, shortened, noAttackWhileMoving};
+        })()`);
+        expect(result).toEqual({
+            sameTile: true,
+            noAttackOffCenter: true,
+            headsToCenter: true,
+            snapped: true,
+            attacksAtCenter: true,
+            noAutoAttackOffCenter: true,
+            stopHeadsToCenter: true,
+            stoppedAtCenter: true,
+            shortened: true,
+            noAttackWhileMoving: true,
+        });
+    });
+
     it("builds an AI army, expands tech, holds objectives, and prefers counters", async () => {
         const ai = await evaluate(`(() => {
             const ai = game.player2, p = game.player1;

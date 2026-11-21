@@ -16,6 +16,9 @@ import HealthBar from "./HealthBar";
 type Direction = "up" | "down" | "left" | "right";
 
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
+    /** Distance in pixels within which a navigation point (hex center) counts as reached */
+    static readonly ARRIVAL_DISTANCE = 5;
+
     static AnimationKeys = {
         IDLE_: "unit-idle-",
         ATTACK_: "unit-attack-",
@@ -109,7 +112,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      * @param target
      */
     private setNav(points: Vector2[], target: Unit | null = null): void {
+        // The first point is the center of the tile the unit is on. Units must never stop between hex centers,
+        // so if there is nowhere else to go (already at the destination, target already in range, or no path)
+        // the unit still walks back to the center of its current hex.
         this.navPoints = points.slice(1);
+        if (this.navPoints.length === 0 && !this.isAtTileCenter()) {
+            this.navPoints = [this.tileCenter()];
+        }
         this.body.stop();
         this.moving = this.navPoints.length > 0;
         // When we can target?
@@ -127,6 +136,20 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     gameTile(): GameTile {
         return this.systems.pointToTile(this.x, this.y)!;
+    }
+
+    /** Center of the hex the unit is currently on */
+    tileCenter(): Vector2 {
+        return this.systems.hexToPos(this.gameTile().hex);
+    }
+
+    isAtTileCenter(): boolean {
+        return this.pos.distance(this.tileCenter()) < Unit.ARRIVAL_DISTANCE;
+    }
+
+    /** Standing still on a hex center, the only state in which a unit may attack */
+    isStationaryAtCenter(): boolean {
+        return !this.moving && this.navPoints.length === 0 && this.isAtTileCenter();
     }
 
     takeDamage(unit: Unit) {
@@ -174,9 +197,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
+    /** Drops the order and target, but keeps walking until the center of the current hex is reached */
     stopUnitWhenHexCenterIsReached() {
-        this.moveToGameTile(this.gameTile());
-        this.stopUnit();
+        this.setNav([], null);
+        this.destination = this.moving ? this.gameTile() : null;
     }
 
     update(delta: number) {
@@ -187,22 +211,27 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             this.stopUnitWhenHexCenterIsReached();
             this.attackAnimationPlaying = false;
         }
-        if (!this.target && !this.moving && this.navPoints.length === 0 && this.stat.canAttack) {
+        if (!this.target && this.stat.canAttack && this.isStationaryAtCenter()) {
             this.target = this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy)) || null;
         }
-        if (this.target) {
-            if (this.inAttackRange(this.target)) {
-                if (this.moving === false) {
-                    this.navPoints = [];
-                    this.destination = null;
-                }
+        // Chasing a target that is already in range from the current hex: finish the path at this hex's center
+        // instead of walking further, the attack itself starts once the center is reached.
+        if (this.target && this.navPoints.length > 0 && this.inAttackRange(this.target)) {
+            const center = this.tileCenter();
+            if (this.navPoints.length > 1 || this.navPoints[0].distance(center) >= 1) {
+                this.navPoints = [center];
+                this.destination = this.gameTile();
             }
         }
         this.playAnimation();
         if (this.navPoints.length > 0) {
-            if (this.pos.distance(this.navPoints[0]) < 5) {
-                this.navPoints.shift();
+            // Never overshoot a center in one step, even on a long frame
+            const arrival = Math.max(Unit.ARRIVAL_DISTANCE, (this.stat.speed * delta) / 1000);
+            if (this.pos.distance(this.navPoints[0]) < arrival) {
+                const reached = this.navPoints.shift()!;
                 if (this.navPoints.length === 0) {
+                    // Snap exactly onto the hex center
+                    this.setPosition(reached.x, reached.y);
                     this.body.stop();
                     this.graphics.clear();
                     this.moving = false;
@@ -243,7 +272,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     attackTarget() {
-        if (this.target && this.canAttack(this.target) && this.inAttackRange(this.target)) {
+        if (this.target && this.canAttack(this.target) && this.isStationaryAtCenter() && this.inAttackRange(this.target)) {
             this.target.takeDamage(this);
             this.attackCoolDown = this.stat.rateOfFire * 1000;
             this.attackAnimationPlaying = true;
@@ -253,7 +282,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            if (this.target && this.inAttackRange(this.target) && this.attackCoolDown === 0) {
+            if (this.target && this.attackCoolDown === 0 && this.isStationaryAtCenter() && this.inAttackRange(this.target)) {
                 if (this.target.pos.x <= this.pos.x) {
                     this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
                     this.lastDirection = "left";
