@@ -100,22 +100,18 @@ export default class AiPlayer extends Player {
     private counterScore(stat: UnitStat): number {
         const enemies = this.visibleEnemyUnits.filter(enemy => !enemy.markedForDeletion && enemy.stat.canAttack);
         if (enemies.length === 0) return stat.texture === UnitName.B1_Fantasy8 ? 1 : 0;
-        const strengths = enemies.reduce(
-            (score, enemy) =>
-                score +
-                (enemy.stat.type === "aircraft"
-                    ? stat.canAttackAir && stat.goodAgainstAir
-                        ? 1
-                        : 0
-                    : enemy.stat.type === "vehicle"
-                      ? stat.goodAgainstFactory
-                          ? 1
-                          : 0
-                      : stat.goodAgainstInfantry
-                        ? 1
-                        : 0),
-            0
-        );
-        return strengths / enemies.length;
+        const countered = enemies.filter(enemy => this.isGoodAgainst(stat, enemy.stat)).length;
+        return countered / enemies.length;
+    }
+
+    private isGoodAgainst(stat: UnitStat, enemy: UnitStat): boolean {
+        switch (enemy.type) {
+            case "aircraft":
+                return stat.canAttackAir && stat.goodAgainstAir;
+            case "vehicle":
+                return stat.goodAgainstFactory;
+            default:
+                return stat.goodAgainstInfantry;
+        }
     }
 }
