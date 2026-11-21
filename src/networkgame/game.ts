@@ -25,6 +25,7 @@ export function bootGame(container: HTMLElement, client: NetClient, onExit: () =
         render: {pixelArt: true},
         physics: {default: "arcade", arcade: {debug: SHARED_CONFIG.debug.arcade}},
         canvas,
+        scale: {parent: container, mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH},
         callbacks: {
             preBoot: game => {
                 game.registry.set(START_SCENE_KEY, SceneRegistry.NETWORK_GAME);

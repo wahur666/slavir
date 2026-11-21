@@ -4,7 +4,16 @@ import type GameTile from "../GameTile.js";
 import {Pathfinding} from "../HexMap.js";
 import Harvester from "../../entities/units/Harvester.js";
 import IonCannonStrike from "../../entities/powers/IonCannonStrike.js";
-import {ION_CANNON_RADIUS, PowerName, UNITS_PER_HEX, ionCannonDamage, powerStats, withinTurretForwardLimit} from "./PowerRules.js";
+import {
+    distanceToBase,
+    ION_CANNON_RADIUS,
+    ionCannonDamage,
+    ionCannonStructureDamage,
+    PowerName,
+    powerStats,
+    UNITS_PER_HEX,
+    withinTurretForwardLimit,
+} from "./PowerRules.js";
 import type Unit from "../../entities/Unit.js";
 
 /**
@@ -14,7 +23,8 @@ import type Unit from "../../entities/Unit.js";
  * - Turret: a gun emplacement on a visible, free, walkable hex that is no pad, no building, and at most
  *   1.5 hexes past the middle of the map
  * - Ion cannon: after a 3.3s blast sequence, heavy damage to every unit around the targeted visible hex (friendly fire),
- *   falling off with the distance from the epicenter (see {@link ionCannonFalloff}), and to any base on or next to it
+ *   falling off with the distance from the epicenter (see {@link ionCannonFalloff}), and to any base when it hits one of
+ *   its five hexes (100%) or next to one (70%)
  */
 export default class CommanderPowers {
     /** ms left before each power can be used again */
@@ -133,8 +143,8 @@ export default class CommanderPowers {
             if (damage > 0) unit.applyDamage(damage);
         }
         for (const player of this.systems.players) {
-            if (!player.base) continue;
-            const damage = ionCannonDamage("structure", false, 0, player.base.distance(tile));
+            if (player.baseTiles.length === 0) continue;
+            const damage = ionCannonStructureDamage(distanceToBase(tile, player.baseTiles, (a, b) => a.distance(b)));
             player.currentBaseHealth = Math.max(0, player.currentBaseHealth - damage);
         }
     }

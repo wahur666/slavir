@@ -41,7 +41,7 @@ export default class MenuScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setInteractive({useHandCursor: true})
             .on("pointerup", () => {
-                window.location.href = "./networkgame/";
+                window.location.href = "../networkgame/";
             });
     }
 }

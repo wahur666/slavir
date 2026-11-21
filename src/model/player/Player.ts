@@ -250,6 +250,24 @@ export default abstract class Player {
         }
     }
 
+    private cachedBaseTiles: GameTile[] | null = null;
+
+    /**
+     * The base's five hexes: the castle and the four building slots around it (the spawn is not part of it).
+     * Units cannot attack the base; the ion cannon damages it when it hits on or next to one of these.
+     */
+    get baseTiles(): GameTile[] {
+        if (!this.cachedBaseTiles) {
+            const objects = this.systems.layers[`base${this.index}` as "base1" | "base2"].objects;
+            this.cachedBaseTiles = [0, 1, 2, 3, 4]
+                .map(id => findObjectByProperty(objects, "id", id))
+                .filter(object => object?.x !== undefined && object.y !== undefined)
+                .map(object => this.systems.map.pixelToTile(object.x!, object.y!))
+                .filter((tile): tile is GameTile => !!tile);
+        }
+        return this.cachedBaseTiles;
+    }
+
     get enemyPlayer(): Player {
         return this.systems.enemyPlayer(this);
     }

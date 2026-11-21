@@ -20,6 +20,7 @@ const config: Phaser.Types.Core.GameConfig = {
         },
     },
     canvas: document.getElementById("cv1") as HTMLCanvasElement,
+    scale: {parent: "root", mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH},
     callbacks: {
         preBoot: game => game.registry.set(START_SCENE_KEY, SceneRegistry.SANDBOX),
     },

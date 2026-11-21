@@ -2,16 +2,147 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Slavir is an open-source real time tactics game that runs in the browser.">
 
     <link rel="icon" type="image/png" href="./assets/favicon.png">
-    <title>Slavir</title>
+    <link rel="stylesheet" href="./home.css">
+    <title>Slavir · Real Time Tactics</title>
 </head>
 <body>
-    <div id="root">
-        <canvas id="cv1"></canvas>
-    </div>
-    <script type="module" src="./main.ts"></script>
+    <header class="topbar">
+        <a class="brand" href="./">
+            <img src="./assets/favicon.png" alt="" width="28" height="28">
+            <span>Slavir</span>
+        </a>
+        <nav>
+            <a href="#play">Play</a>
+            <a href="#how">How it plays</a>
+            <a href="./wiki/">Units</a>
+            <a href="./docs/">Docs</a>
+            <a href="https://github.com/wahur666/slavir" rel="noopener">GitHub</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <img class="logo" src="./assets/slavir.png" alt="Slavir logo" width="220" height="248">
+            <div class="hero-text">
+                <p class="eyebrow">Open-source real time tactics</p>
+                <h1>Slavir</h1>
+                <p class="lede">
+                    Short, sharp hex-map battles in your browser. Unlock buildings, recruit a counter for
+                    every threat, hold the objective pads and call down missile strikes on the enemy castle
+                    before they do the same to you.
+                </p>
+                <div class="cta">
+                    <a class="button primary" href="./play/">Play now</a>
+                    <a class="button ghost" href="#play">All modes</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="play" class="section">
+            <h2>Choose a mode</h2>
+            <div class="modes">
+                <a class="mode" href="./play/">
+                    <img src="./assets/castle_large.png" alt="" width="56" height="67">
+                    <h3>Main game</h3>
+                    <p>Single player against the bot. A three-second countdown, ten units, two commander powers, and
+                        the first castle to fall loses. Save a replay when it's over.</p>
+                    <span class="go">Start a match →</span>
+                </a>
+                <a class="mode" href="./networkgame/">
+                    <img src="./assets/hangar.png" alt="" width="56" height="56">
+                    <h3>Network game</h3>
+                    <p>Create a room on the lobby server and face a networked AI that only sees what its side
+                        could fairly see. Bring your own bot over WebSocket.</p>
+                    <span class="go">Open the lobby →</span>
+                    <span class="note">Needs <code>npm run server</code></span>
+                </a>
+                <a class="mode" href="./sandbox/">
+                    <img src="./assets/nuke.png" alt="" width="70" height="56">
+                    <h3>Sandbox</h3>
+                    <p>A testing ground with the same map and unit rules as a match. Spawn units, set up
+                        matchups and watch how they fight, without a clock or an opponent.</p>
+                    <span class="go">Open the sandbox →</span>
+                </a>
+            </div>
+        </section>
+
+        <section id="how" class="section">
+            <h2>How it plays</h2>
+            <div class="features">
+                <div class="feature">
+                    <h3>Build, then recruit</h3>
+                    <p>Click a building card to unlock its units, then recruit from the cards. Each recruitment starts a
+                        cooldown that grows with your army; losses shorten it.</p>
+                </div>
+                <div class="feature">
+                    <h3>Harvest to fund the war</h3>
+                    <p>Harvesters gather resources on their own. Field at most two, and guard them: a destroyed
+                        harvester pays an 80 bounty to the enemy.</p>
+                </div>
+                <div class="feature">
+                    <h3>Hold the pads</h3>
+                    <p>Keep units on the objective pads to launch missile strikes at the enemy base. Ten units is the
+                        cap, so every slot counts.</p>
+                </div>
+                <div class="feature">
+                    <h3>Commander powers</h3>
+                    <p><strong>Turret</strong> drops a short-lived gun emplacement. <strong>Ion Cannon</strong> flattens
+                        a whole area after a blast sequence, your own units included.</p>
+                </div>
+            </div>
+            <dl class="keys">
+                <div><dt><kbd>Q</kbd> <kbd>W</kbd></dt><dd>Commander powers</dd></div>
+                <div><dt><kbd>F</kbd></dt><dd>Dismiss the selected unit</dd></div>
+                <div><dt><kbd>Esc</kbd></dt><dd>Pause, or cancel a power</dd></div>
+                <div><dt>Click</dt><dd>Select, move, attack</dd></div>
+            </dl>
+        </section>
+
+        <section id="docs" class="section">
+            <h2>Documentation</h2>
+            <p class="section-intro">For players who want the details and developers who want to build on it.</p>
+            <div class="docs">
+                <a class="doc doc-featured" href="./wiki/">
+                    <h3>Unit wiki</h3>
+                    <p>Every unit's stats, damage and matchups, generated from the game's live unit data.</p>
+                </a>
+                <a class="doc" href="./docs/overview.html">
+                    <h3>Overview</h3>
+                    <p>Running it locally, the full rules, unit cap, cooldowns and commander power numbers.</p>
+                </a>
+                <a class="doc" href="./docs/architecture.html">
+                    <h3>Game systems architecture</h3>
+                    <p>The scene loop, the systems container, players, buildings, units and the command hub.</p>
+                </a>
+                <a class="doc" href="./docs/replays.html">
+                    <h3>Replays</h3>
+                    <p>How a match is recorded as commands and ticks, and the determinism rules that keep it in sync.</p>
+                </a>
+                <a class="doc" href="./docs/networkgame.html">
+                    <h3>Network game</h3>
+                    <p>Running the lobby server, adding a networked AI, and how the browser and bot fit together.</p>
+                </a>
+                <a class="doc" href="./docs/network-protocol.html">
+                    <h3>Network protocol</h3>
+                    <p>Every message with an example payload, plus a checklist for writing your own bot.</p>
+                </a>
+                <a class="doc" href="./docs/roadmap.html">
+                    <h3>Roadmap</h3>
+                    <p>What's done and what's planned, eventually.</p>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>Slavir is free software under the GPL-3.0-or-later license. Built with Phaser and TypeScript, with art from
+            OpenGameArt.</p>
+        <p><a href="https://github.com/wahur666/slavir" rel="noopener">Source on GitHub</a> ·
+            <a href="https://github.com/wahur666/slavir/issues" rel="noopener">Report an issue</a></p>
+    </footer>
 </body>
 </html>

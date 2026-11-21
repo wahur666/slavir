@@ -69,8 +69,14 @@ export const ION_CANNON_DAMAGE = {
     harvester: 1000,
 };
 
-/** Damage to structures (bases and turrets) by hex distance: 4000 if the epicenter is on their hex, 2000 if next to it */
-export const ION_CANNON_STRUCTURE_DAMAGE = [4000, 2000];
+/** Damage to structures (bases and turrets) on a direct hit */
+export const ION_CANNON_STRUCTURE_DAMAGE = 4000;
+
+/**
+ * Share of the structure damage by hex distance: 100% when the epicenter is on one of the structure's hexes (any of a
+ * base's five), 70% when it is next to one
+ */
+export const ION_CANNON_STRUCTURE_FALLOFF = [1, 0.7];
 
 /** Share of the ion cannon's damage at a distance (in units) from the epicenter */
 export function ionCannonFalloff(distance: number): number {
@@ -97,7 +103,20 @@ export function ionCannonDamage(
     distance: number,
     hexDistance: number
 ): number {
-    if (type === "structure") return ION_CANNON_STRUCTURE_DAMAGE[hexDistance] ?? 0;
+    if (type === "structure") return ionCannonStructureDamage(hexDistance);
     const base = harvester ? ION_CANNON_DAMAGE.harvester : ION_CANNON_DAMAGE[type];
     return Math.round(base * ionCannonFalloff(distance));
+}
+
+/**
+ * Ion cannon damage to a structure (a base or a turret)
+ * @param hexDistance hex distance from the epicenter to the nearest of the structure's hexes
+ */
+export function ionCannonStructureDamage(hexDistance: number): number {
+    return Math.round(ION_CANNON_STRUCTURE_DAMAGE * (ION_CANNON_STRUCTURE_FALLOFF[hexDistance] ?? 0));
+}
+
+/** Hex distance from a tile to the nearest of a base's hexes */
+export function distanceToBase<T>(tile: T, baseTiles: readonly T[], distance: (a: T, b: T) => number): number {
+    return Math.min(...baseTiles.map(baseTile => distance(baseTile, tile)));
 }

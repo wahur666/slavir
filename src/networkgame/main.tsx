@@ -52,7 +52,7 @@ function StatusBar() {
     return (
         <header class="bar">
             <a class="back" href="../">
-                ← Main menu
+                ← Home
             </a>
             <h1>Network game</h1>
             <span class={`status status-${status.value}`}>

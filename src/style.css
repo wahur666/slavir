@@ -3,6 +3,8 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
+    /* Shows around the letterboxed game canvas */
+    background: radial-gradient(circle at 50% 30%, #3a281b, #1d130d 75%);
 }
 
 @font-face {
@@ -10,15 +12,14 @@ body {
     src: url("./fonts/Anton Regular.ttf");
 }
 
+/* Phaser's FIT scale mode sizes and centers the canvas inside this box */
 #root {
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
 }
 
 #cv1 {
-    max-width: 100vw;
-    max-height: 100vh;
+    display: block;
+    box-shadow: 0 0 40px rgb(0 0 0 / 60%);
 }

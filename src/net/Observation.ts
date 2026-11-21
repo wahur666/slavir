@@ -69,9 +69,13 @@ export interface MatchInfo {
     pads: TileRef[][];
     nuke: TileRef;
     base: TileRef;
+    /** The own base's five hexes (castle and building slots); the ion cannon damages a base on or next to them */
+    baseTiles: TileRef[];
     spawn: TileRef;
     /** Where the enemy castle stands; the map is known to both players */
     enemyBase: TileRef;
+    /** The enemy base's five hexes */
+    enemyBaseTiles: TileRef[];
     units: UnitCatalogEntry[];
     buildings: {type: BuildingType; cost: number}[];
     powers: {name: PowerType; cost: number; coolDown: number}[];

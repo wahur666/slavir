@@ -10,7 +10,7 @@ npm run server      # WebSocket lobby/relay server on ws://localhost:8090 (PORT=
 npm run dev         # Vite on http://localhost:8081, proxies /ws to the server (SLAVIR_WS_PORT=… if moved)
 ```
 
-Open <http://localhost:8081/networkgame/> (or "Network game" on the main menu), create a room, click
+Open <http://localhost:8081/networkgame/> (or "Network game" on the homepage or the game's main menu), create a room, click
 **Add networked AI**, then **Start match**. "Add networked AI" makes the server start `server/bot.ts` as a
 child process; you can also start a bot yourself:
 
@@ -66,7 +66,9 @@ rebuilt for free, `self.freeHarvesters` counts those rebuilds).
 
 ## Protocol
 
-JSON text frames, types in [`protocol.ts`](../src/net/protocol.ts):
+JSON text frames, types in [`protocol.ts`](../src/net/protocol.ts). The full reference, with an example payload
+for every message and command and what a client has to do with each server message, is
+**[network-protocol.md](network-protocol.md)**. In short:
 
 | From | Message | |
 |---|---|---|
@@ -86,6 +88,7 @@ process started for it is stopped. When the bot leaves mid-match the game contin
 ## Writing another bot
 
 Anything that speaks the protocol can play: connect, `hello` as `bot`, `joinRoom`, keep the `matchStart` info and
-answer each `observation` with `commands`. [`BotBrain`](../server/botBrain.ts) is the reference: a port of
+answer each `observation` with `commands`; [network-protocol.md](network-protocol.md#writing-a-bot-checklist) has
+a checklist and a minimal bot. [`BotBrain`](../server/botBrain.ts) is the reference: a port of
 `AiPlayer`'s decisions onto the observation. Unlike `AiPlayer` it does not check the turret's line of fire, which
 the observation does not carry.

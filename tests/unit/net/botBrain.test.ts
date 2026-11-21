@@ -35,8 +35,10 @@ function matchInfo(): MatchInfo {
         pads: [[{col: 6, row: 2}], [{col: 6, row: 6}], [{col: 6, row: 10}]],
         nuke: {col: 6, row: 5},
         base: {col: 11, row: 6},
+        baseTiles: [{col: 11, row: 6}],
         spawn: {col: 11, row: 7},
         enemyBase: {col: 0, row: 6},
+        enemyBaseTiles: [{col: 0, row: 6}],
         units: [
             entry({name: "male_engineer", cost: 60, building: "castle", canAttack: false, harvester: true}),
             entry({name: "fantasy8", cost: 10, goodAgainstInfantry: true}),

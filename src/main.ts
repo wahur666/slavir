@@ -1,12 +1,12 @@
-import GameScene from "./scenes/GameScene";
+import GameScene from "./scenes/GameScene.js";
 import Phaser from "phaser";
 import GameConfig = Phaser.Types.Core.GameConfig;
-import PreloadScene from "./scenes/PreloadScene";
-import MenuScene from "./scenes/MenuScene";
+import PreloadScene from "./scenes/PreloadScene.js";
+import MenuScene from "./scenes/MenuScene.js";
 import "./style.css";
-import {SHARED_CONFIG} from "./model/config";
-import ScoreScene from "./scenes/ScoreScene";
-import PauseScene from "./scenes/PauseScene";
+import {SHARED_CONFIG} from "./model/config.js";
+import ScoreScene from "./scenes/ScoreScene.js";
+import PauseScene from "./scenes/PauseScene.js";
 
 const config: GameConfig = {
     ...SHARED_CONFIG,
@@ -23,6 +23,8 @@ const config: GameConfig = {
         },
     },
     canvas: document.getElementById("cv1") as HTMLCanvasElement,
+    // Fill the page while keeping the 16:9 aspect ratio; letterboxed on the page background
+    scale: {parent: "root", mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH},
 };
 
 let game: Phaser.Game;

@@ -176,12 +176,12 @@ async function connect(endpoint: string): Promise<void> {
 describe("gameplay in a headless browser", () => {
     beforeAll(async () => {
         expect(browserPath, "Set CHROME_PATH to a Chrome, Chromium, or Edge executable.").toBeTruthy();
-        expect(fs.existsSync(path.join(root, "index.html")), "Run npm run build first.").toBe(true);
+        expect(fs.existsSync(path.join(root, "play", "index.html")), "Run npm run build first.").toBe(true);
         profile = fs.mkdtempSync(profilePrefix);
         server = await startServer();
         await connect(await launchBrowser(browserPath!));
         await command("Runtime.enable");
-        await command("Page.navigate", {url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`});
+        await command("Page.navigate", {url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/play/`});
         await until("!!window.game?.systems && game.scene.isActive() && game.countdownRemaining > 0");
     });
 
@@ -512,8 +512,12 @@ describe("gameplay in a headless browser", () => {
             const friendlyFire = 1e6 - own.currentHealth === (own.stat.texture === 'male_engineer' ? 700 : 4200);
             own.currentHealth = own.stat.health * own.stat.squadSize;
             const baseUntouched = ai.currentBaseHealth === baseBefore;
-            // The enemy base takes 4000 when the epicenter is on it, 2000 when next to it
-            const baseHits = [ai.base, s.map.tiles.find(t => t.tile.index !== -1 && t.distance(ai.base) === 1)].map(t => {
+            // The base is five hexes (castle and building slots): a direct hit on any of them is 100%, next to one 70%
+            const nearBase = t => Math.min(...ai.baseTiles.map(b => b.distance(t)));
+            const slot = ai.baseTiles.find(t => t !== ai.base);
+            const beside = s.map.tiles.find(t => t.tile.index !== -1 && nearBase(t) === 1);
+            const baseHexes = ai.baseTiles.length;
+            const baseHits = [ai.base, slot, beside].map(t => {
                 p.powers.coolDowns.ionCannon = 0; p.resource = 200;
                 const before = ai.currentBaseHealth;
                 issue('ionCannon', t);
@@ -549,7 +553,7 @@ describe("gameplay in a headless browser", () => {
             game.game.loop.wake();
             return {onPad, onObstacle, tooFar, onUnit, inFog, deployed, paid, notInArmy, onCoolDown, takesNoOrders,
                 silentWhileDeploying, firesWhenDeployed, autoAttacks, expired, fired, ionPaid, delayed, damageAsExpected: JSON.stringify(damage) === JSON.stringify(expected),
-                halfWayUnits: Math.round(halfWayUnits * 100) / 100, baseUntouched, baseHits, friendlyFire, ownBaseHit,
+                halfWayUnits: Math.round(halfWayUnits * 100) / 100, baseUntouched, baseHexes, baseHits, friendlyFire, ownBaseHit,
                 aiFiresIonCannon: aiFired.includes('ionCannon')};
         })()`);
         expect(powers).toEqual({
@@ -573,7 +577,8 @@ describe("gameplay in a headless browser", () => {
             damageAsExpected: true,
             halfWayUnits: 6,
             baseUntouched: true,
-            baseHits: [4000, 2000],
+            baseHexes: 5,
+            baseHits: [4000, 4000, 2800],
             friendlyFire: true,
             ownBaseHit: 4000,
             aiFiresIonCannon: true,

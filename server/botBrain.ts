@@ -14,7 +14,7 @@ import {
     type UnitType,
     type WireCommand,
 } from "../src/net/Observation.js";
-import {ionCannonDamage, UNITS_PER_HEX} from "../src/model/power/PowerRules.js";
+import {distanceToBase, ionCannonDamage, ionCannonStructureDamage, UNITS_PER_HEX} from "../src/model/power/PowerRules.js";
 
 const HARVESTER: UnitType = "male_engineer";
 const RIFLES: UnitType = "fantasy8";
@@ -176,8 +176,9 @@ export default class BotBrain {
             return sum + worth(own, own.immobile ? "structure" : (stat?.type ?? "vehicle"), stat?.harvester ?? false);
         }, 0);
         // Base damage, valued at a credit per 40 health: a direct hit (4000) is worth about one shot
-        const baseDamage = (base: TileRef) => ionCannonDamage("structure", false, 0, this.distance(base, tile)) / 40;
-        return gain - loss + baseDamage(this.info.enemyBase) - baseDamage(this.info.base);
+        const baseDamage = (baseTiles: TileRef[]) =>
+            baseTiles.length > 0 ? ionCannonStructureDamage(distanceToBase(tile, baseTiles, (a, b) => this.distance(a, b))) / 40 : 0;
+        return gain - loss + baseDamage(this.info.enemyBaseTiles) - baseDamage(this.info.baseTiles);
     }
 
     /** Fires at the enemies that hold still where it destroys the most, if that is worth most of its cost */

@@ -35,8 +35,10 @@ export function buildMatchInfo(systems: Systems, player: Player, observationInte
         pads: [systems.pad1GameTiles, systems.pad2GameTiles, systems.pad3GameTiles].map(pad => pad.map(ref)),
         nuke: ref(systems.nukeGameTile),
         base: ref(player.base!),
+        baseTiles: player.baseTiles.map(ref),
         spawn: ref(player.spawn!),
         enemyBase: ref(enemy.base!),
+        enemyBaseTiles: enemy.baseTiles.map(ref),
         units: [...unitStatMap.values()].map(stat => ({
             name: stat.texture as UnitType,
             cost: stat.cost,

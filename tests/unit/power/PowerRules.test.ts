@@ -6,7 +6,9 @@ import {
     ION_CANNON_RADIUS,
     PowerName,
     UNITS_PER_HEX,
+    distanceToBase,
     ionCannonDamage,
+    ionCannonStructureDamage,
     ionCannonFalloff,
     powerStats,
     withinTurretForwardLimit,
@@ -42,10 +44,19 @@ describe("Commander power rules", () => {
         expect(ionCannonDamage("infantry", false, 24, 2)).toBe(0);
     });
 
-    it("hits structures by hex: 4000 on the epicenter's hex, 2000 next to it", () => {
+    it("hits structures by hex: 4000 on the epicenter's hex, 70% next to it", () => {
         expect(ionCannonDamage("structure", false, 0, 0)).toBe(4000);
-        expect(ionCannonDamage("structure", false, 12, 1)).toBe(2000);
+        expect(ionCannonDamage("structure", false, 12, 1)).toBe(2800);
         expect(ionCannonDamage("structure", false, 24, 2)).toBe(0);
+        expect(ionCannonStructureDamage(1)).toBe(2800);
+    });
+
+    it("measures a base from its nearest hex", () => {
+        const base = [0, 1, 2, 3, 4];
+        const line = (a: number, b: number) => Math.abs(a - b);
+        expect(distanceToBase(3, base, line)).toBe(0);
+        expect(distanceToBase(5, base, line)).toBe(1);
+        expect(distanceToBase(7, base, line)).toBe(3);
     });
 
     it("allows turrets up to one and a half hexes past the middle of the map", () => {

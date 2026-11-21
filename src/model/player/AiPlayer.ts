@@ -7,7 +7,7 @@ import type Unit from "../../entities/Unit.js";
 import type {UnitStat} from "../../entities/UnitsStats.js";
 import {Buildings, buildingStat} from "../../entities/Building.js";
 import CommandHub from "../command/CommandHub.js";
-import {PowerName, ionCannonDamage, powerStats} from "../power/PowerRules.js";
+import {PowerName, distanceToBase, ionCannonStructureDamage, powerStats} from "../power/PowerRules.js";
 import type GameTile from "../GameTile.js";
 import {maxSquadHealth} from "../../entities/Squad.js";
 
@@ -112,7 +112,8 @@ export default class AiPlayer extends Player {
         const gain = this.visibleEnemyUnits.reduce((sum, enemy) => sum + worth(enemy), 0);
         const loss = this.units.reduce((sum, own) => sum + worth(own), 0);
         // Base damage, valued at a credit per 40 health: a direct hit (4000) is worth about one shot
-        const baseDamage = (player: Player) => (player.base ? ionCannonDamage("structure", false, 0, player.base.distance(tile)) / 40 : 0);
+        const baseDamage = (player: Player) =>
+            player.baseTiles.length > 0 ? ionCannonStructureDamage(distanceToBase(tile, player.baseTiles, (a, b) => a.distance(b))) / 40 : 0;
         return gain - loss + baseDamage(this.enemyPlayer) - baseDamage(this);
     }
 
