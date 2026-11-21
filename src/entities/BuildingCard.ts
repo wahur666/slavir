@@ -30,12 +30,17 @@ export default class BuildingCard extends Phaser.GameObjects.Image {
         this.costText.setDepth(15);
 
         this.on("pointerup", () => {
-            if (player.createBuilding(buildingStat.type)) this.cleanup();
+            this.gameScene.systems.commands.issue({kind: "build", playerIndex: player.index, building: buildingStat.type});
         });
     }
 
     update() {
         if (this.markedForDestroy) {
+            return;
+        }
+        // React to the building existing rather than to the click, so it also works when the command runs later
+        if (this.player.buildings.some(building => building.stat.type === this.buildingStat.type)) {
+            this.cleanup();
             return;
         }
         this.costText.setColor(this.player.resource < this.buildingStat.cost ? "#FF0000": "#FFFFFF");

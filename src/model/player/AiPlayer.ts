@@ -38,22 +38,22 @@ export default class AiPlayer extends Player {
         const liveUnits = this.units.filter(unit => !unit.markedForDeletion);
         const fighters = liveUnits.filter(unit => unit.stat.canAttack);
         const harvesters = liveUnits.filter(unit => unit instanceof Harvester);
-        if (harvesters.length === 0 && this.resources.length > 0) this.createUnit(UnitName.Harvester);
-        if (!this.hasBuildings.BARRACK) this.buildBarrack();
+        if (harvesters.length === 0 && this.resources.length > 0) this.produce(UnitName.Harvester);
+        if (!this.hasBuildings.BARRACK) this.build(Buildings.BARRACK);
 
         // Expand after establishing a force, leaving money for another rifle squad.
         const nextBuilding = !this.hasBuildings.FACTORY ? Buildings.FACTORY
             : !this.hasBuildings.HANGAR ? Buildings.HANGAR : null;
         if (nextBuilding && fighters.length >= (nextBuilding === Buildings.FACTORY ? 2 : 3)
             && this.resource >= buildingStat.get(nextBuilding)!.cost + unitStatMap.get(UnitName.B1_Fantasy8)!.cost) {
-            this.createBuilding(nextBuilding);
+            this.build(nextBuilding);
         }
         if (harvesters.length === 1 && fighters.length >= 2 && this.resources.some(resource => !resource.occupied)) {
-            this.createUnit(UnitName.Harvester);
+            this.produce(UnitName.Harvester);
         }
         const available = [...unitStatMap.values()].filter(stat => stat.canAttack && this.canCreateUnit(stat.texture));
         available.sort((a, b) => this.counterScore(b) - this.counterScore(a) || a.cost - b.cost);
-        if (available.length > 0) this.createUnit(available[0].texture);
+        if (available.length > 0) this.produce(available[0].texture);
 
         const pads = [this.systems.pad1GameTiles, this.systems.pad2GameTiles, this.systems.pad3GameTiles];
         for (const unit of this.units) {
@@ -79,6 +79,14 @@ export default class AiPlayer extends Player {
                 }
             }
         }
+    }
+
+    private produce(unit: UnitName): boolean {
+        return this.systems.commands.issue({kind: "createUnit", playerIndex: this.index, unit});
+    }
+
+    private build(building: Buildings): boolean {
+        return this.systems.commands.issue({kind: "build", playerIndex: this.index, building});
     }
 
     private counterScore(stat: UnitStat): number {

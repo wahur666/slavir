@@ -3,6 +3,7 @@ import type {UnitStat} from "./UnitsStats";
 import {Images} from "../scenes/PreloadScene";
 import {defaultFont} from "../helpers/utils";
 import type Player from "../model/player/Player";
+import type GameScene from "../scenes/GameScene";
 
 export default class Card extends Phaser.GameObjects.Sprite {
     costText: Phaser.GameObjects.Text;
@@ -10,7 +11,7 @@ export default class Card extends Phaser.GameObjects.Sprite {
     private unitStat: UnitStat;
     cooldownLine: Phaser.GameObjects.Rectangle;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, unitStat: UnitStat, player: Player) {
+    constructor(scene: GameScene, x: number, y: number, unitStat: UnitStat, player: Player) {
         super(scene, x, y, unitStat.texture, 1);
         this.player = player;
         this.unitStat = unitStat;
@@ -21,7 +22,7 @@ export default class Card extends Phaser.GameObjects.Sprite {
         this.setDepth(11);
         const backdrop = this.scene.add.image(x - 6, y + 5, Images.PANEL_BLUE).setScale(0.8, 1.4).setDepth(10);
         backdrop.setInteractive();
-        backdrop.on("pointerdown", (ev) => this.player.createUnit(unitStat.texture));
+        backdrop.on("pointerdown", () => scene.systems.commands.issue({kind: "createUnit", playerIndex: player.index, unit: unitStat.texture}));
         this.costText = this.scene.add.text(x - 6, y + 25, `${unitStat.cost}`, {
             fontFamily: defaultFont,
             fontSize: "18px"

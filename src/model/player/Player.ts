@@ -121,6 +121,9 @@ export default abstract class Player {
             .sort((a, b) => a.distance - b.distance);
         if (possibleTiles.length > 0) {
             const unit = this.createUnitWithPos(possibleTiles[0].tile.hex, unitStat.texture, unitStat);
+            // Enemy units start hidden; the fog of war pass reveals them once they are on a visible tile.
+            // Without this a unit created after the fog pass is drawn for one frame.
+            if (this !== this.systems.player1) unit.setActivelyVisible(false);
             this.resource -= unitStat.cost;
             this.units.push(unit);
             this.resetCreateCoolDown();

@@ -5,6 +5,7 @@ import type {Command, TileRef} from "./Command";
 import type GameTile from "../GameTile";
 import type {Order} from "./Order";
 import {AttackOrder, MoveOrder} from "./Order";
+import {Buildings} from "../../entities/Building";
 
 export type CommandListener = (command: Command) => void;
 
@@ -32,12 +33,34 @@ export default class CommandHub {
 
     /**
      * Validates and executes a command right away.
-     * @returns false if the command was rejected (game not running, unknown player, no own living unit, invalid target)
+     * @returns false if the command was rejected (game not running, unknown player, no own living unit,
+     * invalid target, building or unit not affordable / not available / on cooldown / over the unit cap)
      */
     issue(command: Command): boolean {
         if (!this.systems.gameScene.canIssueCommands) return false;
         const player = this.systems.players.find(p => p.index === command.playerIndex);
         if (!player) return false;
+        let accepted: boolean;
+        switch (command.kind) {
+            case "build":
+                accepted = this.build(player, command.building);
+                break;
+            case "createUnit":
+                accepted = player.createUnit(command.unit) !== null;
+                break;
+            default:
+                accepted = this.commandUnits(player, command);
+        }
+        if (accepted) this.listeners.forEach(listener => listener(command));
+        return accepted;
+    }
+
+    private build(player: Player, building: Buildings): boolean {
+        if (building === Buildings.CASTLE || building === Buildings.SPAWN) return false;
+        return player.createBuilding(building) !== null;
+    }
+
+    private commandUnits(player: Player, command: Exclude<Command, {kind: "build" | "createUnit"}>): boolean {
         const units = command.unitIds
             .map(id => player.units.find(unit => unit.id === id))
             .filter((unit): unit is Unit => !!unit && !unit.markedForDeletion);
@@ -66,7 +89,6 @@ export default class CommandHub {
                 });
                 break;
         }
-        this.listeners.forEach(listener => listener(command));
         return true;
     }
 
