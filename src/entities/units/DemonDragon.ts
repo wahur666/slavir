@@ -50,10 +50,10 @@ export default class DemonDragon extends Unit {
         return target.stat.type === "aircraft" ? this.airVolley : this.volley;
     }
 
-    protected updateVolleys(delta: number, engaged: boolean) {
-        const againstAir = this.target?.stat.type === "aircraft";
-        this.volley.update(delta, engaged && !againstAir);
-        this.airVolley.update(delta, engaged && againstAir);
+    protected updateVolleys(delta: number, fireTarget: Unit | null) {
+        const againstAir = fireTarget?.stat.type === "aircraft";
+        this.volley.update(delta, !!fireTarget && !againstAir);
+        this.airVolley.update(delta, !!fireTarget && againstAir);
     }
 
     protected playShotEffect(target: Unit, volley: Volley) {

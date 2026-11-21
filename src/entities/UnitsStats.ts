@@ -46,4 +46,9 @@ export interface UnitStat {
      *   dead member is skipped without a shot, so the squad fires slower as it loses members
      */
     squadFire?: "volley" | "rotating";
+    /**
+     * The unit shoots while driving: at its ordered target, or at any visible enemy in range when that is out of range.
+     * Movement itself is unchanged, the unit still only ever stops on a hex center.
+     */
+    fireOnMove?: boolean;
 }

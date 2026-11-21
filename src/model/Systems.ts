@@ -11,6 +11,7 @@ import type GameScene from "../scenes/GameScene.js";
 import HumanPlayer from "./player/HumanPlayer.js";
 import AiPlayer from "./player/AiPlayer.js";
 import type GameTile from "./GameTile.js";
+import type Unit from "../entities/Unit.js";
 import CommandHub from "./command/CommandHub.js";
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 import Vector2 = Phaser.Math.Vector2;
@@ -142,6 +143,11 @@ export default class Systems {
     /** Unique, deterministic unit id; units are created in the same order on every peer */
     nextUnitId(): number {
         return ++this.lastUnitId;
+    }
+
+    /** Every unit of both players, dying ones included (check markedForDeletion) */
+    allUnits(): Unit[] {
+        return [...this.player1.units, ...this.player2.units];
     }
 
     enemyPlayer(player: Player): Player {

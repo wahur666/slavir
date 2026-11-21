@@ -9,6 +9,7 @@ export default class Guard extends Unit {
         building: Buildings.FACTORY,
         canAttack: true,
         canAttackAir: false,
+        fireOnMove: true,
         className: Guard,
         cost: 70,
         damageAgainstAir: 0,

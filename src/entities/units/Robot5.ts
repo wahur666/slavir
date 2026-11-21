@@ -9,6 +9,7 @@ export default class Robot5 extends Unit {
         building: Buildings.FACTORY,
         canAttack: true,
         canAttackAir: true,
+        fireOnMove: true,
         className: Robot5,
         cost: 30,
         damageAgainstAir: 82,
