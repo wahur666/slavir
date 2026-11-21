@@ -60,14 +60,15 @@ export default class Systems {
             scaleFactor: number;
             width: number;
             height: number;
-        }
+        },
+        /** Creates player 1 and player 2; defaults to the human player against the AI */
+        createPlayers: (systems: Systems) => [Player, Player] = systems => [new HumanPlayer(1, systems), new AiPlayer(2, systems)]
     ) {
         this.gameScene = gameScene;
         this.scaleFactor = mapDimensions.scaleFactor;
         this.width = mapDimensions.width;
         this.height = mapDimensions.height;
-        this.player1 = new HumanPlayer(1, this);
-        this.player2 = new AiPlayer(2, this);
+        [this.player1, this.player2] = createPlayers(this);
         this.players = [this.player1, this.player2];
         this.tileMap = this.createMap(gameScene);
         this.layers = this.createLayers(this.tileMap);

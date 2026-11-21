@@ -21,5 +21,12 @@ export default defineConfig(({mode}) => ({
         sourcemap: mode !== "production",
         minify: mode === "production",
         chunkSizeWarningLimit: 2000,
+        rollupOptions: {
+            input: {
+                main: resolve(__dirname, "src/index.html"),
+                // Unit testing sandbox, served at /sandbox/
+                sandbox: resolve(__dirname, "src/sandbox/index.html"),
+            },
+        },
     },
 }));

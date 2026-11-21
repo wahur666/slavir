@@ -41,8 +41,8 @@ export default class GameScene extends Phaser.Scene {
     currentTimeText: Phaser.GameObjects.Text;
     private config: typeof SHARED_CONFIG;
 
-    constructor() {
-        super(SceneRegistry.GAME);
+    constructor(key: string = SceneRegistry.GAME) {
+        super(key);
         // @ts-expect-error
         window.game = this;
         this.config = SHARED_CONFIG;
@@ -54,11 +54,7 @@ export default class GameScene extends Phaser.Scene {
         this.countdownRemaining = 3000;
         this.bg = this.add.sprite(this.config.width / 2, this.config.height / 2, Images.BROWN_BG).setScale(1.25);
 
-        this.systems = new Systems(this, {
-            scaleFactor: this.scaleFactor,
-            width: this.config.width,
-            height: this.config.height,
-        });
+        this.systems = this.createSystems();
         this.player1 = this.systems.player1;
         this.player2 = this.systems.player2;
 
@@ -69,11 +65,6 @@ export default class GameScene extends Phaser.Scene {
             fontFamily: "sans-serif",
             fontSize: "12px",
             color: "#0000FF",
-        });
-        const timeBg = this.add.image(this.config.width / 2, 10, Images.PANEL_BLUE);
-        this.currentTimeText = this.add.text(this.config.width / 2 - 25, 10, "00:00", {
-            fontFamily: defaultFont,
-            fontSize: "30px",
         });
 
         for (const tile of this.systems.map.tiles) {
@@ -89,6 +80,25 @@ export default class GameScene extends Phaser.Scene {
         }
         this.player1.create();
         this.player2.create();
+        this.setupHud();
+        this.drawVisibleTiles();
+    }
+
+    protected createSystems(): Systems {
+        return new Systems(this, {
+            scaleFactor: this.scaleFactor,
+            width: this.config.width,
+            height: this.config.height,
+        });
+    }
+
+    /** Match timer, retire and pause buttons, and the starting countdown */
+    protected setupHud() {
+        this.add.image(this.config.width / 2, 10, Images.PANEL_BLUE);
+        this.currentTimeText = this.add.text(this.config.width / 2 - 25, 10, "00:00", {
+            fontFamily: defaultFont,
+            fontSize: "30px",
+        });
         this.setupRetireButton();
         this.setupPauseButton();
         this.countdownText = this.add
@@ -101,7 +111,6 @@ export default class GameScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setDepth(100);
         this.physics.pause();
-        this.drawVisibleTiles();
     }
 
     get canIssueCommands(): boolean {

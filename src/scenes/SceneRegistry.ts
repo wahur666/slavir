@@ -5,4 +5,5 @@ export enum SceneRegistry {
     HEX_TEST = "HexTextScene",
     MENU = "MenuScene",
     SCORE = "ScoreScene",
+    SANDBOX = "SandboxScene",
 }

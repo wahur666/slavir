@@ -74,7 +74,7 @@ export default class HumanPlayer extends Player {
         });
     }
 
-    private createCards() {
+    protected createCards() {
         console.log(unitStatMap);
         this.buildCards = [...buildingStat.values()]
             .slice(1, 4)

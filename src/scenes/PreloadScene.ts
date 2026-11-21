@@ -79,6 +79,9 @@ export enum Tilemaps {
     MAP1 = "map1",
 }
 
+/** Registry key holding the scene to start after loading, instead of the menu or the game */
+export const START_SCENE_KEY = "startScene";
+
 export default class PreloadScene extends Phaser.Scene {
     loadingText: Phaser.GameObjects.Text;
     background: Phaser.GameObjects.Rectangle;
@@ -184,7 +187,11 @@ export default class PreloadScene extends Phaser.Scene {
             this.foreground.destroy();
             this.background.destroy();
             this.loadingText.destroy();
-            if (this.config.debug.autoLoadGame) {
+            // Another entry page (e.g. the sandbox) can pick the first scene through the registry
+            const startScene = this.registry.get(START_SCENE_KEY) as string | undefined;
+            if (startScene) {
+                this.scene.start(startScene);
+            } else if (this.config.debug.autoLoadGame) {
                 this.scene.start(SceneRegistry.GAME);
             } else {
                 this.scene.start(SceneRegistry.MENU);

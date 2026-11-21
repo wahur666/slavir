@@ -113,6 +113,17 @@ export default abstract class Player {
     createUnit(e: UnitName): Unit | null {
         if (!this.canCreateUnit(e)) return null;
         const unitStat = unitStatMap.get(e)!;
+        const unit = this.placeUnit(unitStat);
+        if (unit) {
+            this.resource -= unitStat.cost;
+            this.resetCreateCoolDown();
+            this.selectUnit(unit);
+        }
+        return unit;
+    }
+
+    /** Puts a new unit on the free ground tile closest to the base and spawn, without any cost or availability check */
+    placeUnit(unitStat: UnitStat): Unit | null {
         const alreadyOccupiedPositions = this.systems.players
             .flatMap(player => player.units)
             .filter(unit => !unit.markedForDeletion && unit.stat.flying === unitStat.flying)
@@ -129,10 +140,7 @@ export default abstract class Player {
             // Enemy units start hidden; the fog of war pass reveals them once they are on a visible tile.
             // Without this a unit created after the fog pass is drawn for one frame.
             if (this !== this.systems.player1) unit.setActivelyVisible(false);
-            this.resource -= unitStat.cost;
             this.units.push(unit);
-            this.resetCreateCoolDown();
-            this.selectUnit(unit);
             return unit;
         }
         return null;
