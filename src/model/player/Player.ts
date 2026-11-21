@@ -126,8 +126,9 @@ export default abstract class Player {
     placeUnit(unitStat: UnitStat): Unit | null {
         const alreadyOccupiedPositions = this.systems.players
             .flatMap(player => player.units)
-            .filter(unit => !unit.markedForDeletion && unit.stat.flying === unitStat.flying)
-            .map(unit => unit.gameTile());
+            // Never two units on one hex, flying or not
+            .filter(unit => !unit.markedForDeletion)
+            .flatMap(unit => (unit.destination ? [unit.claimedTile, unit.destination] : [unit.claimedTile]));
         const possibleTiles: {distance: number; tile: GameTile}[] = this.systems.map.tiles
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({

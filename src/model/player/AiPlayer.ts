@@ -59,8 +59,9 @@ export default class AiPlayer extends Player {
         const pads = [this.systems.pad1GameTiles, this.systems.pad2GameTiles, this.systems.pad3GameTiles];
         for (const unit of this.units) {
             if (unit.markedForDeletion || !unit.stat.canAttack || unit.target || unit.moving) continue;
+            // Enemies the unit found no room to attack from are skipped, it holds a pad instead
             const threat = this.visibleEnemyUnits
-                .filter(enemy => unit.canAttack(enemy))
+                .filter(enemy => unit.canAttack(enemy) && !unit.hasGivenUpOn(enemy))
                 .sort((a, b) => unit.gameTile().distance(a.gameTile()) - unit.gameTile().distance(b.gameTile()))[0];
             if (threat && unit.gameTile().distance(threat.gameTile()) <= unit.stat.visionRadius) {
                 this.systems.commands.issue({kind: "attack", playerIndex: this.index, unitIds: [unit.id], targetId: threat.id});

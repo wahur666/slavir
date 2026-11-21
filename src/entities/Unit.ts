@@ -16,6 +16,7 @@ import Volley from "./Volley.js";
 import AmmoBar from "./AmmoBar.js";
 import {fireShotEffect} from "./ShotEffect.js";
 import {aliveMembers, damagePerMember, formationOffsets, maxSquadHealth, shootingMembers, squadVolleyStat} from "./Squad.js";
+import {canEnter, canPark, enemyHolding, freeTilesNear, isFreeEndTile, sameLayer} from "../model/navigation/Occupancy.js";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -26,6 +27,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     static readonly SQUAD_SCALE = 0.55;
     /** Distance of the squad members from the leader, in pixels */
     static readonly SQUAD_FORMATION_RADIUS = 26;
+    /** ms between two path recalculations while chasing a target or walking a blocked path */
+    static readonly REPATH_INTERVAL = 250;
+    /** How far (in hexes) a unit looks for a free hex when its end hex is taken */
+    static readonly FREE_TILE_RADIUS = 4;
+    /** ms an enemy is left alone after the unit found no room to attack it from */
+    static readonly GIVE_UP_TIME = 5000;
 
     static AnimationKeys = {
         IDLE_: "unit-idle-",
@@ -60,13 +67,35 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     selected = false;
     radius = 35;
     lastDirection: Direction = "down";
+    /** Ordered (or auto-acquired) target, which the unit chases */
     target: Unit | null;
+    /** The unit the weapon is aimed at this frame, see {@link findFireTarget} */
+    fireTarget: Unit | null = null;
     currentHealth: number;
     free: (unit: Unit) => void;
     markedForDeletion = false;
     player: Player;
     navigation: Navigation;
+    /** The hex the unit is heading to, null when it is not moving */
     destination: GameTile | null = null;
+    /**
+     * The hex the unit holds, enemies of the same layer cannot enter it (see Occupancy).
+     * Same as {@link gameTile} except while the unit bounces back from a hex held by an enemy.
+     */
+    claimedTile: GameTile;
+    /** The ordered move tile, kept to find a new path after a bump or when the path gets blocked */
+    goal: GameTile | null = null;
+    /** Walking back to {@link claimedTile} after trying to step into a hex held by an enemy */
+    retreating = false;
+    /** Hexes the unit bumped into because an enemy held them, avoided on the next paths even if that enemy is not visible */
+    private bumpedTiles: GameTile[] = [];
+    /** Enemies the unit gave up attacking for lack of room around them, with the ms left before it tries again */
+    private givenUpTargets = new Map<Unit, number>();
+    private repathCoolDown = 0;
+    /** ms until the next try to leave a shared hex, after no free hex was found */
+    private freeTileCoolDown = 0;
+    /** The target's hex when the chase path was planned, a new path is needed once the target leaves it */
+    private chaseTile: GameTile | null = null;
 
     stat: UnitStat;
     volley: Volley;
@@ -92,6 +121,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.free = free;
         this.player = player;
         this.navigation = systems.navigation;
+        this.claimedTile = this.gameTile();
         this.scene.add.existing(this);
         this.scene.physics.add.existing(this);
         this.setDepth(2);
@@ -153,7 +183,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             // Members behind the leader are drawn below it
             follower.setDepth(this.depth + (offset.y < 0 ? -0.1 : 0.1));
             const followerAttacking = follower.anims.isPlaying && !!follower.anims.currentAnim?.key.includes(Unit.AnimationKeys.ATTACK_);
-            if (!key || leaderAttacking || (followerAttacking && !this.moving)) return;
+            if (!key || leaderAttacking || (followerAttacking && (!this.moving || this.stat.fireOnMove))) return;
             if (follower.anims.currentAnim?.key !== key) {
                 follower.play(key);
             }
@@ -204,10 +234,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     private setNav(points: Vector2[], target: Unit | null = null): void {
         // The first point is the center of the tile the unit is on. Units must never stop between hex centers,
         // so if there is nowhere else to go (already at the destination, target already in range, or no path)
-        // the unit still walks back to the center of its current hex.
+        // the unit still walks back to the center of the hex it holds.
         this.navPoints = points.slice(1);
-        if (this.navPoints.length === 0 && !this.isAtTileCenter()) {
-            this.navPoints = [this.tileCenter()];
+        if (this.navPoints.length === 0 && this.pos.distance(this.claimedCenter()) >= Unit.ARRIVAL_DISTANCE) {
+            this.navPoints = [this.claimedCenter()];
         }
         this.body.stop();
         this.moving = this.navPoints.length > 0;
@@ -233,8 +263,18 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         return this.systems.hexToPos(this.gameTile().hex);
     }
 
+    /** Center of the hex the unit holds */
+    claimedCenter(): Vector2 {
+        return this.systems.hexToPos(this.claimedTile.hex);
+    }
+
     isAtTileCenter(): boolean {
         return this.pos.distance(this.tileCenter()) < Unit.ARRIVAL_DISTANCE;
+    }
+
+    /** Standing on its hex with nowhere to go */
+    get parked(): boolean {
+        return !this.moving && this.navPoints.length === 0;
     }
 
     /** Standing still on a hex center, the only state in which a unit may attack */
@@ -252,7 +292,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         console.log("Remaining health", this.currentHealth, "members", this.aliveMembers);
         this.killFollowers(this.aliveMembers);
         if (this.currentHealth <= 0) {
-            unit.target = null;
+            // A fire-on-move unit may have killed a bystander, its chase order stays
+            if (unit.target === this) unit.target = null;
+            if (unit.fireTarget === this) unit.fireTarget = null;
             this.free(this);
         }
     }
@@ -264,7 +306,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.body.stop();
         this.moving = false;
         this.target = null;
+        this.fireTarget = null;
         this.destination = null;
+        this.goal = null;
+        this.retreating = false;
     }
 
     prepForDestroy(): Promise<void> {
@@ -288,29 +333,48 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     /** Drops the order and target, but keeps walking until the center of the current hex is reached */
     stopUnitWhenHexCenterIsReached() {
         this.setNav([], null);
-        this.destination = this.moving ? this.gameTile() : null;
+        this.goal = null;
+        this.destination = this.moving ? this.claimedTile : null;
     }
 
     update(delta: number) {
         if (this.markedForDeletion) {
             return;
         }
+        this.repathCoolDown = Math.max(0, this.repathCoolDown - delta);
+        for (const [enemy, left] of this.givenUpTargets) {
+            if (left <= delta || enemy.markedForDeletion) this.givenUpTargets.delete(enemy);
+            else this.givenUpTargets.set(enemy, left - delta);
+        }
+        this.updateClaim();
         if (this.target && (!this.canAttack(this.target) || !this.player.visibleEnemyUnits.includes(this.target))) {
             this.stopUnitWhenHexCenterIsReached();
             this.attackAnimationPlaying = false;
         }
         if (!this.target && this.stat.canAttack && this.isStationaryAtCenter()) {
-            this.target = this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy)) || null;
+            // Auto attack an enemy in range, as an order like any other so the command hub knows about it
+            const enemy = this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy));
+            if (enemy) this.systems.commands.issue({kind: "attack", playerIndex: this.player.index, unitIds: [this.id], targetId: enemy.id});
         }
         // Chasing a target that is already in range from the current hex: finish the path at this hex's center
         // instead of walking further, the attack itself starts once the center is reached.
-        if (this.target && this.navPoints.length > 0 && this.inAttackRange(this.target)) {
-            const center = this.tileCenter();
+        // Only where the unit may stop: leaving a hex another unit stands on must not be cut short here.
+        if (
+            !this.retreating &&
+            this.target &&
+            this.navPoints.length > 0 &&
+            this.inAttackRange(this.target) &&
+            canPark(this, this.claimedTile, this.systems.allUnits())
+        ) {
+            const center = this.claimedCenter();
             if (this.navPoints.length > 1 || this.navPoints[0].distance(center) >= 1) {
                 this.navPoints = [center];
-                this.destination = this.gameTile();
+                this.destination = this.claimedTile;
             }
         }
+        this.leaveSharedTile(delta);
+        this.recalculateNavigationIfNeeded();
+        this.fireTarget = this.findFireTarget();
         this.playAnimation();
         if (this.navPoints.length > 0) {
             // Never overshoot a center in one step, even on a long frame
@@ -324,6 +388,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.graphics.clear();
                     this.moving = false;
                     this.destination = null;
+                    this.arrive();
                 }
             } else {
                 this.moving = true;
@@ -337,15 +402,23 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.drawSelectionRing();
             }
         }
-        this.updateVolleys(delta, this.isEngaged());
+        this.updateVolleys(delta, this.fireTarget);
         this.updateFollowers();
         this.healthBar.update(this.x, this.y - 100, this.currentHealth / maxSquadHealth(this.stat));
         this.ammoBar?.update(this.x, this.y - 94);
     }
 
-    /** Standing on a hex center with the target in range, the state in which the weapon winds up and fires */
-    protected isEngaged(): boolean {
-        return !!this.target && this.canAttack(this.target) && this.isStationaryAtCenter() && this.inAttackRange(this.target);
+    /**
+     * The unit the weapon winds up against and fires at, null when there is none.
+     * - Normal units: the target, only while standing on a hex center with it in range.
+     * - Fire-on-move units: also while driving; the target when in range, otherwise any visible enemy in range.
+     */
+    private findFireTarget(): Unit | null {
+        if (!this.stat.canAttack) return null;
+        if (!this.stat.fireOnMove && !this.isStationaryAtCenter()) return null;
+        if (this.target && this.canAttack(this.target) && this.inAttackRange(this.target)) return this.target;
+        if (!this.stat.fireOnMove) return null;
+        return this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy)) ?? null;
     }
 
     /** The weapon used against the given target; override for units with more than one weapon */
@@ -353,9 +426,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         return this.volley;
     }
 
-    /** Advance every weapon's timers; override together with {@link volleyFor} */
-    protected updateVolleys(delta: number, engaged: boolean) {
-        this.volley.update(delta, engaged);
+    /**
+     * Advance every weapon's timers; override together with {@link volleyFor}
+     * @param fireTarget the unit the weapon is aimed at, null when not engaged (the wind-up starts over)
+     */
+    protected updateVolleys(delta: number, fireTarget: Unit | null) {
+        this.volley.update(delta, fireTarget !== null);
     }
 
     /**
@@ -369,7 +445,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     private canFire(): boolean {
-        return this.isEngaged() && this.volleyFor(this.target!).ready;
+        return !!this.fireTarget && this.canAttack(this.fireTarget) && this.volleyFor(this.fireTarget).ready;
     }
 
     canAttack(target: Unit): boolean {
@@ -383,9 +459,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     private inAttackRange(target: Unit): boolean {
-        return (
-            target.gameTile().distance(this.gameTile()) <= this.stat.attackRange && this.navigation.checkBlockade(this.gameTile(), target.gameTile())
-        );
+        return this.inAttackRangeFrom(this.gameTile(), target.gameTile());
+    }
+
+    /** Whether the unit could shoot at a unit on `targetTile` while standing on `from` */
+    private inAttackRangeFrom(from: GameTile, targetTile: GameTile): boolean {
+        return targetTile.distance(from) <= this.stat.attackRange && this.navigation.checkBlockade(from, targetTile);
     }
 
     /**
@@ -394,7 +473,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      */
     attackTarget(): number[] {
         if (!this.canFire()) return [];
-        const target = this.target!;
+        const target = this.fireTarget!;
         const volley = this.volleyFor(target);
         const shooters = shootingMembers(this.stat, this.aliveMembers, volley.ammo);
         volley.fire();
@@ -411,23 +490,22 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     playAnimation() {
         const velocity = this.body.velocity;
-        if (velocity.length() === 0) {
-            if (this.canFire()) {
-                const target = this.target!;
-                for (const member of this.attackTarget()) {
-                    const sprite = this.memberSprite(member);
-                    const direction: Direction = target.x <= sprite.x ? "left" : "right";
-                    sprite.play(Unit.AnimationKeys.ATTACK_ + direction, member === 0);
-                    if (member === 0) this.lastDirection = direction;
-                }
-                if (!this.attackAnimationPlaying) {
-                    this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
-                }
-            } else {
-                if (!this.attackAnimationPlaying) {
-                    this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
-                }
+        // Normal units only get a fire target while standing still, fire-on-move units also while driving
+        if (this.canFire()) {
+            const target = this.fireTarget!;
+            for (const member of this.attackTarget()) {
+                const sprite = this.memberSprite(member);
+                const direction: Direction = target.x <= sprite.x ? "left" : "right";
+                sprite.play(Unit.AnimationKeys.ATTACK_ + direction, member === 0);
+                if (member === 0) this.lastDirection = direction;
             }
+        }
+        if (velocity.length() === 0) {
+            if (!this.attackAnimationPlaying) {
+                this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
+            }
+        } else if (this.attackAnimationPlaying && this.stat.fireOnMove) {
+            // Let the attack animation finish while driving on, the walk animation resumes afterwards
         } else if (Math.abs(velocity.x) > Math.abs(velocity.y)) {
             this.attackAnimationPlaying = false;
             if (velocity.x < 0) {
@@ -456,6 +534,18 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     drawPath() {
         this.graphics.clear();
+        this.drawRoute();
+        this.drawFireLine();
+    }
+
+    /** Red line to the unit a fire-on-move unit shoots at while driving; standing units show theirs in {@link drawRoute} */
+    private drawFireLine() {
+        if (!this.stat.fireOnMove || !this.fireTarget || this.navPoints.length === 0 || this.fireTarget.markedForDeletion) return;
+        this.graphics.lineStyle(3, 0xff0000, 1);
+        this.graphics.lineBetween(this.x, this.y, this.fireTarget.x, this.fireTarget.y);
+    }
+
+    private drawRoute() {
         // If there is nothing, of we are half on the tile dont draw anymore
         if (
             (this.navPoints.length === 0 && !this.target) ||
@@ -634,27 +724,231 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
+    /**
+     * New order: walk to a tile, or chase and attack a target. Enemy units of the same layer are walked around,
+     * friendly units are walked through. If the end hex is taken the closest free hex is used instead.
+     */
     moveToGameTile(gameTile: GameTile | null = null, target: Unit | null = null) {
         if (this.markedForDeletion) return;
         if (target && !this.canAttack(target)) target = null;
-        const dynamicObstacles: GameTile[] = [];
-        for (const enemyUnit of this.player.visibleEnemyUnits) {
-            if (this.stat.flying === enemyUnit.stat.flying && enemyUnit !== target) {
-                dynamicObstacles.push(enemyUnit.gameTile());
-            }
+        this.goal = target ? null : gameTile;
+        this.bumpedTiles = [];
+        if (this.retreating) {
+            // Finish walking back to the held hex first, the new order is planned from there, see arrive()
+            this.target = target;
+            return;
         }
-        const end = target ? target.gameTile() : gameTile || this.gameTile();
-        const path = this.systems.navigation.findPathAsVector2(
-            this.gameTile(),
-            end,
-            this.pathfinding,
-            target ? this.stat.attackRange : 0,
-            dynamicObstacles
+        this.navigateTo(gameTile, target);
+    }
+
+    /**
+     * Claim the hex the unit has just stepped into. A hex held by an enemy of the same layer cannot be entered:
+     * the unit bounces back to the hex it came from, and plans a new path from there.
+     * @returns false if the unit bounced
+     */
+    private updateClaim(): boolean {
+        if (this.retreating) return true;
+        const tile = this.gameTile();
+        if (!tile || tile === this.claimedTile) return true;
+        if (canEnter(this, tile, this.systems.allUnits())) {
+            this.claimedTile = tile;
+            return true;
+        }
+        if (!this.bumpedTiles.includes(tile)) this.bumpedTiles.push(tile);
+        this.retreating = true;
+        this.body.stop();
+        this.navPoints = [this.claimedCenter()];
+        this.moving = true;
+        this.destination = this.claimedTile;
+        return false;
+    }
+
+    /** Reached the last navigation point, snapped onto the hex center */
+    private arrive() {
+        if (!this.updateClaim()) return;
+        if (this.retreating) {
+            this.retreating = false;
+            this.renavigate();
+            if (!this.parked) return;
+        }
+        if (!canPark(this, this.claimedTile, this.systems.allUnits())) {
+            // Never stand on the same hex as another unit of the same layer
+            this.moveToFreeTile();
+            return;
+        }
+        if (!this.target) this.goal = null;
+        this.bumpedTiles = [];
+    }
+
+    /** Plan the current order again: the chase of the target, or the walk to the goal */
+    private renavigate() {
+        if (this.target) {
+            this.navigateTo(null, this.target);
+        } else if (this.goal) {
+            this.navigateTo(this.goal, null);
+        }
+    }
+
+    /**
+     * Keeps the current order up to date:
+     * - chasing: a new path once the target left the hex the path was planned for, the path got blocked,
+     *   or the unit stands out of range
+     * - walking: a new path once an enemy blocks the path
+     */
+    private recalculateNavigationIfNeeded() {
+        if (this.retreating || this.repathCoolDown > 0) return;
+        const target = this.target;
+        if (target) {
+            if (this.inAttackRange(target)) return;
+            if (this.parked || target.claimedTile !== this.chaseTile || this.pathBlocked(target)) {
+                this.repathCoolDown = Unit.REPATH_INTERVAL;
+                this.navigateTo(null, target);
+            }
+        } else if (this.goal && !this.parked && this.pathBlocked(null)) {
+            this.repathCoolDown = Unit.REPATH_INTERVAL;
+            this.navigateTo(this.goal, null);
+        }
+    }
+
+    /** Hexes the unit knows to be held by enemies of its layer: visible enemies, and hexes it bumped into */
+    private knownObstacles(target: Unit | null): GameTile[] {
+        const tiles = this.player.visibleEnemyUnits
+            .filter(enemy => enemy !== target && !enemy.markedForDeletion && sameLayer(this, enemy))
+            .map(enemy => enemy.claimedTile);
+        const units = this.systems.allUnits();
+        for (const tile of this.bumpedTiles) {
+            if (tile !== target?.claimedTile && !tiles.includes(tile) && enemyHolding(this, tile, units)) tiles.push(tile);
+        }
+        return tiles;
+    }
+
+    /** Whether the remaining path crosses a hex known to be held by an enemy */
+    private pathBlocked(target: Unit | null): boolean {
+        const blocked = this.knownObstacles(target);
+        if (blocked.length === 0) return false;
+        let from = this.claimedTile;
+        for (const point of this.navPoints) {
+            const to = this.systems.pointToTile(point.x, point.y);
+            if (!to) continue;
+            if (this.systems.map.getTileHits(from, to).some(hit => hit.tile !== this.claimedTile && blocked.includes(hit.tile))) return true;
+            from = to;
+        }
+        return false;
+    }
+
+    private navigateTo(gameTile: GameTile | null, target: Unit | null) {
+        const units = this.systems.allUnits();
+        const obstacles = this.knownObstacles(target);
+        const start = this.claimedTile;
+        let path: GameTile[];
+        if (target && this.inAttackRangeFrom(start, target.gameTile()) && canPark(this, start, units)) {
+            // Already in range from the held hex: stay (or walk back to its center) and shoot from here
+            path = [start];
+            this.chaseTile = target.claimedTile;
+        } else if (target) {
+            path = this.navigation.findPathTiles(start, target.claimedTile, this.pathfinding, this.stat.attackRange, obstacles);
+            const end = path[path.length - 1];
+            if (!end || !isFreeEndTile(this, end, units)) {
+                // No path, or someone already stands (or is heading) there: use the closest free hex the target can be shot from
+                const alternative = this.pathToFreeTile(end ?? target.claimedTile, obstacles, this.attackPositionFor(target));
+                if (!alternative) {
+                    // No room around the target: do not force it, the attack is given up
+                    this.giveUpTarget(target);
+                    return;
+                }
+                path = alternative;
+            }
+            this.chaseTile = target.claimedTile;
+        } else {
+            const end = gameTile ?? start;
+            path = isFreeEndTile(this, end, units) ? this.navigation.findPathTiles(start, end, this.pathfinding, 0, obstacles) : [];
+            if (path.length === 0) path = this.pathToFreeTile(end, obstacles) ?? [];
+        }
+        this.followPath(path, target);
+    }
+
+    /**
+     * Never stand on the same hex as another unit (flying or not), however the unit came to a stop there
+     * (arrival, stop order, lost target, no path). Runs before firing, so the unit that has to leave does not shoot.
+     * When two units stand on one hex, the first one updated leaves and the other one stays.
+     */
+    private leaveSharedTile(delta: number) {
+        this.freeTileCoolDown = Math.max(0, this.freeTileCoolDown - delta);
+        if (this.retreating || !this.parked || this.freeTileCoolDown > 0) return;
+        if (canPark(this, this.claimedTile, this.systems.allUnits())) return;
+        if (!this.moveToFreeTile()) this.freeTileCoolDown = Unit.REPATH_INTERVAL;
+    }
+
+    /**
+     * The end hex is taken, walk to the closest free one. While attacking only a free hex the target can be shot from will do,
+     * if there is none the attack is given up.
+     * @returns false if there is no reachable free hex nearby
+     */
+    private moveToFreeTile(): boolean {
+        const target = this.target;
+        if (target) {
+            const path = this.pathToFreeTile(this.claimedTile, this.knownObstacles(target), this.attackPositionFor(target));
+            if (path) {
+                this.followPath(path, target);
+                return true;
+            }
+            return this.giveUpTarget(target);
+        }
+        const path = this.pathToFreeTile(this.claimedTile, this.knownObstacles(null));
+        if (!path) return false;
+        this.followPath(path, null);
+        return true;
+    }
+
+    /** Tiles the target can be shot from */
+    private attackPositionFor(target: Unit): (tile: GameTile) => boolean {
+        return tile => this.inAttackRangeFrom(tile, target.claimedTile);
+    }
+
+    /** Whether the unit recently gave up attacking the enemy for lack of room; such enemies are not attacked for a while */
+    hasGivenUpOn(enemy: Unit): boolean {
+        return (this.givenUpTargets.get(enemy) ?? 0) > 0;
+    }
+
+    /**
+     * Every hex the target can be shot from is taken (or unreachable): drop the attack instead of forcing it,
+     * which ends the attack order so its issuer can pick another objective. The unit stays on its hex, or moves
+     * to the closest free one if it is shared.
+     * @returns false if the unit is left on a shared hex with no free hex nearby
+     */
+    private giveUpTarget(target: Unit): boolean {
+        this.givenUpTargets.set(target, Unit.GIVE_UP_TIME);
+        this.target = null;
+        this.fireTarget = null;
+        this.chaseTile = null;
+        this.goal = null;
+        if (canPark(this, this.claimedTile, this.systems.allUnits())) {
+            this.followPath([], null);
+            return true;
+        }
+        return this.moveToFreeTile();
+    }
+
+    private followPath(path: GameTile[], target: Unit | null) {
+        this.setNav(
+            path.map(tile => this.navigation.navPoint(tile)),
+            target
         );
-        this.setNav(path, target);
-        this.destination =
-            this.navPoints.length > 0
-                ? this.systems.pointToTile(this.navPoints[this.navPoints.length - 1].x, this.navPoints[this.navPoints.length - 1].y) || null
-                : null;
+        if (path.length > 1) {
+            this.destination = path[path.length - 1];
+        } else {
+            this.destination = this.navPoints.length > 0 ? this.claimedTile : null;
+        }
+    }
+
+    /** Path to the closest reachable free hex around `origin`, null if there is none nearby */
+    private pathToFreeTile(origin: GameTile, obstacles: GameTile[], accept?: (tile: GameTile) => boolean): GameTile[] | null {
+        const walkable = this.systems.map.tiles.filter(tile => tile.pathfinding & this.pathfinding && !obstacles.includes(tile));
+        const candidates = freeTilesNear(this, origin, walkable, this.systems.allUnits(), Unit.FREE_TILE_RADIUS, accept);
+        for (const tile of candidates.slice(0, 8)) {
+            const path = this.navigation.findPathTiles(this.claimedTile, tile, this.pathfinding, 0, obstacles);
+            if (path.length > 0) return path;
+        }
+        return null;
     }
 }

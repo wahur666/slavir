@@ -3,6 +3,7 @@ import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 import type Player from "../../model/player/Player.js";
 import type Systems from "../../model/Systems.js";
+import CommandHub from "../../model/command/CommandHub.js";
 
 /** Texture "male_engineer", mapped to the reference unit: Harvester */
 export default class Harvester extends Unit {
@@ -36,13 +37,18 @@ export default class Harvester extends Unit {
     harvesting = false;
     /** ms until the next harvest animation */
     harvestCoolDown = 0;
+    /** Looks for a resource on the next update; the move order needs the unit to be registered with its player first */
+    private needsResource = true;
 
     constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
         super(systems, x, y, texture, stat, player, free);
-        this.findNearestResource();
     }
 
-    findNearestResource() {
+    /**
+     * Sends the harvester to the closest free resource, through the command hub like every order
+     * @returns false if the move order was rejected (try again later)
+     */
+    findNearestResource(): boolean {
         const resources = this.player.resources
             .filter(e => !e.occupied)
             .sort((a, b) => {
@@ -55,9 +61,9 @@ export default class Harvester extends Unit {
                 }
             });
         const targetResource = resources.length > 0 ? resources[0] : null;
-        if (targetResource) {
-            this.moveToGameTile(targetResource.gameTile);
-        }
+        if (!targetResource) return true;
+        const tile = targetResource.gameTile;
+        return this.systems.commands.issue({kind: "move", playerIndex: this.player.index, unitIds: [this.id], tile: CommandHub.tileRef(tile)});
     }
 
     playAnimation() {
@@ -123,6 +129,9 @@ export default class Harvester extends Unit {
             }
             return;
         }
+        if (this.needsResource) {
+            this.needsResource = !this.findNearestResource();
+        }
         const resource = this.systems.resources.find(e => e.gameTile === this.gameTile());
         if (!this.moving && !this.harvesting) {
             if (resource) {
@@ -138,7 +147,7 @@ export default class Harvester extends Unit {
         }
         if (this.harvesting && !resource) {
             this.stopHarvesting();
-            this.findNearestResource();
+            this.needsResource = !this.findNearestResource();
         }
     }
 }

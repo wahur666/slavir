@@ -48,12 +48,15 @@
 ## Gameplay
 
 - [x] Add 3 sec delay before the game starts
-- [ ] Add unit tracking to target
+- [x] Add unit tracking to target
   - [x] Add dynamic obstacles
-  - [ ] Recalculate navigation if needed
+  - [x] Recalculate navigation if needed
   - [x] Auto attack target if not attacking, and it is in range
-  - [ ] Block targets, and make it to move to the closest tile
-  - [ ] Move through friendly units, but prevent same end tile
+  - [x] Block targets, and make it to move to the closest tile
+    - Enemy units bump: the unit stepping into a hex held by an enemy (same layer) retreats to its origin hex and re-paths
+  - [x] Move through friendly units, but prevent same end tile
+    - Never two units parked on one hex, ground and flying included; flying units may pass over ground units (and back)
+    - No free hex to attack from: the attack is given up for 5 sec, the AI sends the unit to a pad instead
   - [x] Move through enemy if its flying
 - [x] Add resources
   - [x] Add sprite

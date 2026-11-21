@@ -95,6 +95,16 @@ export class Navigation {
         return this.findPath(start, end, mask, nearestFree, dynamicObstacles).map(e => this.calculateNavPoint(e));
     }
 
+    /** The smoothed path as tiles, the first one is the start; empty if there is no path */
+    public findPathTiles(start: GameTile, end: GameTile, mask: number, nearestFree = 0, dynamicObstacles: GameTile[] = []): GameTile[] {
+        return this.findPath(start, end, mask, nearestFree, dynamicObstacles);
+    }
+
+    /** Scaled center of the tile, the point a unit walks to */
+    public navPoint(gameTile: GameTile): Vector2 {
+        return this.calculateNavPoint(gameTile);
+    }
+
     public checkBlockade(start: GameTile, end: GameTile): boolean {
         return this.hexMap.getTileHits(start, end).every(e => e.tile.pathfinding !== Pathfinding.OBSTACLE);
     }
