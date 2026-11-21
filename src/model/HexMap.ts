@@ -1,8 +1,10 @@
-import GameTile from "./GameTile";
+import GameTile from "./GameTile.js";
 import Phaser from "phaser";
-import {type Hex, Layout, OffsetCoordinate} from "./hexgrid";
 import Tile = Phaser.Tilemaps.Tile;
 import Vector2 = Phaser.Math.Vector2;
+import {Layout} from "./hexgrid/Layout.js";
+import {OffsetCoordinate} from "./hexgrid/OffsetCoordinates.js";
+import {Hex} from "./hexgrid/Hex.js";
 
 export enum Pathfinding {
     WATER = 1,

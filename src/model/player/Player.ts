@@ -1,17 +1,17 @@
 import type Phaser from "phaser";
-import Unit from "../../entities/Unit";
-import Building, {Buildings, buildingStat} from "../../entities/Building";
-import type GameTile from "../GameTile";
-import type Resource from "../../entities/Resource";
-import type Systems from "../Systems";
-import type GameScene from "../../scenes/GameScene";
-import type {UnitStat} from "../../entities/UnitsStats";
-import {type UnitName, unitStatMap} from "../../entities/UnitsStats";
-import {Pathfinding} from "../HexMap";
-import type {Hex} from "../hexgrid";
-import Harvester from "../../entities/Harvester";
-import {findObjectByProperty} from "../../helpers/tilemap.helper";
-import HealthBar from "../../entities/HealthBar";
+import Unit from "../../entities/Unit.js";
+import Building, {Buildings, buildingStat} from "../../entities/Building.js";
+import type GameTile from "../GameTile.js";
+import type Resource from "../../entities/Resource.js";
+import type Systems from "../Systems.js";
+import type GameScene from "../../scenes/GameScene.js";
+import type {UnitStat} from "../../entities/UnitsStats.js";
+import {type UnitName, unitStatMap} from "../../entities/UnitsStats.js";
+import {Pathfinding} from "../HexMap.js";
+import type {Hex} from "../hexgrid/Hex.js";
+import Harvester from "../../entities/Harvester.js";
+import {findObjectByProperty} from "../../helpers/tilemap.helper.js";
+import HealthBar from "../../entities/HealthBar.js";
 
 export default abstract class Player {
     units: Unit[] = [];

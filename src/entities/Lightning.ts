@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import type GameScene from "../scenes/GameScene";
-import {Images} from "../scenes/PreloadScene";
+import type GameScene from "../scenes/GameScene.js";
+import {Images} from "../scenes/PreloadScene.js";
 import Vector2 = Phaser.Math.Vector2;
 
 export default class Lightning extends Phaser.GameObjects.Sprite {

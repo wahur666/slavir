@@ -1,11 +1,11 @@
-import Player from "./Player";
-import Harvester from "../../entities/Harvester";
-import type Systems from "../Systems";
-import {UnitName, unitStatMap} from "../../entities/UnitsStats";
-import type Unit from "../../entities/Unit";
-import type {UnitStat} from "../../entities/UnitsStats";
-import {Buildings, buildingStat} from "../../entities/Building";
-import CommandHub from "../command/CommandHub";
+import Player from "./Player.js";
+import Harvester from "../../entities/Harvester.js";
+import type Systems from "../Systems.js";
+import {UnitName, unitStatMap} from "../../entities/UnitsStats.js";
+import type Unit from "../../entities/Unit.js";
+import type {UnitStat} from "../../entities/UnitsStats.js";
+import {Buildings, buildingStat} from "../../entities/Building.js";
+import CommandHub from "../command/CommandHub.js";
 
 export default class AiPlayer extends Player {
     private decisionCoolDown = 0;

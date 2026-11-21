@@ -1,10 +1,10 @@
 import type Phaser from "phaser";
-import type Player from "../model/player/Player";
-import type GameTile from "../model/GameTile";
-import type Systems from "../model/Systems";
-import {Images} from "../scenes/PreloadScene";
-import HealthBar from "./HealthBar";
-import Lightning from "./Lightning";
+import type Player from "../model/player/Player.js";
+import type GameTile from "../model/GameTile.js";
+import type Systems from "../model/Systems.js";
+import {Images} from "../scenes/PreloadScene.js";
+import HealthBar from "./HealthBar.js";
+import Lightning from "./Lightning.js";
 
 const sum = (arr: number[]) => arr.reduce((acc, item) => acc + item, 0);
 

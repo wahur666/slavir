@@ -1,5 +1,5 @@
-import type {Buildings} from "../../entities/Building";
-import type {UnitName} from "../../entities/UnitsStats";
+import type {Buildings} from "../../entities/Building.js";
+import type {UnitName} from "../../entities/UnitsStats.js";
 
 /**
  * Commands are plain, serializable data. They reference units by id and tiles by

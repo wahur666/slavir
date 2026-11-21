@@ -1,6 +1,6 @@
 import {describe, expect, it} from "vitest";
-import {Hex} from "../../../src/model/hexgrid/Hex";
-import {OffsetCoordinate} from "../../../src/model/hexgrid/OffsetCoordinates";
+import {Hex} from "../../../src/model/hexgrid/Hex.js";
+import {OffsetCoordinate} from "../../../src/model/hexgrid/OffsetCoordinates.js";
 
 const hexes = [new Hex(0, 0), new Hex(1, 0), new Hex(1, -1), new Hex(-2, 3), new Hex(3, -5), new Hex(4, 2)];
 

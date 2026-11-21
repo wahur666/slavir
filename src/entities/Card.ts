@@ -1,9 +1,9 @@
 import Phaser from "phaser";
-import type {UnitStat} from "./UnitsStats";
-import {Images} from "../scenes/PreloadScene";
-import {defaultFont} from "../helpers/utils";
-import type Player from "../model/player/Player";
-import type GameScene from "../scenes/GameScene";
+import type {UnitStat} from "./UnitsStats.js";
+import {Images} from "../scenes/PreloadScene.js";
+import {defaultFont} from "../helpers/utils.js";
+import type Player from "../model/player/Player.js";
+import type GameScene from "../scenes/GameScene.js";
 
 export default class Card extends Phaser.GameObjects.Sprite {
     costText: Phaser.GameObjects.Text;

@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
-import {SceneRegistry} from "./SceneRegistry";
+import {SceneRegistry} from "./SceneRegistry.js";
 import Hex_v01_grid from "../assets/Hex_v01_grid.png";
-import map1 from "../maps/map2.json";
+import map1 from "../maps/map2.json" with {type: "json"};
 import guard from "../assets/guard.png";
 import female_archer from "../assets/female_archer.png";
 import male_engineer from "../assets/male_engineer.png";
@@ -35,8 +35,8 @@ import obelisk_numbers from "../assets/obelisk_numbers.png";
 import nuke from "../assets/nuke.png";
 import nuke_nums from "../assets/nuke_nums.png";
 import lightning from "../assets/lightning.png";
-import {defaultFont} from "../helpers/utils";
-import {SHARED_CONFIG} from "../model/config";
+import {defaultFont} from "../helpers/utils.js";
+import {SHARED_CONFIG} from "../model/config.js";
 
 export enum Images {
     HEX_GRID = "hex-grid",

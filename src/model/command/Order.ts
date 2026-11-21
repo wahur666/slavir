@@ -1,5 +1,5 @@
-import type Unit from "../../entities/Unit";
-import type GameTile from "../GameTile";
+import type Unit from "../../entities/Unit.js";
+import type GameTile from "../GameTile.js";
 
 export type OrderStatus = "running" | "done";
 

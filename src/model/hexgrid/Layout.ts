@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import {Hex} from "./Hex";
+import {Hex} from "./Hex.js";
 import Vector2 = Phaser.Math.Vector2;
 
 class Orientation {

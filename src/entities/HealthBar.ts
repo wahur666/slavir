@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import type GameScene from "../scenes/GameScene";
+import type GameScene from "../scenes/GameScene.js";
 
 export default class HealthBar {
     bg: Phaser.GameObjects.Rectangle;

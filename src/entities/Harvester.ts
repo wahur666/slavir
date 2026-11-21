@@ -1,7 +1,7 @@
-import Unit from "./Unit";
-import type {UnitStat} from "./UnitsStats";
-import type Player from "../model/player/Player";
-import type Systems from "../model/Systems";
+import Unit from "./Unit.js";
+import type {UnitStat} from "./UnitsStats.js";
+import type Player from "../model/player/Player.js";
+import type Systems from "../model/Systems.js";
 
 export default class Harvester extends Unit {
     harvesting = false;

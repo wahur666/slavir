@@ -1,17 +1,17 @@
 import Phaser from "phaser";
-import {Pathfinding} from "../model/HexMap";
-import type GameTile from "../model/GameTile";
-import type GameScene from "../scenes/GameScene";
-import type {UnitStat} from "./UnitsStats";
+import {Pathfinding} from "../model/HexMap.js";
+import type GameTile from "../model/GameTile.js";
+import type GameScene from "../scenes/GameScene.js";
+import type {UnitStat} from "./UnitsStats.js";
 import Vector2 = Phaser.Math.Vector2;
 import Graphics = Phaser.GameObjects.Graphics;
 import GetLineToCircle = Phaser.Geom.Intersects.GetLineToCircle;
 import Line = Phaser.Geom.Line;
 import Circle = Phaser.Geom.Circle;
-import type Player from "../model/player/Player";
-import type {Navigation} from "../model/navigation";
-import type Systems from "../model/Systems";
-import HealthBar from "./HealthBar";
+import type Player from "../model/player/Player.js";
+import type {Navigation} from "../model/navigation/Navigation.js";
+import type Systems from "../model/Systems.js";
+import HealthBar from "./HealthBar.js";
 
 type Direction = "up" | "down" | "left" | "right";
 

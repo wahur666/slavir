@@ -1,7 +1,7 @@
-import type {BuildingStat} from "./Building";
-import {Buildings} from "./Building";
-import Unit from "./Unit";
-import Harvester from "./Harvester";
+import type {BuildingStat} from "./Building.js";
+import {Buildings} from "./Building.js";
+import Unit from "./Unit.js";
+import Harvester from "./Harvester.js";
 
 export enum UnitName {
     B1_Fantasy8 = "fantasy8",

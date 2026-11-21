@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import type GameTile from "../model/GameTile";
-import type GameScene from "../scenes/GameScene";
+import type GameTile from "../model/GameTile.js";
+import type GameScene from "../scenes/GameScene.js";
 
 export default class Resource extends Phaser.GameObjects.Sprite {
     gameTile: GameTile;

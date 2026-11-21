@@ -1,9 +1,9 @@
 import Phaser from "phaser";
-import type {BuildingStat} from "./Building";
-import {Images} from "../scenes/PreloadScene";
-import type Player from "../model/player/Player";
-import type GameScene from "../scenes/GameScene";
-import {defaultFont} from "../helpers/utils";
+import type {BuildingStat} from "./Building.js";
+import {Images} from "../scenes/PreloadScene.js";
+import type Player from "../model/player/Player.js";
+import type GameScene from "../scenes/GameScene.js";
+import {defaultFont} from "../helpers/utils.js";
 
 export default class BuildingCard extends Phaser.GameObjects.Image {
     private icon: Phaser.GameObjects.Image;

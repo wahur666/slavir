@@ -1,17 +1,17 @@
 import Phaser from "phaser";
-import Player from "./Player";
+import Player from "./Player.js";
 import Pointer = Phaser.Input.Pointer;
 import cursorGauntlet_grey from "../../assets/cursorGauntlet_grey.png";
-import type GameTile from "../GameTile";
-import type Systems from "../Systems";
-import type Unit from "../../entities/Unit";
-import {type UnitName, unitStatMap} from "../../entities/UnitsStats";
-import Card from "../../entities/Card";
-import {Images} from "../../scenes/PreloadScene";
-import {defaultFont} from "../../helpers/utils";
-import {buildingStat} from "../../entities/Building";
-import BuildingCard from "../../entities/BuildingCard";
-import CommandHub from "../command/CommandHub";
+import type GameTile from "../GameTile.js";
+import type Systems from "../Systems.js";
+import type Unit from "../../entities/Unit.js";
+import {type UnitName, unitStatMap} from "../../entities/UnitsStats.js";
+import Card from "../../entities/Card.js";
+import {Images} from "../../scenes/PreloadScene.js";
+import {defaultFont} from "../../helpers/utils.js";
+import {buildingStat} from "../../entities/Building.js";
+import BuildingCard from "../../entities/BuildingCard.js";
+import CommandHub from "../command/CommandHub.js";
 
 export default class HumanPlayer extends Player {
     resourceSpeedTicks: Phaser.GameObjects.Image[];

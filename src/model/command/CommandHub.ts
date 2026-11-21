@@ -1,11 +1,11 @@
-import type Unit from "../../entities/Unit";
-import type Systems from "../Systems";
-import type Player from "../player/Player";
-import type {Command, TileRef} from "./Command";
-import type GameTile from "../GameTile";
-import type {Order} from "./Order";
-import {AttackOrder, MoveOrder} from "./Order";
-import {Buildings} from "../../entities/Building";
+import type Unit from "../../entities/Unit.js";
+import type Systems from "../Systems.js";
+import type Player from "../player/Player.js";
+import type {Command, TileRef} from "./Command.js";
+import type GameTile from "../GameTile.js";
+import type {Order} from "./Order.js";
+import {AttackOrder, MoveOrder} from "./Order.js";
+import {Buildings} from "../../entities/Building.js";
 
 export type CommandListener = (command: Command) => void;
 

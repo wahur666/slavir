@@ -1,9 +1,9 @@
 import Phaser from "phaser";
-import {Images} from "../scenes/PreloadScene";
+import {Images} from "../scenes/PreloadScene.js";
 import Vector2 = Phaser.Math.Vector2;
-import type GameTile from "../model/GameTile";
-import type GameScene from "../scenes/GameScene";
-import type Systems from "../model/Systems";
+import type GameTile from "../model/GameTile.js";
+import type GameScene from "../scenes/GameScene.js";
+import type Systems from "../model/Systems.js";
 
 export enum Buildings {
     CASTLE = "castle",

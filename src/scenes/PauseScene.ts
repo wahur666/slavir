@@ -1,8 +1,8 @@
 import Phaser from "phaser";
-import {SceneRegistry} from "./SceneRegistry";
-import {SHARED_CONFIG} from "../model/config";
-import {defaultFont} from "../helpers/utils";
-import {Images} from "./PreloadScene";
+import {SceneRegistry} from "./SceneRegistry.js";
+import {SHARED_CONFIG} from "../model/config.js";
+import {defaultFont} from "../helpers/utils.js";
+import {Images} from "./PreloadScene.js";
 
 export default class PauseScene extends Phaser.Scene {
     constructor() {

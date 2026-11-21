@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {Hex} from "../../../src/model/hexgrid/Hex";
+import {Hex} from "../../../src/model/hexgrid/Hex.js";
 
 describe("Hex", () => {
     it("derives s so that q + r + s is zero", () => {

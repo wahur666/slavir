@@ -1,14 +1,14 @@
-import type GameTile from "../model/GameTile";
+import type GameTile from "../model/GameTile.js";
 import Phaser from "phaser";
-import {SceneRegistry} from "./SceneRegistry";
-import {Images} from "./PreloadScene";
-import {Pathfinding} from "../model/HexMap";
-import type {Hex} from "../model/hexgrid";
-import type Player from "../model/player/Player";
-import {defaultFont, formatTime, range} from "../helpers/utils";
+import {SceneRegistry} from "./SceneRegistry.js";
+import {Images} from "./PreloadScene.js";
+import {Pathfinding} from "../model/HexMap.js";
+import type {Hex} from "../model/hexgrid/Hex.js";
+import type Player from "../model/player/Player.js";
+import {defaultFont, formatTime, range} from "../helpers/utils.js";
 import Graphics = Phaser.GameObjects.Graphics;
-import Systems from "../model/Systems";
-import {SHARED_CONFIG} from "../model/config";
+import Systems from "../model/Systems.js";
+import {SHARED_CONFIG} from "../model/config.js";
 
 const grey = 0x808080;
 const white = 0xffffff;

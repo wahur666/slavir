@@ -1,4 +1,4 @@
-import {Hex} from "./Hex";
+import {Hex} from "./Hex.js";
 
 const EVEN = 1;
 const ODD = -1;

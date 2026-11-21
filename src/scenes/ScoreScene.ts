@@ -1,9 +1,9 @@
 import Phaser from "phaser";
-import {SceneRegistry} from "./SceneRegistry";
-import {Images} from "./PreloadScene";
+import {SceneRegistry} from "./SceneRegistry.js";
+import {Images} from "./PreloadScene.js";
 import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
-import {defaultFont} from "../helpers/utils";
-import {SHARED_CONFIG} from "../model/config";
+import {defaultFont} from "../helpers/utils.js";
+import {SHARED_CONFIG} from "../model/config.js";
 
 export default class ScoreScene extends Phaser.Scene {
     startButton: Phaser.GameObjects.Sprite;
