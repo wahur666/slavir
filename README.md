@@ -52,8 +52,11 @@ reinforces objective pads, and chooses affordable counters to visible enemies.
 
 ## Verification
 
-`npx tsc --noEmit` checks types. `npm test` builds the game and runs gameplay
-regressions in a temporary headless browser. The browser tests require Node.js 22
+`npm run typecheck` checks types for the game and the tests. Tests use
+[Vitest](https://vitest.dev/): `npm run test:unit` runs the fast unit tests in
+`tests/unit` (`npm run test:watch` for watch mode), and `npm test` builds the game
+and runs both the unit tests and the gameplay regressions in `tests/e2e` in a
+temporary headless browser. The browser tests require Node.js 22
 or newer and Chrome, Chromium, or Edge; set `CHROME_PATH` if the executable is not
 in one of the detected locations. They cover countdowns, pause/resume, purchases,
 production caps, combat, bot decisions, and returning to a fresh match.

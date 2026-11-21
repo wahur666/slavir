@@ -4,7 +4,11 @@
   "description": "Open-source Real Time Tactics Game",
   "main": "index.js",
   "scripts": {
-    "test": "npm run build && node tests/gameplay.cjs",
+    "test": "npm run build && vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:e2e": "npm run build && vitest run --project e2e",
+    "test:watch": "vitest --project unit",
+    "typecheck": "tsc --noEmit -p src && tsc --noEmit -p tests",
     "build": "tsc --noEmit -p src && vite build --mode development",
     "watch": "vite build --mode development --watch",
     "dev": "vite",
@@ -36,10 +40,12 @@
     "heap-js": "^2.7.1",
     "phaser": "^4.2.1"
   },
+  "type": "module",
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
     "@types/node": "^26.6.6",
     "typescript": "^6.0.3",
-    "vite": "^8.3.8"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
   }
 }
