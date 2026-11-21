@@ -5,6 +5,7 @@ import {UnitName, unitStatMap} from "../../entities/UnitsStats";
 import type Unit from "../../entities/Unit";
 import type {UnitStat} from "../../entities/UnitsStats";
 import {Buildings, buildingStat} from "../../entities/Building";
+import CommandHub from "../command/CommandHub";
 
 
 export default class AiPlayer extends Player {
@@ -60,7 +61,7 @@ export default class AiPlayer extends Player {
             const threat = this.visibleEnemyUnits.filter(enemy => unit.canAttack(enemy))
                 .sort((a, b) => unit.gameTile().distance(a.gameTile()) - unit.gameTile().distance(b.gameTile()))[0];
             if (threat && unit.gameTile().distance(threat.gameTile()) <= unit.stat.visionRadius) {
-                unit.moveToGameTile(threat.gameTile(), threat);
+                this.systems.commands.issue({kind: "attack", playerIndex: this.index, unitIds: [unit.id], targetId: threat.id});
                 continue;
             }
             // Hold a pad; send reinforcements to the least occupied pad.
@@ -73,7 +74,7 @@ export default class AiPlayer extends Player {
                     .find(tile => !this.units.some(ally => ally !== unit && !ally.markedForDeletion
                         && (ally.gameTile() === tile || ally.destination === tile)));
                 if (tile) {
-                    unit.moveToGameTile(tile);
+                    this.systems.commands.issue({kind: "move", playerIndex: this.index, unitIds: [unit.id], tile: CommandHub.tileRef(tile)});
                     if (unit.moving) break;
                 }
             }

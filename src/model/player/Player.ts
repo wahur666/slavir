@@ -141,11 +141,17 @@ export default abstract class Player {
         if (this.selectedUnit === unit) {
             this.deselectUnit();
         }
+        this.systems.commands.forget(unit);
         await unit.prepForDestroy();
         unit.destroy();
         const unitToFreeInd = this.units.indexOf(unit);
         if (unitToFreeInd !== -1) this.units.splice(unitToFreeInd, 1);
         // console.log(unit.player.units);
+    }
+
+    /** Removes the unit from the game; issue a "disband" command instead of calling this directly */
+    disband(unit: Unit): Promise<void> {
+        return this.freeHandler(unit);
     }
 
     protected selectUnit(unit: Unit): void {

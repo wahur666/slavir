@@ -207,6 +207,7 @@ export default class GameScene extends Phaser.Scene {
         for (const unit of this.player2.units) {
             unit.update(delta);
         }
+        this.systems.commands.update(delta);
         for (const resource of this.systems.resources) {
             resource.update(delta);
         }

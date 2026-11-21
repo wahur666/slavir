@@ -41,6 +41,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         DIE_RIGHT: "unit-die-right",
     };
 
+    /** Stable id used by commands to reference this unit */
+    readonly id: number;
     navPoints: Vector2[] = [];
     graphics: Graphics;
     selectedGraphics: Graphics;
@@ -67,6 +69,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player,  free: (unit: Unit) => Promise<void>) {
         super(systems.gameScene, x, y, texture);
         this.systems = systems;
+        this.id = systems.nextUnitId();
         this.scene = systems.gameScene;
         this.stat = stat;
         this.free = free;

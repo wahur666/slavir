@@ -11,6 +11,7 @@ import type GameScene from "../scenes/GameScene";
 import HumanPlayer from "./player/HumanPlayer";
 import AiPlayer from "./player/AiPlayer";
 import type GameTile from "./GameTile";
+import CommandHub from "./command/CommandHub";
 import TilemapLayer = Phaser.Tilemaps.TilemapLayer;
 import Vector2 = Phaser.Math.Vector2;
 
@@ -51,6 +52,9 @@ export default class Systems {
     pad1GameTiles: GameTile[];
     pad2GameTiles: GameTile[];
     pad3GameTiles: GameTile[];
+    /** Single entry point for unit commands of every player */
+    readonly commands: CommandHub = new CommandHub(this);
+    private lastUnitId = 0;
 
     constructor(gameScene: GameScene, mapDimensions: {
         scaleFactor: number,
@@ -132,6 +136,11 @@ export default class Systems {
             }
         }
         return hexes;
+    }
+
+    /** Unique, deterministic unit id; units are created in the same order on every peer */
+    nextUnitId(): number {
+        return ++this.lastUnitId;
     }
 
     enemyPlayer(player: Player): Player {

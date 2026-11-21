@@ -10,6 +10,7 @@ import {Images} from "../../scenes/PreloadScene";
 import {defaultFont} from "../../helpers/utils";
 import {buildingStat} from "../../entities/Building";
 import BuildingCard from "../../entities/BuildingCard";
+import CommandHub from "../command/CommandHub";
 
 
 export default class HumanPlayer extends Player {
@@ -32,8 +33,8 @@ export default class HumanPlayer extends Player {
     private setupInput() {
         this.gameScene.input.setDefaultCursor(`url(${cursorGauntlet_grey}), default`);
         this.gameScene.input.keyboard.on("keyup-F", () => {
-            if (this.gameScene.canIssueCommands && this.selectedUnit) {
-                this.freeHandler(this.selectedUnit);
+            if (this.selectedUnit) {
+                this.systems.commands.issue({kind: "disband", playerIndex: this.index, unitIds: [this.selectedUnit.id]});
             }
         });
         this.gameScene.input.on("pointerdown", (ev: Pointer) => {
@@ -54,19 +55,12 @@ export default class HumanPlayer extends Player {
                     if (target) {
                         this.gameScene.setCurrentTile(target);
                         if (this.selectedUnit) {
+                            const unitIds = [this.selectedUnit.id];
                             const enemyUnit = this.visibleEnemyUnits.find(e => !e.markedForDeletion && e.gameTile() === target);
                             if (enemyUnit) {
-                                if (enemyUnit.gameTile().distance(this.selectedUnit.gameTile()) <= this.selectedUnit.stat.attackRange
-                                    && this.systems.navigation.checkBlockade(this.selectedUnit.gameTile(), enemyUnit.gameTile())) {
-                                    this.selectedUnit?.moveToGameTile(null, enemyUnit);
-                                } else {
-                                    this.selectedUnit.moveToGameTile(target, enemyUnit);
-                                }
+                                this.systems.commands.issue({kind: "attack", playerIndex: this.index, unitIds, targetId: enemyUnit.id});
                             } else {
-                                const start = this.systems.pointToTile(this.selectedUnit.pos.x, this.selectedUnit.pos.y);
-                                if (start) {
-                                    this.selectedUnit.moveToGameTile(target);
-                                }
+                                this.systems.commands.issue({kind: "move", playerIndex: this.index, unitIds, tile: CommandHub.tileRef(target)});
                             }
                         }
                     }
