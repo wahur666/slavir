@@ -77,6 +77,7 @@ export default class Volley {
     }
 }
 
-export function volleyStatOf(stat: {volley?: VolleyStat; rateOfFire: number}): VolleyStat {
-    return stat.volley ?? {shots: 1, initialChargeUp: 0, shotInterval: 0, reload: stat.rateOfFire};
+/** The unit's weapon timings: its burst-fire `volley`, or a single shot every `rateOfFire` seconds after `initialChargeUp` */
+export function volleyStatOf(stat: {volley?: VolleyStat; rateOfFire: number; initialChargeUp?: number}): VolleyStat {
+    return stat.volley ?? {shots: 1, initialChargeUp: stat.initialChargeUp ?? 0, shotInterval: 0, reload: stat.rateOfFire};
 }

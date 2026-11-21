@@ -49,6 +49,21 @@ describe("Volley", () => {
         expect(volley.ready).toBe(true);
     });
 
+    it("gives single-shot units their initial charge up", () => {
+        const stat = volleyStatOf({rateOfFire: 5, initialChargeUp: 0.3});
+        expect(stat).toEqual({shots: 1, initialChargeUp: 0.3, shotInterval: 0, reload: 5});
+        const volley = new Volley(stat);
+        volley.update(290, true);
+        expect(volley.ready).toBe(false);
+        volley.update(10, true);
+        expect(volley.ready).toBe(true);
+    });
+
+    it("prefers the volley's own charge up", () => {
+        const volley = {shots: 4, initialChargeUp: 0.1, shotInterval: 0.2, reload: 9};
+        expect(volleyStatOf({rateOfFire: 9, initialChargeUp: 0.5, volley})).toBe(volley);
+    });
+
     it("behaves like a plain rate-of-fire cooldown for single-shot units", () => {
         const stat = volleyStatOf({rateOfFire: 1.72});
         expect(stat).toEqual({shots: 1, initialChargeUp: 0, shotInterval: 0, reload: 1.72});

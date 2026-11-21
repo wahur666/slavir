@@ -33,13 +33,13 @@ export default class Titan extends Unit {
         health: 5500,
         limit: -1,
         rateOfFire: 5,
+        initialChargeUp: 0.3,
         reference: "Titan",
         speed: 100,
         squadSize: 1,
         texture: UnitName.T2_Titan,
         type: "vehicle",
         visionRadius: 2,
-        volley: {shots: 1, initialChargeUp: 0.3, shotInterval: 0, reload: 5},
     };
 
     /** The hex right behind `target`, on the line from `origin` through `target` */

@@ -33,6 +33,11 @@ export interface UnitStat {
     health: number;
     limit: number;
     rateOfFire: number;
+    /**
+     * Wind-up in seconds before the first shot, once the unit is engaged with a target in range; it starts over whenever
+     * the unit disengages. Defaults to 0. Ignored when `volley` is set, which has its own `initialChargeUp`.
+     */
+    initialChargeUp?: number;
     reference: string;
     speed: number;
     squadSize: number;
