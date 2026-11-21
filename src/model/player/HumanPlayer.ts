@@ -77,8 +77,8 @@ export default class HumanPlayer extends Player {
     protected createCards() {
         console.log(unitStatMap);
         this.buildCards = [...buildingStat.values()]
-            .slice(1, 4)
-            .map((e, i) => new BuildingCard(this.gameScene, this.systems.width / 2 - 255 + i * 180, this.systems.height / 2 + 245, this, e));
+            .slice(1, 5)
+            .map((e, i) => new BuildingCard(this.gameScene, this.systems.width / 2 - 345 + i * 180, this.systems.height / 2 + 245, this, e));
         this.cards = [...unitStatMap.values()].map(
             (e, index, arr) => new Card(this.gameScene, (this.systems.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, this)
         );

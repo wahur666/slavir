@@ -9,7 +9,7 @@ import {unitStatMap} from "../entities/units/UnitRegistry.js";
 import {defaultFont} from "../helpers/utils.js";
 import {SHARED_CONFIG} from "../model/config.js";
 
-const BUTTON_WIDTH = 140;
+const BUTTON_WIDTH = 108;
 const BUTTON_HEIGHT = 40;
 const BUTTON_GAP = 8;
 const ROWS_LEFT = 110;

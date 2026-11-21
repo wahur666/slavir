@@ -65,7 +65,7 @@ export const buildingStat: Map<Buildings, BuildingStat> = new Map([
             type: Buildings.TECH,
             cost: 100,
             scale: new Vector2(0.8),
-            texture: Images.TECH,
+            texture: Images.SALOON,
         },
     ],
     [

@@ -9,12 +9,15 @@ import castle from "../assets/castle_large.png";
 import hangar from "../assets/hangar.png";
 import barrack from "../assets/militaryTent.png";
 import factory from "../assets/shop.png";
-import tech from "../assets/saloon.png";
+import saloon from "../assets/saloon.png";
 import spawn from "../assets/tileDirt_tile.png";
 import black_dragon from "../assets/blackDragon.png";
 import robot5 from "../assets/robot-5.png";
 import fantasy8 from "../assets/fantasy-8.png";
 import demon_dragon from "../assets/demondragon.png";
+// 128px-frame copies of 24.png and 06.png (512px frames), so they match the other unit sheets
+import wolverine from "../assets/wolverine.png";
+import titan from "../assets/titan.png";
 import crystals1 from "../assets/crystals1.png";
 import slavir from "../assets/slavir.png";
 import buttonLong_blue from "../assets/buttonLong_blue.png";
@@ -46,13 +49,15 @@ export enum Images {
     BARRACK = "barrack",
     FACTORY = "factory",
     HANGAR = "hangar",
-    TECH = "tech",
+    SALOON = "saloon",
     SPAWN = "spawn",
     MALE_ENGINEER = "male_engineer",
     BLACK_DRAGON = "black_dragon",
     ROBOT5 = "robot5",
     FANTASY8 = "fantasy8",
     DEMON_DRAGON = "demon_dragon",
+    WOLVERINE = "wolverine",
+    TITAN = "titan",
     CRYSTAL = "crystals1",
     SLAVIR = "slavir",
     BUTTON = "button",
@@ -112,7 +117,7 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image(Images.BARRACK, barrack);
         this.load.image(Images.FACTORY, factory);
         this.load.image(Images.HANGAR, hangar);
-        this.load.image(Images.TECH, tech);
+        this.load.image(Images.SALOON, saloon);
         this.load.image(Images.SPAWN, spawn);
         this.load.image(Images.CRYSTAL, crystals1);
         this.load.image(Images.BUTTON, buttonLong_blue);
@@ -150,6 +155,14 @@ export default class PreloadScene extends Phaser.Scene {
             frameHeight: 128,
         });
         this.load.spritesheet(Images.DEMON_DRAGON, demon_dragon, {
+            frameWidth: 128,
+            frameHeight: 128,
+        });
+        this.load.spritesheet(Images.WOLVERINE, wolverine, {
+            frameWidth: 128,
+            frameHeight: 128,
+        });
+        this.load.spritesheet(Images.TITAN, titan, {
             frameWidth: 128,
             frameHeight: 128,
         });

@@ -9,6 +9,8 @@ export enum UnitName {
     F2_Guard = "guard",
     H1_Demon_Dragon = "demon_dragon",
     H2_Black_Dragon = "black_dragon",
+    T1_Wolverine = "wolverine",
+    T2_Titan = "titan",
     Harvester = "male_engineer",
 }
 
