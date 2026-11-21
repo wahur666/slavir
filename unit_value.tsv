@@ -1,0 +1,92 @@
+	Damage per Shot	DPS	Number of Shots	Squad Size	Infantry	Vehicle	Air	Structure	Harvester	Unit Type		Health	Rate of Fire	Initial Charge Up	Range	Cost		Speed	Speed Value	Notes	Cost/HP	Cost/Damage	Value	Value (w/ speed)
+APC	90	105.8823529	1	1	90	45	90	90	45	Vehicle	2.897	3300	0.85	0.5	1	90	War Factory	Slow	4.5	Speed = 4.5	106.22	7.37	113.59	511.1647059
+Artillery	1000	256.4102564	1	1	285	1000	0	3000	1000	Vehicle	2.897	1650	3.9	0.25	3	110	Temple of Nod	Average	5.5424	4 seconds to unpack, 0.5 seconds to pack. Deals Splash damage. Turn Speed decreased by 50% while deploying | Attack separation 1500ms	43.46	103.10	146.56	812.2916247
+Attack Bikes	210	148.2352941	1	3	40	210	223	244	200	Vehicle	2.897	435	4.25	0.1	1	30	War Factory	Fastest	9.237333	0.1s between missiles | Speed = 9.237333	126.02	111.48	237.50	2193.875825
+Avatar	140	280	1	1	140	50	0	300	0	Vehicle	2.897	6200	0.5	0	1	230	Temple of Nod	Average	4.5	Speed = 4.5 | Avatar explosion 1700 damage to vehicles/harvester, 300 damage to infantry	78.09	5.03	83.13	374.0693478
+Banshee	211	162.3076923	1	1	42	211	270	382	382	Air	1.715	909	1.3	0.5	1	30	Air Tower	Faster	8		51.96	40.15	92.12	736.9205333
+Basilisk	50	200	1	1	20	50	0	50	50	Air	1.715	2500	0.25	0	2	120	Temple of Nod	Average	5.5424	Takes 8 attacks to reach max charge.	35.73	13.79	56.87	315.1916693
+Avatar (Vehicle)	160	640	1	1	35	160	0	0	140	Vehicle	2.897	6200	0.25	0.3	1	230	Temple of Nod	Average		Speed = 4.5	78.09	9.95	88.04	0
+Juggernaut_ST	250	877.1929825	5	1	55	250	0	250	250	Vehicle		2400	1.425	0.25	3	120	Tech Lab	Average		3 seconds to deploy, 1.5 seconds to pack	0.00	941.84	941.84	0
+Basilisk (Max)	175	700	1	1	50	175	0	175	175	Air	1.715	2500	0.25	0	2	120	Temple of Nod	Average	5.5424		35.73	44.13	79.86	442.6206827
+Buggy	76	111.7647059	1	1	76	53	76	76	47	Vehicle	2.897	1320	0.68	0.25	1	30	War Factory	Fastest	9.237333		127.47	25.46	152.93	1412.690784
+Catalyst Gunship	200	125	1	1	200	50	0	200	60	Air	1.715	1485	1.6	0.08	1	60	Air Tower	Faster	8	Creates cloud every 4.5s seconds, cloud explosion does ~800 dmg to vehicles and ~350 dmg to infantry	42.45	7.97	50.41	403.3075
+Centurion	555	322.6744186	1	1	100	555	0	555	555	Vehicle	2.897	3800	1.72	0.08	1	100	Temple of Nod	Fast	6.928	*Charge up included in rate of fire	110.09	19.18	129.26	895.5434168
+Chem Buggy	72	144	1	1	72	30	0	72	30	Vehicle	2.897	1550	0.5	0	1	60	War Factory	Fast	6.928	Spawn cloud in 1s	74.84	11.89	86.73	600.8388827
+Chemical Warriors	20	120	1	3	20	10	0	20	10	Infantry	3.1	620	0.5	0	1	60	Hand of Nod	Average	5.5424	Attack separation = 300ms | Spawn cloud in 0.75s	96.10	10.65	106.75	591.6345728
+Confessor	15	112.5	1	3	40	15	45	40	15	Infantry	3.1	800	0.4	0	1	100	Temple of Nod	Average	5.5424	Every 0.25s, apply an attack and reload speed bonus of 50% that lasts 5s | Attack separation = 1000ms	74.40	18.35	92.75	514.0423584
+Cyber Wheels	42	112	1	4	42	10	0	42	10	Vehicle	2.897	200	1.5	0.3	1	10	War Factory	Faster	8		231.76	42.45	274.21	2193.642667
+Cyborg	400	400	1	2	75	400	400	400	400	Infantry	3.1	900	2	0	1	130	Temple of Nod	Fast	6.928	EMP 15%  attack speed/reload reduction. 20% move speed/turn reduction	42.92	15.98	58.90	408.0751877
+Mohawk Gunship_ST	396		1	1	55	396	0	396	295	Air		1350	1.15	0.25	1	50	Helipad	Fast			0.00	114.58	114.58	0
+Disruptor	26	133.3333333	20	1	26	13	0	300	13	Vehicle	2.897	3300	3.9	3	2	120	Tech Lab	Slow	3.958857	Speed = 3.958857	79.67	39.42	119.09	471.4517026
+Drone Swarm	42	140	1	5	42	7	0	42	7	Air	1.715	127	1.5	0	1	20	Helipad	Faster	8	Speed = 8	54.45	25.08	79.53	636.2486667
+Fanatic	49	172.9411765	1	3	49	18	0	49	18	Infantry	3.1	220	0.85	0	1	30	Hand of Nod	Fast	6.928	Buff duration is 5s, 45% attack speed, 25% move speed, 10% reload speed, 40% turn speed | Attack separation = 750ms	68.20	24.01	87.32	604.95296
+Flame Tank	380	760	1	1	380	72	0	300	72	Vehicle	2.897	3050	0.5	0	1	110	Temple of Nod	Average	5.5424	Attacks 4 hexes in a unique cone formation.	80.33	100.84	181.17	1004.107639
+Flame Troopers	75	225	2	3	75	15	0	100	15	Infantry	3.1	400	2	0.5	1	40	Hand of Nod	Fast	6.928	Each squad members fires two shots in a single rotation.	93.00	20.70	113.70	787.690218
+Giga Cannon	45	180	1	1	5	45	0	45	45	Vehicle	2.897	1455	0.25	0.5	2	80	War Factory	Average	5.5424	Applies attack every 0.25s and stores charge for 1 second. 12 Attacks --> Stage 2, Additional 12 Attacks --> Stage 3	52.69	14.59	67.28	372.8687704
+Giga Cannon (S2)	90	360	1	1	15	90	0	90	90	Vehicle	2.897	1455	0.25	0.5	2	80	War Factory	Average	5.5424	(Split Damage 40)	52.69	30.72	83.41	462.303708
+Giga Cannon (S3)	150	600	1	1	30	150	0	150	150	Vehicle	2.897	1455	0.25	0.5	2	80	War Factory	Average	5.5424	(Split Damage 50)	52.69	52.76	105.44	584.4138648
+Grenadier	340	386.3636364	1	3	27	340	0	340	340	Infantry	3.1	550	2.64	0	1	70	Barracks	Fast	6.928	EMP 60% MS and 25% AS for .7 seconds | Speed = 6.9 | Attack separation = 880ms	73.07	17.35	93.07	644.78896
+Talon (Ground)	57	114	1	1	57	20	0	57	20	Air	1.715	909	0.5	0	1	30	Helipad	Faster			51.96	15.64	67.61	0
+Hammerhead	585	365.625	1	1	0	0	585	425	0	Air	1.715	1950	1.6	0	1	90	Helipad	Fastest	9.237333	Speed = 9.237333	37.16	11.15	48.31	446.2170683
+Sandstorm_ST	150	600	12	1	25	40	150	150	40	Vehicle	2.897	3550	3	0	1	130	Tech Lab	Faster			79.11	180.25	259.36	0
+Avatar (Vehicle)	160	640	1	1	35	160	0	0	140	Vehicle	2.897	6200	0.25	0.3	1	230	Temple of Nod	Average		Speed = 4.5	78.09	228.81	306.90	0
+Harvester				1						Vehicle	2.897	3400				60		Slow	3.958857	Bounty = 80 | Speed = 3.958857	164.16	0.00	164.16	649.8991613
+Inferno	2000	166.6666667	1	1	500	2040	0	2040	2040	Air	1.715	1715	12	0.2	1	100	Air Tower	Average	5.5424	(Goes up to Faster speed when reloading)	29.41	80.60	110.01	609.7086163
+Juggernaut	400	300	3	1	200	400	0	1000	400	Vehicle	2.897	2400	4	0.25	3	120	Tech Lab	Average	5.5424	5 seconds to deploy, 2 seconds to pack (AoE Damage) | Speed = 5.5424	57.94	133.41	191.35	1060.53824
+Jump Jet Troopers	382	305.6	1	4	40	382	0	382	350	Infantry	3.1	220	5	0.25	1	40	Barracks	Faster	8	Speed = 8 | Attack separation = 1250ms	68.20	24.61	92.81	742.50464
+Kane	3000	750	1	1	3000	3000	0	3000	500	Structure	2.897	5000	4	3*	2	110		None	1	30 sec purchase cooldown, 45 sec initial cooldown, *charge up timer included in the rate of fire.	131.68	327.11	458.79	458.7909091
+Kodiak	1500	500	1	1	150	1500	0	1500	1500	Air	1.715	3465	3	0.5	1	130	Tech Lab	Average	5.5424	Has 3 guns | Speed = 5.5424	45.71	37.00	82.72	458.4406818
+Laser Drones	92	245.3333333	1	4	10	92	0	60	45	Air	1.715	180	1.5	0	1	20	Air Tower	Faster	8	Attack separation = 400ms	61.74	39.67	101.41	811.2789333
+Laser Troopers	250	200	1	4	35	250	250	250	250	Infantry	3.1	220	5	0.25	1	20	Hand of Nod	Fast	6.928		136.40	50.46	186.86	1294.56608
+Mammoth Tank	1065	532.5	2	1	100	1065	200	1065	1065	Vehicle	2.897	6900	4	0	1	230	Tech Lab	Slowest	3	Speed = 3	86.91	30.27	117.18	351.5401304
+MG Squad	28	140	1	1	28	28	0	28	28	Infantry	3.1	400	0.2	0	2	30	Barracks	Average	5.5424	50% damage reduction when deployed | Set-up time 5s, pack-up time 2s | Speed = 5.5424	41.33	55.97	97.31	539.3050795
+MG Squad (Entrenched)	28	140	1	1	28	28	0	28	28	Infantry	3.1	800	0.2	0	2	30	Barracks	None	1		82.67	55.97	138.64	138.6386667
+Zone Troopers_ST	620	413.3333333	1	2	125	620	620	620	620	Infantry		1000	3	0	1	120	Tech Lab	Average		No self-heal. EMP reduces attack speed 15%, movement speed 40%, reload speed 15%, turn rate 90%	0.00	216.46	216.46	0
+Militants	38	110.4651163	1	5	38	15	0	38	15	Infantry	3.1	130	1.72	0	1	10	Hand of Nod	Fast	6.928	Attak separation = 344ms	201.50	46.88	248.38	1720.75207
+Missile Squad	250	200	1	4	35	250	250	250	250	Infantry	3.1	220	5	0.25	1	20	Barracks	Average	5.5424	Speed = 5.5424	136.40	50.46	186.86	1035.652864
+MLRS	666.67	400	3	1	40	666	0	1000	666	Vehicle	2.897	1500	5	0.25	2	70	War Factory	Average	5.5424	2 sec to deploy and 0.5 to pack | 5s to reload	62.08	176.17	238.25	1320.4768
+Mohawk Gunship	382	293.8461538	1	1	55	382	0	382	295	Air	1.715	1650	1.3	0.075	1	50	Helipad	Fast	6.928	Speed = 6.92332552	56.60	25.54	82.14	569.0526182
+MSV	0	0	0	1	0	0	0	0	0	Vehicle	2.897	1750	3	0		40	War Factory	Average	5.5424	Attack speed +50%, Flat speed buff of 2.5, Reload speed +55%, Buff duration 6s | 3s deploy time, 2.25s pack-up time	126.74	0.00	126.74	702.46456
+Mutant Marauders	382	382	1	3	30	382	0	382	382	Infantry	3.1	620	3	0	1	60	Hand of Nod	Average	5.5424	Attack separation = 1000ms	96.10	19.99	116.09	643.4406788
+Orca	510	226.6666667	4	1	75	510	0	510	510	Air	1.715	1210	9	0.1	1	70	Helipad	Faster	8	0.2s cooldown on attack	29.65	96.06	125.70	1005.617143
+Orca Bomber	800	400	6	1	270	800	0	800	400	Air	1.715	1715	12	1.75	1	110	Helipad	Faster	8	0.85s between bombs	26.74	14.34	41.08	328.62
+Phantom	378	189	4	1	0	0	378	450	0	Air	1.715	1665	8	0.1	1	100	Air Tower	Fastest	8	50% fire slow/reload, 30% move/turn speed slow for 4 seconds.	28.55	25.93	54.49	435.8844
+Pitbull	250	138.8888889	1	1	35	250	250	250	250	Vehicle	2.897	1611	1.8	0.75	1	40	War Factory	Fast	6.928	0.75 lock on rate	116.68	31.54	148.21	1026.827804
+Predator Tank	830	241.2790698	1	1	96	830	0	830	830	Vehicle	2.897	2823	3.44	1	1	70	War Factory	Slow	3.958857	*Charge up included in rate of fire, .25 lock on rate	116.83	38.60	155.43	615.3387733
+Widowmaker (Air)	80	342.8571429	6	1	0	0	80	300	100	Vehicle	2.897	2800	1.4	0	1	80	Temple of Nod	Average			101.40	7.35	108.75	0
+Razorback	70	175	1	1	70	17	0	28	17	Air	1.715	1500	0.4	0	1	60	Helipad	Fast	6.928	Speed = 6.9	42.88	11.09	53.97	373.8952113
+Rhino	80	106.6666667	1	1	80	60	82	80	60	Vehicle	2.897	1611	0.75	0.25	1	30	War Factory	Fast	6.928	Speed = 6.928	155.57	25.00	180.57	1250.965944
+Riflemen	38	110.4651163	1	5	38	15	0	38	38	Infantry	3.1	130	1.72	0	1	10	Barracks	Fast	6.928	Speed = 6.928 | Attack separation = 344ms	201.50	46.88	248.38	1720.75207
+Rockworm	2000	533.3333333	1	1	90	2000	0	500	2000	Vehicle	2.897	5000	3.75	0.233	1	120	Temple of Nod	Average	5.5424	Pop up damage is 90 to Infantry, 750 to Vehicle, 0 to Structure & Air. (AoE) Cooldown 6, Speed = 4.5 | 2s to pop up then 1s to attack, 2s to burrow	120.71	50.61	171.32	949.5054933
+Sandstorm	150	450	12	1	10	100	150	150	100	Vehicle	2.897	3623	4	0	1	130	Tech Lab	Average	5.5424	Fires at up to 3 targets in a forward cone.	80.74	13.34	94.07	521.3983383
+Scarabs	2000	800	1	2	2000	2000	2000	2000	2000	Infantry	3.1	125	5	0.1	1	40	Hand of Nod	Average	5.5424		19.38	400.59	419.97	2327.627872
+Scavenger	230	172.5	1	3	35	230	240	230	230	Infantry	3.1	280	4	0.15	1	30	Hand of Nod	Average	5.5424	Attack separation = 1.333s	86.80	29.66	116.46	645.4692896
+Scorpion Tank	646	269.1666667	1	1	96	646	0	646	646	Vehicle	2.897	2197	2.4	1*	1	70	War Factory	Average	5.5424	*Charge up included in rate of fire, .25 lock on rate	90.92	30.99	121.91	675.6796056
+Shade	192	192	8	1	32	192	0	125	104	Air	1.715	1233	8	0.1	1	70	Air Tower	Faster	8	2s EMP upon stealth releasing. Restealths in 7.5s. EMP reduces attack and reload speed to 0%	30.21	74.91	105.11	840.9128
+Shatterer	180	257.1428571	1	1	180	45	0	210	45	Vehicle	2.897	1790	0.7	0	1	50	War Factory	Fast	6.928	Stuns infantry for 200ms, (85% MS slow, 35% attack speed slow)	103.71	1.97	105.68	732.1465863
+Shockwave Troopers	150	225	1	3	150	30	0	200	30	Infantry	3.1	400	2	0.5	1	40	Barracks	Fast	6.928		93.00	20.70	113.70	787.690218
+Slingshot	54	300	1	1	0	0	54	25	0	Air	1.715	1500	0.18	0	2	50	War Factory	Fast	6.928	2 Range	51.45	20.58	72.03	499.02384
+Sniper Team	152	168.8888889	1	3	152	20	0	20	20	Infantry	3.1	250	2.7	1	2	50	Barracks	Fast	6.928	Attack separation = 100ms	46.50	63.50	110.00	762.0578304
+Stealth Tank	510	181.3333333	4	1	50	382	510	510	382	Vehicle	2.897	1800	11.25	0	1	100	War Factory	Fastest	9.237333	5 seconds to Stealth. 11s to reload	52.15	85.45	137.60	1271.040024
+Strongarm	60	120	1	1	60	60	60	60	60	Structure	2.897	2400	0.5	0	1	50	Commander	None	1	30 sec purchase cooldown, 30 sec start cooldown.	139.06	18.51	157.56	157.5648
+Talon	345	172.5	1	1	0	0	345	345	0	Air	1.715	909	2	0.1	1	30	Helipad	Faster	8		51.96	19.72	71.69	573.496
+Talon (Ground)	57	114	1	1	57	20	0	57	20	Air	1.715	909	0.5	0	1	30	Helipad	Faster			51.96	46.93	98.89	0
+Tick Tank	750	250	1	1	105	750	0	750	750	Vehicle	2.897	1800	3	1*	1	70	War Factory	Average	5.5424	70% damage reduction when burrowed (Deployed). 2 seconds to deploy, 0.5 seconds to pack, *Charge up included in rate of fire	74.49	35.69	110.18	610.6814263
+Tick Tank (Burrowed)	750	250	1	1	105	750	0	750	750	Vehicle	2.897	6000	3	1	1	70	War Factory	None	1		248.31	35.69	284.00	284.0035714
+Titan	2000	400	1	1	180	2000	0	2000	2000	Vehicle	2.897	5500	5	0.3	1	130	Tech Lab	Average	5.5424		122.57	48.86	171.43	950.1165785
+Venom	60	150	1	1	60	28	0	28	28	Air	1.715	1210	0.4	0	1	30	Air Tower	Faster	8		69.17	22.26	91.43	731.4506667
+War Dogs	22	51.76470588	1	4	22	10	0	22	10	Vehicle	2.897	300	1.7	0	1	10	War Factory	Faster	8	Attack separation = 300ms	347.64	22.86	370.50	2964.028235
+Widowmaker	140	280	1	1	140	50	0	300	50	Vehicle	2.897	2800	0.5	0	1	80	Temple of Nod	Average	5.5424		101.40	14.47	115.87	642.177104
+Wolverine	45	236.8421053	1	1	45	19	50	45	19	Vehicle	2.897	2800	0.19	0	1	80	Tech Lab	Average	5.5424		101.40	18.44	119.84	664.1753272
+Zone Troopers	620	413.3333333	1	2	90	620	620	620	620	Infantry	3.1	875	3	0	1	120	Tech Lab	Average	5.5424	Heals 10 HP every .25 seconds out of combat after a 0.5 second delay. | Attack separation = 1500ms	45.21	17.44	249.50	1382.851585
+Jackson										None		0				30	Commander			60% fire, reload, move, turn speed increase, 8 second duration. Puchase cooldown: 20 sec, initial cooldown: 35 sec .				0
+Liang										None		430				50	Commander			35 sec purchase cooldown, 30 sec initial cooldown. Heals 5 every .25 sec + 3.33% hp				0
+Solomon	6000		1	1	6000	6000	6000	6000	1000(Center)/500(Edge)	None		0			1	130	Commander			6000(Center). Damage gradually decreases with distance from center tile. 30 sec purchase cooldown, 30 sec initial cooldown.				0
+Chem Cloud	6	30	1	1	6	0	0	0	0	None		0	0.2	0		0				Lasts for 10s				0
+Flame Hex	25	100	1	1	25	25	0	25	25			0	0.25	0						Splash Damage, lasts for 10s				0
+Jade	3500				3500	3500	3500	2500	500	None		0				80				Time to hit 3 sec. 30 sec purchase cooldown/initial cooldown.				0
+Gas Explosion	3000		1	1	3000	3000	3000	2500	500	None		0												0
+Oxanna										None						30				75% attack speed/reload speed, 50% move/turn, 25% damage taken increase. Duration 8 seconds. Puchase cooldown: 15 sec, initial cooldown: 35 sec				0
+Seth		0								Vehicle	2.897	1800	2.8	0		70				45 second purchase cooldown, 60 second initial cooldown.				0
+Base										Structure		34500								15000 per half				0
+Tiberium Field	1		1	1	1	0	0	0	0	None		0	0.2											0
