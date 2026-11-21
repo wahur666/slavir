@@ -1,7 +1,8 @@
 import Player from "./Player.js";
-import Harvester from "../../entities/Harvester.js";
+import Harvester from "../../entities/units/Harvester.js";
 import type Systems from "../Systems.js";
-import {UnitName, unitStatMap} from "../../entities/UnitsStats.js";
+import {UnitName} from "../../entities/UnitsStats.js";
+import {unitStatMap} from "../../entities/units/UnitRegistry.js";
 import type Unit from "../../entities/Unit.js";
 import type {UnitStat} from "../../entities/UnitsStats.js";
 import {Buildings, buildingStat} from "../../entities/Building.js";

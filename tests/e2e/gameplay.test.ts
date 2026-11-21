@@ -341,7 +341,7 @@ describe("gameplay in a headless browser", () => {
             ai.resource = 1000; ai.createCoolDown = 0; ai.createBuilding('barrack');
             const enemy = ai.createUnit('fantasy8') || ai.units.find(u => u.stat.canAttack && !u.markedForDeletion);
             unit.stopUnit(); enemy.stopUnit();
-            unit.attackCoolDown = 0;
+            unit.volley.reset();
             const start = unit.gameTile();
             const center = game.systems.hexToPos(start.hex);
             const adjacent = game.systems.map.tiles.find(t => t.distance(start) === 1 && t.pathfinding === 2
@@ -367,7 +367,7 @@ describe("gameplay in a headless browser", () => {
             const attacksAtCenter = enemy.currentHealth < health;
 
             // Idle auto-acquire never fires off-center
-            unit.stopUnit(); unit.attackCoolDown = 0; offCenter();
+            unit.stopUnit(); unit.volley.reset(); offCenter();
             const health2 = enemy.currentHealth;
             unit.update(16);
             const noAutoAttackOffCenter = enemy.currentHealth === health2;
@@ -380,7 +380,7 @@ describe("gameplay in a headless browser", () => {
             const stoppedAtCenter = atCenter() && !unit.moving;
 
             // Moving with a target that comes into range: finish at the current hex's center, not mid-path
-            unit.stopUnit(); offCenter(); unit.attackCoolDown = 0;
+            unit.stopUnit(); offCenter(); unit.volley.reset();
             const far = game.systems.map.tiles.find(t => t.distance(start) === 4 && t.pathfinding === 2);
             unit.moveToGameTile(far);
             unit.target = enemy;

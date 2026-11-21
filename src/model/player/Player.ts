@@ -6,10 +6,11 @@ import type Resource from "../../entities/Resource.js";
 import type Systems from "../Systems.js";
 import type GameScene from "../../scenes/GameScene.js";
 import type {UnitStat} from "../../entities/UnitsStats.js";
-import {type UnitName, unitStatMap} from "../../entities/UnitsStats.js";
+import type {UnitName} from "../../entities/UnitsStats.js";
+import {unitStatMap} from "../../entities/units/UnitRegistry.js";
 import {Pathfinding} from "../HexMap.js";
 import type {Hex} from "../hexgrid/Hex.js";
-import Harvester from "../../entities/Harvester.js";
+import Harvester from "../../entities/units/Harvester.js";
 import {findObjectByProperty} from "../../helpers/tilemap.helper.js";
 import HealthBar from "../../entities/HealthBar.js";
 

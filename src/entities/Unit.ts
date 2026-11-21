@@ -12,6 +12,9 @@ import type Player from "../model/player/Player.js";
 import type {Navigation} from "../model/navigation/Navigation.js";
 import type Systems from "../model/Systems.js";
 import HealthBar from "./HealthBar.js";
+import Volley, {volleyStatOf} from "./Volley.js";
+import AmmoBar from "./AmmoBar.js";
+import {fireShotEffect} from "./ShotEffect.js";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -58,14 +61,16 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     markedForDeletion = false;
     player: Player;
     navigation: Navigation;
-    attackCoolDown = 0;
     destination: GameTile | null = null;
 
     stat: UnitStat;
+    volley: Volley;
     moving = false;
     attackAnimationPlaying = false;
     systems: Systems;
     private healthBar: HealthBar;
+    /** Only for burst-fire units */
+    private ammoBar: AmmoBar | null = null;
 
     constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
         super(systems.gameScene, x, y, texture);
@@ -73,6 +78,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.id = systems.nextUnitId();
         this.scene = systems.gameScene;
         this.stat = stat;
+        this.volley = new Volley(volleyStatOf(stat));
         this.free = free;
         this.player = player;
         this.navigation = systems.navigation;
@@ -94,6 +100,14 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     setupHealthBar() {
         this.healthBar = new HealthBar(this.scene, this.x, this.y - 50, 70, 10);
+        if (this.volley.stat.shots > 1) {
+            this.ammoBar = new AmmoBar(this.scene, this.volley, 70);
+        }
+    }
+
+    /** ms until the weapon can fire again */
+    get attackCoolDown(): number {
+        return this.volley.coolDown;
     }
 
     setupGraphics() {
@@ -184,6 +198,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     prepForDestroy(): Promise<void> {
         this.stopUnit();
         this.healthBar.free();
+        this.ammoBar?.free();
         this.markedForDeletion = true;
         this.play("unit-die-" + this.lastDirection);
         return new Promise<void>(resolve => {
@@ -249,10 +264,14 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.drawSelectionRing();
             }
         }
-        if (this.attackCoolDown > 0) {
-            this.attackCoolDown = Math.max(0, this.attackCoolDown - delta);
-        }
+        this.volley.update(delta, this.isEngaged());
         this.healthBar.update(this.x, this.y - 100, this.currentHealth / this.stat.health / this.stat.squadSize);
+        this.ammoBar?.update(this.x, this.y - 94);
+    }
+
+    /** Standing on a hex center with the target in range, the state in which the weapon winds up and fires */
+    private isEngaged(): boolean {
+        return !!this.target && this.canAttack(this.target) && this.isStationaryAtCenter() && this.inAttackRange(this.target);
     }
 
     canAttack(target: Unit): boolean {
@@ -272,9 +291,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     attackTarget() {
-        if (this.target && this.canAttack(this.target) && this.isStationaryAtCenter() && this.inAttackRange(this.target)) {
-            this.target.takeDamage(this);
-            this.attackCoolDown = this.stat.rateOfFire * 1000;
+        if (this.volley.ready && this.isEngaged()) {
+            const target = this.target!;
+            this.volley.fire();
+            if (this.stat.volley) {
+                fireShotEffect(this.scene, this.x, this.y - 30, target.x, target.y - 20, this.visible || target.visible);
+            }
+            target.takeDamage(this);
             this.attackAnimationPlaying = true;
         }
     }
@@ -282,7 +305,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            if (this.target && this.attackCoolDown === 0 && this.isStationaryAtCenter() && this.inAttackRange(this.target)) {
+            if (this.volley.ready && this.isEngaged()) {
                 if (this.target.pos.x <= this.pos.x) {
                     this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
                     this.lastDirection = "left";
@@ -383,6 +406,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     setActivelyVisible(visible: boolean) {
         this.setVisible(visible);
         this.healthBar.setActivelyVisible(visible);
+        this.ammoBar?.setActivelyVisible(visible);
     }
 
     generateAnimations() {

@@ -1,10 +1,40 @@
-import Unit from "./Unit.js";
-import type {UnitStat} from "./UnitsStats.js";
-import type Player from "../model/player/Player.js";
-import type Systems from "../model/Systems.js";
+import Unit from "../Unit.js";
+import {Buildings} from "../Building.js";
+import {UnitName, type UnitStat} from "../UnitsStats.js";
+import type Player from "../../model/player/Player.js";
+import type Systems from "../../model/Systems.js";
 
 export default class Harvester extends Unit {
+    static readonly stat: UnitStat = {
+        attackRange: 1,
+        building: Buildings.CASTLE,
+        canAttack: false,
+        canAttackAir: false,
+        className: Harvester,
+        cost: 60,
+        damageAgainstAir: 0,
+        damageAgainstBase: 0,
+        damageAgainstInfantry: 0,
+        damageAgainstHarvester: 0,
+        damageAgainstVehicle: 0,
+        flying: false,
+        goodAgainstInfantry: false,
+        goodAgainstFactory: false,
+        goodAgainstAir: false,
+        health: 3400,
+        limit: 2,
+        rateOfFire: 1,
+        reference: "Harvester",
+        speed: 80,
+        squadSize: 1,
+        texture: UnitName.Harvester,
+        type: "vehicle",
+        visionRadius: 1,
+    };
+
     harvesting = false;
+    /** ms until the next harvest animation */
+    harvestCoolDown = 0;
 
     constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
         super(systems, x, y, texture, stat, player, free);
@@ -32,9 +62,9 @@ export default class Harvester extends Unit {
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            if (this.harvesting && this.attackCoolDown === 0) {
+            if (this.harvesting && this.harvestCoolDown === 0) {
                 this.play(Unit.AnimationKeys.ATTACK_ + this.lastDirection, true);
-                this.attackCoolDown = this.stat.rateOfFire * 1000;
+                this.harvestCoolDown = this.stat.rateOfFire * 1000;
                 this.attackAnimationPlaying = true;
             } else {
                 if (!this.attackAnimationPlaying) {
@@ -84,6 +114,7 @@ export default class Harvester extends Unit {
 
     update(delta: number) {
         super.update(delta);
+        this.harvestCoolDown = Math.max(0, this.harvestCoolDown - delta);
         if (this.markedForDeletion) {
             const resource = this.systems.resources.find(e => e.gameTile === this.gameTile());
             if (resource) {
