@@ -24,7 +24,7 @@ export default class Turret extends Unit {
     static readonly SCALE = 1;
 
     static readonly stat: UnitStat = {
-        attackRange: 2,
+        attackRange: 1,
         // Not built from a card; the castle always exists
         building: Buildings.CASTLE,
         canAttack: true,
@@ -48,7 +48,7 @@ export default class Turret extends Unit {
         squadSize: 1,
         texture: UnitName.Turret,
         type: "structure",
-        visionRadius: 2,
+        visionRadius: 1,
     };
 
     /** ms left until the turret is deployed and starts firing */

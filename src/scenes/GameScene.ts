@@ -11,6 +11,8 @@ import Systems from "../model/Systems.js";
 import {SHARED_CONFIG} from "../model/config.js";
 import {type Replay, ReplayRecorder, ReplayVerifier, TICK_MS} from "../model/replay/Replay.js";
 import {ensurePowerTextures} from "../entities/powers/PowerArt.js";
+import HumanPlayer from "../model/player/HumanPlayer.js";
+import NetworkedAiPlayer from "../model/player/NetworkedAiPlayer.js";
 
 const grey = 0x808080;
 const white = 0xffffff;
@@ -118,11 +120,17 @@ export default class GameScene extends Phaser.Scene {
     }
 
     protected createSystems(): Systems {
-        return new Systems(this, {
-            scaleFactor: this.scaleFactor,
-            width: this.config.width,
-            height: this.config.height,
-        });
+        const dimensions = {scaleFactor: this.scaleFactor, width: this.config.width, height: this.config.height};
+        if (this.replay?.mode === "network") {
+            // The networked AI's commands are in the replay, player 2 only has to carry them out
+            return new Systems(this, dimensions, systems => [new HumanPlayer(1, systems), new NetworkedAiPlayer(2, systems, null)]);
+        }
+        return new Systems(this, dimensions);
+    }
+
+    /** Stored in the replay header, see {@link Replay.mode} */
+    protected get replayMode(): Replay["mode"] {
+        return this.replay?.mode;
     }
 
     /** Match timer, retire and pause buttons, and the starting countdown */
@@ -179,7 +187,7 @@ export default class GameScene extends Phaser.Scene {
     private setupPauseButton() {
         const pause = () => {
             if (!this.gameEnded) {
-                this.scene.launch(SceneRegistry.PAUSE);
+                this.scene.launch(SceneRegistry.PAUSE, {gameKey: this.scene.key});
                 this.scene.pause();
             }
         };
@@ -333,7 +341,7 @@ export default class GameScene extends Phaser.Scene {
         const endTick = this.tick;
         this.time.delayedCall(3000, () => {
             // Finished here, not right away: a surrender command is recorded after it ended the game
-            const replay = this.recorder.finish(endTick, result);
+            const replay = this.recorder.finish(endTick, result, this.replayMode);
             this.scene.start(SceneRegistry.SCORE, {result, replay});
         });
     }

@@ -484,7 +484,7 @@ describe("gameplay in a headless browser", () => {
             for (let t = 0; t < 20000; t += 500) turret.update(500);
             const expired = turret.markedForDeletion;
 
-            // Ion cannon: full damage on the hex, half on the hexes around it, nothing further away
+            // Ion cannon: full damage on the hex, 70% on the centers of the hexes around it, nothing further away
             const live = ai.units.filter(u => !u.markedForDeletion && !u.immobile && u.stat.type !== 'structure');
             const target = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && t.distance(s.nukeGameTile) <= 3);
             const place = (u, t) => { const pos = s.hexToPos(t.hex); u.setPosition(pos.x, pos.y); u.claimedTile = t; u.stopUnit(); u.currentHealth = 1e6; };
@@ -492,14 +492,42 @@ describe("gameplay in a headless browser", () => {
             const ring2 = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && t.distance(target) === 3);
             const victims = [[live[0], target], [live[1], ring1], [live[2], ring2]];
             victims.forEach(([u, t]) => place(u, t));
+            // Friendly fire: the caster's own unit next to the epicenter is hit as hard as the enemy there
+            const own = p.units.find(u => !u.markedForDeletion && !u.immobile);
+            const ownTile = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && t.distance(target) === 1);
+            place(own, ownTile);
             p.resource = 200;
             const fired = issue('ionCannon', target);
             const ionPaid = p.resource === 70;
-            const expected = victims.map(([u], i) => u.stat.texture === 'male_engineer' ? [1000, 500, 0][i] : [6000, 3000, 0][i]);
+            const expected = victims.map(([u], i) => u.stat.texture === 'male_engineer' ? [1000, 700, 0][i] : [6000, 4200, 0][i]);
+            // A unit half way to the next hex is 6 units out: still full damage
+            const between = s.hexToPos(ring1.hex).clone().add(s.hexToPos(target.hex)).scale(0.5);
+            const probe = {x: between.x, y: between.y};
+            const halfWayUnits = p.powers.distanceInUnits(probe, target);
             p.powers.update(3299);
             const delayed = victims.every(([u]) => u.currentHealth === 1e6);
+            const baseBefore = ai.currentBaseHealth;
             p.powers.update(1);
             const damage = victims.map(([u]) => 1e6 - u.currentHealth);
+            const friendlyFire = 1e6 - own.currentHealth === (own.stat.texture === 'male_engineer' ? 700 : 4200);
+            own.currentHealth = own.stat.health * own.stat.squadSize;
+            const baseUntouched = ai.currentBaseHealth === baseBefore;
+            // The enemy base takes 4000 when the epicenter is on it, 2000 when next to it
+            const baseHits = [ai.base, s.map.tiles.find(t => t.tile.index !== -1 && t.distance(ai.base) === 1)].map(t => {
+                p.powers.coolDowns.ionCannon = 0; p.resource = 200;
+                const before = ai.currentBaseHealth;
+                issue('ionCannon', t);
+                p.powers.update(3300);
+                p.powers.update(1000);
+                return before - ai.currentBaseHealth;
+            });
+            ai.currentBaseHealth = ai.maxBaseHealth;
+            // ...and the caster's own base
+            p.powers.coolDowns.ionCannon = 0; p.resource = 200;
+            issue('ionCannon', p.base);
+            p.powers.update(3300);
+            const ownBaseHit = p.maxBaseHealth - p.currentBaseHealth;
+            p.currentBaseHealth = p.maxBaseHealth;
             p.powers.update(1000);
 
             // The bot fires at a cluster of enemies holding still
@@ -521,6 +549,7 @@ describe("gameplay in a headless browser", () => {
             game.game.loop.wake();
             return {onPad, onObstacle, tooFar, onUnit, inFog, deployed, paid, notInArmy, onCoolDown, takesNoOrders,
                 silentWhileDeploying, firesWhenDeployed, autoAttacks, expired, fired, ionPaid, delayed, damageAsExpected: JSON.stringify(damage) === JSON.stringify(expected),
+                halfWayUnits: Math.round(halfWayUnits * 100) / 100, baseUntouched, baseHits, friendlyFire, ownBaseHit,
                 aiFiresIonCannon: aiFired.includes('ionCannon')};
         })()`);
         expect(powers).toEqual({
@@ -542,7 +571,74 @@ describe("gameplay in a headless browser", () => {
             ionPaid: true,
             delayed: true,
             damageAsExpected: true,
+            halfWayUnits: 6,
+            baseUntouched: true,
+            baseHits: [4000, 2000],
+            friendlyFire: true,
+            ownBaseHit: 4000,
             aiFiresIonCannon: true,
+        });
+    });
+
+    it("pays the harvester bounty to the enemy and rebuilds lost harvesters for free", async () => {
+        const harvesters = await evaluate(`(() => {
+            game.game.loop.sleep();
+            const p = game.player1, ai = game.player2, s = game.systems;
+            const H = 'male_engineer';
+            // Finish dying in simulation time, so the unit leaves the list
+            const finish = u => { for (let i = 0; i < 10 && p.units.includes(u); i++) u.update(1000); };
+            for (const u of [...p.units]) { p.disband(u); finish(u); }
+            p.freeHarvesters = 0;
+            p.resource = 1000;
+            const recruit = () => { p.createCoolDown = 0; const before = p.resource; const u = p.createUnit(H); return {u, paid: before - p.resource}; };
+            const first = recruit(), second = recruit();
+            const price = first.paid;
+            const cardCost = p.unitCost(H);
+
+            // Killed by the enemy
+            const aiMoney = ai.resource;
+            first.u.applyDamage(1e6);
+            finish(first.u);
+            const bountyForKill = ai.resource - aiMoney;
+            const oneFree = p.freeHarvesters === 1 && p.unitCost(H) === 0;
+
+            // Killed by its owner's own ion cannon: still the enemy's bounty, still a free rebuild
+            p.visibleTiles = new Set(s.map.tiles.filter(t => t.tile.index !== -1));
+            p.powers.coolDowns.ionCannon = 0;
+            // The ion cannon deals 1000 to harvesters (3400 health): finish off a damaged one
+            second.u.currentHealth = 900;
+            const aiMoney2 = ai.resource;
+            s.commands.issue({kind: 'power', playerIndex: 1, power: 'ionCannon', tile: {col: second.u.gameTile().x, row: second.u.gameTile().y}});
+            p.powers.update(3300);
+            p.powers.update(1000);
+            const ionKilled = second.u.markedForDeletion;
+            finish(second.u);
+            const bountyForOwnIon = ai.resource - aiMoney2;
+            const twoFree = p.freeHarvesters === 2;
+
+            const rebuilt = [recruit(), recruit()];
+            const rebuiltFree = rebuilt.every(r => r.u && r.paid === 0) && p.freeHarvesters === 0;
+            const fullPriceAgain = p.unitCost(H) === price;
+
+            // Dismissing one (F) is no loss in battle: no bounty, no free rebuild
+            const aiMoney3 = ai.resource;
+            s.commands.issue({kind: 'disband', playerIndex: 1, unitIds: [rebuilt[0].u.id]});
+            finish(rebuilt[0].u);
+            const dismissIsNoKill = ai.resource === aiMoney3 && p.freeHarvesters === 0 && p.unitCost(H) === price;
+            p.currentBaseHealth = p.maxBaseHealth;
+            game.game.loop.wake();
+            return {price: price > 0 && cardCost === price, bountyForKill, oneFree, ionKilled, bountyForOwnIon, twoFree, rebuiltFree, fullPriceAgain, dismissIsNoKill};
+        })()`);
+        expect(harvesters).toEqual({
+            price: true,
+            bountyForKill: 80,
+            oneFree: true,
+            ionKilled: true,
+            bountyForOwnIon: 80,
+            twoFree: true,
+            rebuiltFree: true,
+            fullPriceAgain: true,
+            dismissIsNoKill: true,
         });
     });
 

@@ -18,6 +18,9 @@ import Turret from "../../entities/units/Turret.js";
 import {TURRET_TEXTURES} from "../../entities/powers/PowerArt.js";
 
 export default abstract class Player {
+    /** Paid to the enemy of a player who loses a harvester */
+    static readonly HARVESTER_BOUNTY = 80;
+
     /** Every unit of the player, deployed structures (turrets) included, see {@link army} */
     units: Unit[] = [];
     visibleEnemyUnits: Unit[] = [];
@@ -40,6 +43,8 @@ export default abstract class Player {
 
     protected maxUnitCount: number = 10;
     numberOfHarvesters = 0;
+    /** Harvesters lost (destroyed or dismissed) that can be rebuilt for free, one each; see {@link unitCost} */
+    freeHarvesters = 0;
     currentHarvestTime = 0;
     harvestTime = 5000;
 
@@ -58,6 +63,11 @@ export default abstract class Player {
     ) {
         this.gameScene = systems.gameScene;
         this.powers = new CommanderPowers(this, systems);
+    }
+
+    /** Unit cap, see {@link army} */
+    get maxUnits(): number {
+        return this.maxUnitCount;
     }
 
     /** Recruited units, without structures; the unit cap and the recruitment cooldown count these */
@@ -105,6 +115,13 @@ export default abstract class Player {
         this.numberOfHarvesters = Math.max(this.numberOfHarvesters - 1, 0);
     }
 
+    /** What recruiting the unit costs now: a lost harvester is replaced for free */
+    unitCost(e: UnitName): number {
+        const unitStat = unitStatMap.get(e);
+        if (!unitStat) return 0;
+        return unitStat.className === Harvester && this.freeHarvesters > 0 ? 0 : unitStat.cost;
+    }
+
     canCreateUnit(e: UnitName): boolean {
         const unitStat = unitStatMap.get(e);
         if (!unitStat) return false;
@@ -112,7 +129,7 @@ export default abstract class Player {
         if (!this.gameScene.canIssueCommands) return false;
         if (this.createCoolDown !== 0) return false;
         if (this.army.length >= this.maxUnitCount) return false;
-        if (this.resource < unitStat.cost) return false;
+        if (this.resource < this.unitCost(e)) return false;
 
         if (!this.buildings.some(b => b.stat.type === unitStat.building)) return false;
 
@@ -127,9 +144,11 @@ export default abstract class Player {
     createUnit(e: UnitName): Unit | null {
         if (!this.canCreateUnit(e)) return null;
         const unitStat = unitStatMap.get(e)!;
+        const cost = this.unitCost(e);
         const unit = this.placeUnit(unitStat);
         if (unit) {
-            this.resource -= unitStat.cost;
+            this.resource -= cost;
+            if (unit instanceof Harvester && cost === 0) this.freeHarvesters--;
             this.resetCreateCoolDown();
             this.selectUnit(unit);
         }
@@ -161,15 +180,19 @@ export default abstract class Player {
         return null;
     }
 
-    protected freeHandler(unit: Unit): void {
+    /**
+     * Removes a unit that died or left the game
+     * @param destroyed it was killed; a dismissed harvester pays no bounty and gives no free rebuild
+     */
+    protected freeHandler(unit: Unit, destroyed = true): void {
         if (unit.markedForDeletion || !this.units.includes(unit)) return;
         if (unit.stat.type !== "structure") {
             unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
         }
-        if (unit instanceof Harvester) {
-            const playerToReward = this.systems.players.filter(e => e !== this)[0];
-            playerToReward.resource += 80;
-            console.log(playerToReward.resource);
+        if (unit instanceof Harvester && destroyed) {
+            // The bounty goes to the enemy whoever destroyed it, the owner's own ion cannon included
+            this.enemyPlayer.resource += Player.HARVESTER_BOUNTY;
+            this.freeHarvesters++;
         }
         if (this.selectedUnit === unit) {
             this.deselectUnit();
@@ -209,7 +232,7 @@ export default abstract class Player {
 
     /** Removes the unit from the game; issue a "disband" command instead of calling this directly */
     disband(unit: Unit): void {
-        this.freeHandler(unit);
+        this.freeHandler(unit, false);
     }
 
     protected selectUnit(unit: Unit): void {

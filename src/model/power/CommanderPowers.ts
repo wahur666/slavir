@@ -4,7 +4,8 @@ import type GameTile from "../GameTile.js";
 import {Pathfinding} from "../HexMap.js";
 import Harvester from "../../entities/units/Harvester.js";
 import IonCannonStrike from "../../entities/powers/IonCannonStrike.js";
-import {PowerName, ionCannonDamage, ION_CANNON_FALLOFF, powerStats, withinTurretForwardLimit} from "./PowerRules.js";
+import {ION_CANNON_RADIUS, PowerName, UNITS_PER_HEX, ionCannonDamage, powerStats, withinTurretForwardLimit} from "./PowerRules.js";
+import type Unit from "../../entities/Unit.js";
 
 /**
  * A player's commander powers: costs, cooldowns, where each may be used, and their effects.
@@ -12,8 +13,8 @@ import {PowerName, ionCannonDamage, ION_CANNON_FALLOFF, powerStats, withinTurret
  *
  * - Turret: a gun emplacement on a visible, free, walkable hex that is no pad, no building, and at most
  *   1.5 hexes past the middle of the map
- * - Ion cannon: after a 3.3s blast sequence, heavy damage to the enemies on the targeted visible hex,
- *   half of it to the hexes around
+ * - Ion cannon: after a 3.3s blast sequence, heavy damage to every unit around the targeted visible hex (friendly fire),
+ *   falling off with the distance from the epicenter (see {@link ionCannonFalloff}), and to any base on or next to it
  */
 export default class CommanderPowers {
     /** ms left before each power can be used again */
@@ -95,18 +96,46 @@ export default class CommanderPowers {
 
     private fireIonCannon(tile: GameTile) {
         const pos = this.systems.hexToPos(tile.hex);
-        // The visuals cover the full-damage hex and the half-damage ring around it
-        const radius = this.hexWidth * this.systems.scaleFactor * (ION_CANNON_FALLOFF.length - 0.35);
+        // The visuals cover the whole blast radius
+        const radius = ((this.hexWidth * this.systems.scaleFactor) / UNITS_PER_HEX) * ION_CANNON_RADIUS;
         const strike = new IonCannonStrike(this.systems.gameScene, pos, radius, () => this.ionBlast(tile));
         this.strikes.push(strike);
     }
 
-    /** Damages the enemies around the tile; units that walked away in time are spared */
+    /**
+     * Distance of a unit (its scaled position) from a hex center in Rivals units (12 per hex step). Measured on the real hex grid, not on the
+     * screen, where the map is flattened; a unit walking between two hexes is somewhere in between.
+     */
+    distanceInUnits(unit: {x: number; y: number}, tile: GameTile): number {
+        const {layout} = this.systems.map;
+        const M = layout.orientation;
+        const x = (unit.x / this.systems.scaleFactor - this.systems.baseOffset.x - layout.origin.x) / layout.size.x;
+        const y = (unit.y / this.systems.scaleFactor - this.systems.baseOffset.y - layout.origin.y) / layout.size.y;
+        const dq = M.b0 * x + M.b1 * y - tile.hex.q;
+        const dr = M.b2 * x + M.b3 * y - tile.hex.r;
+        // Axial offset to a flat plane where neighbouring hex centers are 1 apart
+        return Math.hypot(dq + dr / 2, (dr * Math.sqrt(3)) / 2) * UNITS_PER_HEX;
+    }
+
+    /** Damage the ion cannon on `tile` deals to the unit */
+    ionDamageTo(unit: Unit, tile: GameTile): number {
+        return ionCannonDamage(unit.stat.type, unit instanceof Harvester, this.distanceInUnits(unit, tile), unit.gameTile().distance(tile));
+    }
+
+    /**
+     * Damages every unit around the tile, the caster's own included, and every base on or next to it;
+     * units that walked away in time are spared
+     */
     private ionBlast(tile: GameTile) {
-        for (const enemy of [...this.player.enemyPlayer.units]) {
-            if (enemy.markedForDeletion) continue;
-            const damage = ionCannonDamage(enemy.stat.type, enemy instanceof Harvester, enemy.gameTile().distance(tile));
-            if (damage > 0) enemy.applyDamage(damage);
+        for (const unit of this.systems.allUnits()) {
+            if (unit.markedForDeletion) continue;
+            const damage = this.ionDamageTo(unit, tile);
+            if (damage > 0) unit.applyDamage(damage);
+        }
+        for (const player of this.systems.players) {
+            if (!player.base) continue;
+            const damage = ionCannonDamage("structure", false, 0, player.base.distance(tile));
+            player.currentBaseHealth = Math.max(0, player.currentBaseHealth - damage);
         }
     }
 }

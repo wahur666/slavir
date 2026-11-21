@@ -29,5 +29,19 @@ export default class MenuScene extends Phaser.Scene {
         this.startButton.on("pointerup", () => {
             this.scene.start(SceneRegistry.GAME);
         });
+        // The network game has its own page with an HTML lobby
+        this.add
+            .text(this.config.width / 2, this.config.height / 2 + 270, "Network game", {
+                fontFamily: defaultFont,
+                fontSize: "28px",
+                color: "#ffd27a",
+                stroke: "#000000",
+                strokeThickness: 4,
+            })
+            .setOrigin(0.5)
+            .setInteractive({useHandCursor: true})
+            .on("pointerup", () => {
+                window.location.href = "./networkgame/";
+            });
     }
 }

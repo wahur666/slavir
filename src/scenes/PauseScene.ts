@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import {SceneRegistry} from "./SceneRegistry.js";
+import {returnToMenu, SceneRegistry} from "./SceneRegistry.js";
 import {SHARED_CONFIG} from "../model/config.js";
 import {defaultFont} from "../helpers/utils.js";
 import {Images} from "./PreloadScene.js";
@@ -9,7 +9,9 @@ export default class PauseScene extends Phaser.Scene {
         super(SceneRegistry.PAUSE);
     }
 
-    create() {
+    create(data?: {gameKey?: string}) {
+        // The paused game scene: the normal game or the network game
+        const gameKey = data?.gameKey ?? SceneRegistry.GAME;
         const {width, height} = SHARED_CONFIG;
         this.add.rectangle(0, 0, width, height, 0x000000, 0.75).setOrigin(0).setInteractive();
         this.add
@@ -19,13 +21,13 @@ export default class PauseScene extends Phaser.Scene {
             })
             .setOrigin(0.5);
         const resume = () => {
-            this.scene.resume(SceneRegistry.GAME);
+            this.scene.resume(gameKey);
             this.scene.stop();
         };
         this.addButton(height / 2, "Resume", resume);
         this.addButton(height / 2 + 100, "Return to menu", () => {
-            this.scene.stop(SceneRegistry.GAME);
-            this.scene.start(SceneRegistry.MENU);
+            this.scene.stop(gameKey);
+            returnToMenu(this);
         });
         this.input.keyboard.on("keyup-ESC", resume);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keyup-ESC", resume));

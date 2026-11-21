@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import {SceneRegistry} from "./SceneRegistry.js";
+import {returnToMenu, SceneRegistry} from "./SceneRegistry.js";
 import {Images} from "./PreloadScene.js";
 import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
 import {defaultFont} from "../helpers/utils.js";
@@ -36,7 +36,7 @@ export default class ScoreScene extends Phaser.Scene {
         });
         this.startButton.setInteractive();
         this.startButton.on("pointerup", () => {
-            this.scene.start(SceneRegistry.MENU);
+            returnToMenu(this);
         });
         this.setupReplayButtons(data.replay);
     }

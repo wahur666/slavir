@@ -39,6 +39,8 @@ export interface Replay {
     endTick: number;
     /** Whether player 1 won; null if the match was not finished */
     result: boolean | null;
+    /** "network": player 2 was a networked AI, whose commands are in {@link commands} like player 1's */
+    mode?: "network";
     commands: ReplayEntry[];
     checkpoints: ReplayCheckpoint[];
 }
@@ -63,9 +65,10 @@ export class ReplayRecorder {
         return checkpoint;
     }
 
-    finish(endTick: number, result: boolean | null): Replay {
+    finish(endTick: number, result: boolean | null, mode?: Replay["mode"]): Replay {
         this.unsubscribe();
         return {
+            ...(mode ? {mode} : {}),
             format: REPLAY_FORMAT,
             version: REPLAY_VERSION,
             tickMs: TICK_MS,

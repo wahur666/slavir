@@ -55,7 +55,8 @@ export default class AiPlayer extends Player {
         ) {
             this.build(nextBuilding);
         }
-        if (harvesters.length === 1 && fighters.length >= 2 && this.resources.some(resource => !resource.occupied)) {
+        // The second harvester waits for an army, unless it is a free replacement of a destroyed one
+        if (harvesters.length === 1 && (fighters.length >= 2 || this.freeHarvesters > 0) && this.resources.some(resource => !resource.occupied)) {
             this.produce(UnitName.Harvester);
         }
         const available = [...unitStatMap.values()].filter(stat => stat.canAttack && this.canCreateUnit(stat.texture));
@@ -97,15 +98,22 @@ export default class AiPlayer extends Player {
         }
     }
 
-    /** Worth of the enemy units an ion cannon on the tile would destroy, in cost (damaged units count partly) */
+    /**
+     * Worth of the enemy units an ion cannon on the tile would destroy, minus the AI's own units caught in the blast,
+     * in cost (damaged units count partly)
+     */
     private ionCannonValue(tile: GameTile): number {
-        let value = 0;
-        for (const enemy of this.visibleEnemyUnits) {
-            if (enemy.markedForDeletion) continue;
-            const damage = ionCannonDamage(enemy.stat.type, enemy instanceof Harvester, enemy.gameTile().distance(tile));
-            value += (Math.min(damage, enemy.currentHealth) / maxSquadHealth(enemy.stat)) * enemy.stat.cost;
-        }
-        return value;
+        const worth = (unit: Unit) => {
+            if (unit.markedForDeletion) return 0;
+            const damage = this.powers.ionDamageTo(unit, tile);
+            return (Math.min(damage, unit.currentHealth) / maxSquadHealth(unit.stat)) * unit.stat.cost;
+        };
+        // The blast hits the AI's own units too
+        const gain = this.visibleEnemyUnits.reduce((sum, enemy) => sum + worth(enemy), 0);
+        const loss = this.units.reduce((sum, own) => sum + worth(own), 0);
+        // Base damage, valued at a credit per 40 health: a direct hit (4000) is worth about one shot
+        const baseDamage = (player: Player) => (player.base ? ionCannonDamage("structure", false, 0, player.base.distance(tile)) / 40 : 0);
+        return gain - loss + baseDamage(this.enemyPlayer) - baseDamage(this);
     }
 
     /** Fires at the enemies that hold still where it destroys the most, if that is worth most of its cost */
@@ -142,8 +150,7 @@ export default class AiPlayer extends Player {
         const tile = [...this.visibleTiles]
             .filter(
                 tile =>
-                    tile.distance(threatTile) >= 1 &&
-                    tile.distance(threatTile) <= 2 &&
+                    tile.distance(threatTile) === 1 &&
                     this.systems.navigation.checkBlockade(tile, threatTile) &&
                     this.powers.canTarget(PowerName.Turret, tile)
             )

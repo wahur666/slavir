@@ -41,7 +41,10 @@ eligible enemies in range and follow ordered targets while they remain visible.
 Harvesters gather resources automatically. Hold the objective pads to damage the
 enemy base with missile strikes.
 
-You can field 10 units, including at most two harvesters. Recruiting starts a
+You can field 10 units, including at most two harvesters. A destroyed harvester pays
+an 80 bounty to the enemy, whoever destroyed it (your own ion cannon included), and
+your next harvester is free. Each destroyed harvester gives one free rebuild. Dismissing
+a harvester with F gives neither. Recruiting starts a
 cooldown of 2.5 seconds per fielded unit before the next recruitment; losing a
 unit reduces the remaining cooldown by 2.5 seconds.
 
@@ -54,12 +57,16 @@ Two commander powers sit on the right of the map. Click a card (or press Q / W),
 then click a hex; right click or Escape cancels. Each has a 30 second cooldown:
 
 - **Turret** (40): a gun emplacement with 2400 health that shoots ground and air
-  units for 120 DPS. It takes 1.33 seconds to deploy and lasts 20 seconds. It goes
+  units on the hexes next to it for 120 DPS, and sees one hex around. It takes 1.33 seconds to deploy and lasts 20 seconds. It goes
   on a visible, free, walkable hex that is not a pad, at most 1½ hexes past the
   middle of the map. It does not count towards the unit cap.
-- **Ion Cannon** (130): after a 3.3 second blast sequence, deals 6000 damage to the
-  enemies on the targeted visible hex (1000 to harvesters, 4000 to turrets) and half
-  of that to the hexes around it. Units that move away in time escape.
+- **Ion Cannon** (130): after a 3.3 second blast sequence, hits every unit around the
+  targeted visible hex, your own included, with 6000 damage (1000 to harvesters). Damage is full up to 6
+  units from the epicenter, 70% at 12 and 30% at 18, with nothing beyond. One hex step
+  counts as 12 units, so that means full damage on the hex, 70% on the centers of the
+  hexes around it, and 30% at their outer edge. Turrets and bases (yours too) take
+  4000 when the epicenter is on their hex and 2000 when it is next to it. Units that move away
+  in time escape.
 
 The bot recruits harvesters, builds barracks followed by a factory and hangar,
 reinforces objective pads, and chooses affordable counters to visible enemies. It

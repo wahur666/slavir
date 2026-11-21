@@ -70,7 +70,9 @@ export default class Card extends Phaser.GameObjects.Sprite {
     }
 
     update() {
-        if (this.player.resource < this.unitStat.cost) {
+        const cost = this.player.unitCost(this.unitStat.texture);
+        this.costText.setText(`${cost}`);
+        if (this.player.resource < cost) {
             this.costText.setColor("#FF0000");
         } else {
             this.costText.setColor("#FFFFFF");

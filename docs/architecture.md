@@ -185,6 +185,8 @@ Subclasses only differ in **where commands come from**:
 - **`AiPlayer`** – `play()` runs every 1000 ms of simulation time: keep a harvester, build barracks → factory →
   hangar, pick the best affordable counter (`counterScore`), attack visible threats within vision, otherwise send
   idle units to the least occupied objective pad. All of it goes through `issue()`.
+- **`NetworkedAiPlayer`** – the network game's player 2: sends a fog-limited observation to a remote bot every
+  second and issues the commands it answers with as external input. See [networkgame.md](networkgame.md).
 
 ## Buildings
 
@@ -260,14 +262,18 @@ shots. Damage per member is picked from the attacker's `damageAgainstInfantry / 
 
 ### Death
 
-`Unit.free` → `Player.freeHandler`: refund 2.5 s of recruit cooldown, reward the enemy +80 if it was a
-harvester, deselect, `commands.forget(unit)`, then remove from `player.units` once the death animation ends.
+`Unit.free` → `Player.freeHandler`: refund 2.5 s of recruit cooldown; if it was a destroyed harvester, reward
+the enemy +80 (whoever destroyed it, the owner's own ion cannon included) and give the owner one free rebuild
+(`freeHarvesters`); deselect, `commands.forget(unit)`, then remove from `player.units` once the death animation ends.
 
 ## Economy, harvesters and resources
 
 - Each player has crystal `Resource` patches from the map. A `Harvester` sends itself to the nearest free patch
   with a `move` command, then sets `resource.occupied` and calls `player.increaseHarvesterCount()`.
 - The number of harvesting harvesters (max 2) speeds up `Player.update`'s passive income.
+- `Player.unitCost(name)` is what recruiting costs right now: 0 for a harvester while `freeHarvesters > 0`, the
+  stat's `cost` otherwise. Recruiting, the cards and both bots use it; a dismissed harvester (F, a debug key)
+  gives no bounty and no free rebuild.
 - A patch depletes after 100 s of active harvesting and removes itself from `systems.resources` and both players.
 
 ## Objective (pads and nuke in the middle of the map)

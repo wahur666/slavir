@@ -8,7 +8,9 @@
     "test:unit": "vitest run --project unit",
     "test:e2e": "npm run build && vitest run --project e2e",
     "test:watch": "vitest --project unit",
-    "typecheck": "tsc --noEmit -p src && tsc --noEmit -p tests",
+    "typecheck": "tsc --noEmit -p src && tsc --noEmit -p tests && tsc --noEmit -p server",
+    "server": "tsx server/server.ts",
+    "bot": "tsx server/bot.ts",
     "build": "tsc --noEmit -p src && vite build --mode development",
     "watch": "vite build --mode development --watch",
     "dev": "vite",
@@ -37,13 +39,18 @@
   },
   "homepage": "https://github.com/wahur666/slavir#readme",
   "dependencies": {
+    "@preact/signals": "^2.11.4",
     "heap-js": "^2.7.1",
-    "phaser": "^4.2.1"
+    "phaser": "^4.2.1",
+    "preact": "^11.2.0",
+    "ws": "^8.23.0"
   },
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
     "@types/node": "^26.6.6",
+    "@types/ws": "^8.18.2",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "vite": "^8.3.8",
     "vitest": "^5.1.1"
