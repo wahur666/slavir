@@ -71,12 +71,13 @@
   - [x] Add start money 100
 - [x] Add unit creation delay based on how many already existing
 - [x] Add objective
-  - [ ] Add sprite
+  - [x] Add sprite
   - [x] Add capture logic
   - [x] Add contesting logic
   - [x] Add timer, with 5 sec dominance for the end
   - [x] Add unit pad holding logic
-- [ ] Add turret as commander power
+- [x] Add turret as commander power
+- [x] Add ion cannon as commander power
 - [x] Create unit cap 6
   - [x] Delay
     - 0 unit, 0 sec

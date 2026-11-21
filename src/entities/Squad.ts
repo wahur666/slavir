@@ -29,6 +29,8 @@ export function damagePerMember(attacker: UnitStat, target: Pick<UnitStat, "type
             return attacker.damageAgainstInfantry;
         case "vehicle":
             return attacker.damageAgainstVehicle;
+        case "structure":
+            return attacker.damageAgainstBase;
     }
 }
 

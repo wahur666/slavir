@@ -114,6 +114,7 @@ export default class SandboxScene extends GameScene {
         // Units still only fire at targets within their attack range.
         for (const player of this.systems.players) {
             player.visibleEnemyUnits = player.enemyPlayer.units.filter(unit => !unit.markedForDeletion);
+            player.visibleTiles = new Set(this.systems.map.tiles);
         }
         for (const unit of this.player2.units) {
             unit.setActivelyVisible(true);

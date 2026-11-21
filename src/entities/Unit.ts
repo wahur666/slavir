@@ -296,15 +296,29 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      * @param shooters members of the attacker's squad that hit this unit, each deals its per-member damage
      */
     takeDamage(unit: Unit, shooters = unit.aliveMembers) {
-        this.currentHealth -= damagePerMember(unit.stat, this.stat) * shooters;
+        this.applyDamage(damagePerMember(unit.stat, this.stat) * shooters, unit);
+    }
+
+    /**
+     * Removes health, and the unit once it has none left
+     * @param attacker the shooting unit, if any (commander powers have none)
+     */
+    applyDamage(amount: number, attacker?: Unit) {
+        if (this.markedForDeletion) return;
+        this.currentHealth -= amount;
         console.log("Remaining health", this.currentHealth, "members", this.aliveMembers);
         this.killFollowers(this.aliveMembers);
         if (this.currentHealth <= 0) {
             // A fire-on-move unit may have killed a bystander, its chase order stays
-            if (unit.target === this) unit.target = null;
-            if (unit.fireTarget === this) unit.fireTarget = null;
+            if (attacker?.target === this) attacker.target = null;
+            if (attacker?.fireTarget === this) attacker.fireTarget = null;
             this.free(this);
         }
+    }
+
+    /** Structures (turrets) never move */
+    get immobile(): boolean {
+        return this.stat.type === "structure";
     }
 
     stopUnit() {
@@ -757,6 +771,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      */
     moveToGameTile(gameTile: GameTile | null = null, target: Unit | null = null) {
         if (this.markedForDeletion) return;
+        if (this.immobile) {
+            // Structures only shoot at what comes in range
+            this.target = target && this.canAttack(target) ? target : null;
+            return;
+        }
         if (target && !this.canAttack(target)) target = null;
         this.goal = target ? null : gameTile;
         this.bumpedTiles = [];
@@ -825,6 +844,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      * - walking: a new path once an enemy blocks the path
      */
     private recalculateNavigationIfNeeded() {
+        if (this.immobile) {
+            // A structure drops a target that left its range instead of chasing it
+            if (this.target && !this.inAttackRange(this.target)) this.target = null;
+            return;
+        }
         if (this.retreating || this.repathCoolDown > 0) return;
         const target = this.target;
         if (target) {
@@ -866,6 +890,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     private navigateTo(gameTile: GameTile | null, target: Unit | null) {
+        if (this.immobile) return;
         const units = this.systems.allUnits();
         const obstacles = this.knownObstacles(target);
         const start = this.claimedTile;
@@ -903,7 +928,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      */
     private leaveSharedTile(delta: number) {
         this.freeTileCoolDown = Math.max(0, this.freeTileCoolDown - delta);
-        if (this.retreating || !this.parked || this.freeTileCoolDown > 0) return;
+        if (this.immobile || this.retreating || !this.parked || this.freeTileCoolDown > 0) return;
         if (canPark(this, this.claimedTile, this.systems.allUnits())) return;
         if (!this.moveToFreeTile()) this.freeTileCoolDown = Unit.REPATH_INTERVAL;
     }
@@ -914,6 +939,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      * @returns false if there is no reachable free hex nearby
      */
     private moveToFreeTile(): boolean {
+        if (this.immobile) return false;
         const target = this.target;
         if (target) {
             const path = this.pathToFreeTile(this.claimedTile, this.knownObstacles(target), this.attackPositionFor(target));

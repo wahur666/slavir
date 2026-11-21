@@ -18,6 +18,9 @@ Slavir is an Open-Source Real Time Tactics game inspired by CNC Rivals.
 
 Read the [Roadmap](roadmap.md) what's planed (eventually).
 
+See [Game systems architecture](docs/architecture.md) for how units, buildings, players and the command hub
+connect.
+
 ## Run locally
 
 Requires Node.js and npm.
@@ -47,8 +50,25 @@ resource income, countdowns, and pending missile strikes. Resume with Escape or
 the Resume button, or return to the menu to start a fresh match. Press F to
 dismiss the selected unit. Retire ends the match as a defeat.
 
+Two commander powers sit on the right of the map. Click a card (or press Q / W),
+then click a hex; right click or Escape cancels. Each has a 30 second cooldown:
+
+- **Turret** (40): a gun emplacement with 2400 health that shoots ground and air
+  units for 120 DPS. It takes 1.33 seconds to deploy and lasts 20 seconds. It goes
+  on a visible, free, walkable hex that is not a pad, at most 1½ hexes past the
+  middle of the map. It does not count towards the unit cap.
+- **Ion Cannon** (130): after a 3.3 second blast sequence, deals 6000 damage to the
+  enemies on the targeted visible hex (1000 to harvesters, 4000 to turrets) and half
+  of that to the hexes around it. Units that move away in time escape.
+
 The bot recruits harvesters, builds barracks followed by a factory and hangar,
-reinforces objective pads, and chooses affordable counters to visible enemies.
+reinforces objective pads, and chooses affordable counters to visible enemies. It
+drops turrets on enemies that come near its base or units, and fires the ion cannon
+at enemy groups that stand still.
+
+When a match ends, **Download replay** saves it as a small JSON file and **Load
+replay** plays one back. See [docs/replays.md](docs/replays.md) for how replays
+work and the determinism rules game code must follow to keep them in sync.
 
 ## Verification
 

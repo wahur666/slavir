@@ -7,6 +7,9 @@ import type Unit from "../../entities/Unit.js";
 import type {UnitStat} from "../../entities/UnitsStats.js";
 import {Buildings, buildingStat} from "../../entities/Building.js";
 import CommandHub from "../command/CommandHub.js";
+import {PowerName, ionCannonDamage, powerStats} from "../power/PowerRules.js";
+import type GameTile from "../GameTile.js";
+import {maxSquadHealth} from "../../entities/Squad.js";
 
 export default class AiPlayer extends Player {
     private decisionCoolDown = 0;
@@ -37,6 +40,9 @@ export default class AiPlayer extends Player {
         const liveUnits = this.units.filter(unit => !unit.markedForDeletion);
         const fighters = liveUnits.filter(unit => unit.stat.canAttack);
         const harvesters = liveUnits.filter(unit => unit instanceof Harvester);
+        // Powers first: the ion cannon is only affordable when money piled up (e.g. at the unit cap)
+        this.useIonCannon();
+        this.useTurret();
         if (harvesters.length === 0 && this.resources.length > 0) this.produce(UnitName.Harvester);
         if (!this.hasBuildings.BARRACK) this.build(Buildings.BARRACK);
 
@@ -58,7 +64,7 @@ export default class AiPlayer extends Player {
 
         const pads = [this.systems.pad1GameTiles, this.systems.pad2GameTiles, this.systems.pad3GameTiles];
         for (const unit of this.units) {
-            if (unit.markedForDeletion || !unit.stat.canAttack || unit.target || unit.moving) continue;
+            if (unit.markedForDeletion || unit.immobile || !unit.stat.canAttack || unit.target || unit.moving) continue;
             // Enemies the unit found no room to attack from are skipped, it holds a pad instead
             const threat = this.visibleEnemyUnits
                 .filter(enemy => unit.canAttack(enemy) && !unit.hasGivenUpOn(enemy))
@@ -91,6 +97,62 @@ export default class AiPlayer extends Player {
         }
     }
 
+    /** Worth of the enemy units an ion cannon on the tile would destroy, in cost (damaged units count partly) */
+    private ionCannonValue(tile: GameTile): number {
+        let value = 0;
+        for (const enemy of this.visibleEnemyUnits) {
+            if (enemy.markedForDeletion) continue;
+            const damage = ionCannonDamage(enemy.stat.type, enemy instanceof Harvester, enemy.gameTile().distance(tile));
+            value += (Math.min(damage, enemy.currentHealth) / maxSquadHealth(enemy.stat)) * enemy.stat.cost;
+        }
+        return value;
+    }
+
+    /** Fires at the enemies that hold still where it destroys the most, if that is worth most of its cost */
+    private useIonCannon() {
+        if (!this.powers.isReady(PowerName.IonCannon)) return;
+        let best: {tile: GameTile; value: number} | null = null;
+        // A moving unit would likely walk out of the blast in time
+        for (const enemy of this.visibleEnemyUnits) {
+            if (enemy.markedForDeletion || !enemy.parked) continue;
+            const tile = enemy.gameTile();
+            const value = this.ionCannonValue(tile);
+            if (!best || value > best.value) best = {tile, value};
+        }
+        if (best && best.value >= powerStats[PowerName.IonCannon].cost * 0.75) {
+            this.systems.commands.issue({kind: "power", playerIndex: this.index, power: PowerName.IonCannon, tile: CommandHub.tileRef(best.tile)});
+        }
+    }
+
+    /** Drops a turret next to an enemy fighter that came close to the base or to the AI's units */
+    private useTurret() {
+        if (!this.powers.isReady(PowerName.Turret) || !this.base) return;
+        const base = this.base;
+        const allies = this.units.filter(unit => !unit.markedForDeletion);
+        const threat = this.visibleEnemyUnits
+            .filter(enemy => !enemy.markedForDeletion && enemy.stat.canAttack && !enemy.immobile)
+            .filter(enemy => {
+                const tile = enemy.gameTile();
+                return tile.distance(base) <= 5 || allies.some(ally => ally.gameTile().distance(tile) <= 3);
+            })
+            .sort((a, b) => a.gameTile().distance(base) - b.gameTile().distance(base))[0];
+        if (!threat) return;
+        const threatTile = threat.gameTile();
+        // In range of the threat with a clear line of fire, as close to home as possible
+        const tile = [...this.visibleTiles]
+            .filter(
+                tile =>
+                    tile.distance(threatTile) >= 1 &&
+                    tile.distance(threatTile) <= 2 &&
+                    this.systems.navigation.checkBlockade(tile, threatTile) &&
+                    this.powers.canTarget(PowerName.Turret, tile)
+            )
+            .sort((a, b) => a.distance(base) - b.distance(base) || a.distance(threatTile) - b.distance(threatTile) || a.x - b.x || a.y - b.y)[0];
+        if (tile) {
+            this.systems.commands.issue({kind: "power", playerIndex: this.index, power: PowerName.Turret, tile: CommandHub.tileRef(tile)});
+        }
+    }
+
     private produce(unit: UnitName): boolean {
         return this.systems.commands.issue({kind: "createUnit", playerIndex: this.index, unit});
     }
@@ -111,6 +173,8 @@ export default class AiPlayer extends Player {
             case "aircraft":
                 return stat.canAttackAir && stat.goodAgainstAir;
             case "vehicle":
+                return stat.goodAgainstFactory;
+            case "structure":
                 return stat.goodAgainstFactory;
             default:
                 return stat.goodAgainstInfantry;

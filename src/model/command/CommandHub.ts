@@ -82,7 +82,8 @@ export default class CommandHub {
     /**
      * Validates and executes a command right away.
      * @returns false if the command was rejected (game not running, unknown player, no own living unit,
-     * invalid target, building or unit not affordable / not available / on cooldown / over the unit cap,
+     * invalid target, building, unit or power not affordable / not available / on cooldown / over the unit cap,
+     * power aimed at a tile it may not be used on,
      * external input during playback)
      */
     issue(command: Command): boolean {
@@ -98,6 +99,9 @@ export default class CommandHub {
                 break;
             case "createUnit":
                 accepted = player.createUnit(command.unit) !== null;
+                break;
+            case "power":
+                accepted = player.powers.use(command.power, this.resolveTile(command.tile));
                 break;
             case "surrender":
                 this.systems.gameScene.endGame(player !== this.systems.player1);
@@ -115,10 +119,11 @@ export default class CommandHub {
         return player.createBuilding(building) !== null;
     }
 
-    private commandUnits(player: Player, command: Exclude<Command, {kind: "build" | "createUnit" | "surrender"}>): boolean {
+    private commandUnits(player: Player, command: Exclude<Command, {kind: "build" | "createUnit" | "power" | "surrender"}>): boolean {
+        // Structures (turrets) cannot be moved; they still attack (their auto attack is an order too)
         const units = command.unitIds
             .map(id => player.units.find(unit => unit.id === id))
-            .filter((unit): unit is Unit => !!unit && !unit.markedForDeletion);
+            .filter((unit): unit is Unit => !!unit && !unit.markedForDeletion && !(unit.immobile && command.kind === "move"));
         if (units.length === 0) return false;
 
         switch (command.kind) {

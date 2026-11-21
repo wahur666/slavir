@@ -436,6 +436,116 @@ describe("gameplay in a headless browser", () => {
         expect(ai).toEqual({builtForce: true, expanded: true, holdsObjectives: true, countersAir: true, producedCounter: true, capped: true});
     });
 
+    it("deploys turrets and fires the ion cannon through commands, with costs, cooldowns and placement rules", async () => {
+        const powers = await evaluate(`(() => {
+            game.game.loop.sleep();
+            const p = game.player1, ai = game.player2, s = game.systems;
+            const ref = t => ({col: t.x, row: t.y});
+            const issue = (power, tile) => s.commands.issue({kind: 'power', playerIndex: 1, power, tile: ref(tile)});
+            // The fog of war pass does not run while the loop sleeps: let player 1 see the whole map
+            p.visibleTiles = new Set(s.map.tiles.filter(t => t.tile.index !== -1));
+            p.resource = 1000;
+            for (const k of Object.keys(p.powers.coolDowns)) p.powers.coolDowns[k] = 0;
+            const occupied = t => s.allUnits().some(u => !u.markedForDeletion && (u.claimedTile === t || u.destination === t || u.gameTile() === t));
+            const cx = s.map.getCenter(s.nukeGameTile).x, hexWidth = s.map.layout.size.x * Math.sqrt(3);
+            const forward = t => s.map.getCenter(t).x - cx;
+
+            const onPad = !p.powers.canTarget('turret', s.pad1GameTiles[0]);
+            const onObstacle = !p.powers.canTarget('turret', s.map.tiles.find(t => t.tile.index !== -1 && t.pathfinding !== 2));
+            const tooFar = !p.powers.canTarget('turret', s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && forward(t) > 2 * hexWidth));
+            const onUnit = !p.powers.canTarget('turret', ai.units.find(u => !u.markedForDeletion).claimedTile);
+            const hidden = new Set(p.visibleTiles);
+            const tile = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && p.powers.canTarget('turret', t) && Math.abs(forward(t)) <= hexWidth);
+            p.visibleTiles = new Set([...hidden].filter(t => t !== tile));
+            const inFog = !p.powers.canTarget('turret', tile);
+            p.visibleTiles = hidden;
+
+            const army = p.army.length;
+            const deployed = issue('turret', tile);
+            const turret = p.units[p.units.length - 1];
+            const paid = p.resource === 960 && p.powers.coolDowns.turret === 30000;
+            const notInArmy = turret.immobile && p.army.length === army;
+            const onCoolDown = !issue('turret', s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && p.powers.canTarget('turret', t)));
+            const takesNoOrders = !s.commands.issue({kind: 'move', playerIndex: 1, unitIds: [turret.id], tile: ref(p.base)});
+            const enemy = ai.units.find(u => !u.markedForDeletion && u.stat.type !== 'aircraft');
+            const silentWhileDeploying = !turret.canAttack(enemy);
+            turret.update(1330);
+            const firesWhenDeployed = turret.canAttack(enemy);
+            // Auto attack, like any unit standing still
+            const near = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && t.distance(tile) === 1 && s.navigation.checkBlockade(tile, t));
+            const enemyPos = s.hexToPos(near.hex);
+            enemy.setPosition(enemyPos.x, enemyPos.y); enemy.claimedTile = near; enemy.stopUnit();
+            p.visibleEnemyUnits = [enemy];
+            const enemyHealth = enemy.currentHealth;
+            turret.update(16);
+            turret.update(16);
+            const autoAttacks = turret.target === enemy && enemy.currentHealth < enemyHealth;
+            p.visibleEnemyUnits = [];
+            for (let t = 0; t < 20000; t += 500) turret.update(500);
+            const expired = turret.markedForDeletion;
+
+            // Ion cannon: full damage on the hex, half on the hexes around it, nothing further away
+            const live = ai.units.filter(u => !u.markedForDeletion && !u.immobile && u.stat.type !== 'structure');
+            const target = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && t.distance(s.nukeGameTile) <= 3);
+            const place = (u, t) => { const pos = s.hexToPos(t.hex); u.setPosition(pos.x, pos.y); u.claimedTile = t; u.stopUnit(); u.currentHealth = 1e6; };
+            const ring1 = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && t.distance(target) === 1);
+            const ring2 = s.map.tiles.find(t => t.pathfinding === 2 && !occupied(t) && t.distance(target) === 3);
+            const victims = [[live[0], target], [live[1], ring1], [live[2], ring2]];
+            victims.forEach(([u, t]) => place(u, t));
+            p.resource = 200;
+            const fired = issue('ionCannon', target);
+            const ionPaid = p.resource === 70;
+            const expected = victims.map(([u], i) => u.stat.texture === 'male_engineer' ? [1000, 500, 0][i] : [6000, 3000, 0][i]);
+            p.powers.update(3299);
+            const delayed = victims.every(([u]) => u.currentHealth === 1e6);
+            p.powers.update(1);
+            const damage = victims.map(([u]) => 1e6 - u.currentHealth);
+            p.powers.update(1000);
+
+            // The bot fires at a cluster of enemies holding still
+            ai.resource = 1000;
+            ai.powers.coolDowns.ionCannon = 0;
+            const mine = p.units.filter(u => !u.markedForDeletion && !u.immobile).slice(0, 2);
+            const stats = mine.map(u => u.stat);
+            // Worth the shot whatever was recruited before
+            mine.forEach(u => { u.stat = {...u.stat, cost: 150}; u.stopUnit(); });
+            ai.visibleEnemyUnits = mine;
+            const aiFired = [];
+            const off = s.commands.onCommand(c => { if (c.kind === 'power') aiFired.push(c.power); });
+            ai.visibleTiles = new Set(s.map.tiles);
+            ai.useIonCannon();
+            off();
+            mine.forEach((u, i) => { u.stat = stats[i]; });
+            ai.powers.strikes.splice(0).forEach(st => st.destroy());
+            victims.forEach(([u]) => { u.currentHealth = Math.min(u.currentHealth, u.stat.health * u.stat.squadSize); });
+            game.game.loop.wake();
+            return {onPad, onObstacle, tooFar, onUnit, inFog, deployed, paid, notInArmy, onCoolDown, takesNoOrders,
+                silentWhileDeploying, firesWhenDeployed, autoAttacks, expired, fired, ionPaid, delayed, damageAsExpected: JSON.stringify(damage) === JSON.stringify(expected),
+                aiFiresIonCannon: aiFired.includes('ionCannon')};
+        })()`);
+        expect(powers).toEqual({
+            onPad: true,
+            onObstacle: true,
+            tooFar: true,
+            onUnit: true,
+            inFog: true,
+            deployed: true,
+            paid: true,
+            notInArmy: true,
+            onCoolDown: true,
+            takesNoOrders: true,
+            silentWhileDeploying: true,
+            firesWhenDeployed: true,
+            autoAttacks: true,
+            expired: true,
+            fired: true,
+            ionPaid: true,
+            delayed: true,
+            damageAsExpected: true,
+            aiFiresIonCannon: true,
+        });
+    });
+
     it("returns to the menu and restarts a fresh match without reloading", async () => {
         await pressEscape();
         await until("game.scene.isPaused()");

@@ -14,6 +14,8 @@ export class SandboxHumanPlayer extends HumanPlayer {
     }
 
     protected createCards() {}
+    /** Commander powers need the economy, which the sandbox does not run */
+    protected createPowerCards() {}
     setupResourceUI() {}
     setupUnitCapUI() {}
     updateTicks() {}

@@ -11,7 +11,7 @@ import type Systems from "../Systems.js";
  * checkpoints detect when that happens.
  */
 export const REPLAY_FORMAT = "slavir-replay";
-export const REPLAY_VERSION = 1;
+export const REPLAY_VERSION = 2;
 
 /** Length of one simulation tick; matches the arcade physics step (60 fps) */
 export const TICK_MS = 1000 / 60;
@@ -102,6 +102,7 @@ export function stateHash(systems: Systems): string {
     const parts: (string | number)[] = [];
     for (const player of systems.players) {
         parts.push(player.index, player.resource, player.currentBaseHealth, player.createCoolDown);
+        parts.push(...Object.values(player.powers.coolDowns), ...player.powers.strikes.map(strike => strike.elapsed));
         for (const unit of player.units) {
             parts.push(unit.id, Math.round(unit.x * 100), Math.round(unit.y * 100), unit.currentHealth, unit.markedForDeletion ? 1 : 0);
         }

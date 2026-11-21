@@ -12,6 +12,8 @@ export enum UnitName {
     T1_Wolverine = "wolverine",
     T2_Titan = "titan",
     Harvester = "male_engineer",
+    /** Commander power, not recruited from a card */
+    Turret = "turret",
 }
 
 export interface UnitStat {
@@ -42,7 +44,8 @@ export interface UnitStat {
     speed: number;
     squadSize: number;
     texture: UnitName;
-    type: "infantry" | "vehicle" | "aircraft";
+    /** "structure": deployed by a commander power, never moves, takes `damageAgainstBase` */
+    type: "infantry" | "vehicle" | "aircraft" | "structure";
     visionRadius: 1 | 2 | 3;
     /** Burst fire; without it the unit fires one shot every `rateOfFire` seconds */
     volley?: VolleyStat;

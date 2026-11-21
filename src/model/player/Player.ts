@@ -13,10 +13,16 @@ import type {Hex} from "../hexgrid/Hex.js";
 import Harvester from "../../entities/units/Harvester.js";
 import {findObjectByProperty} from "../../helpers/tilemap.helper.js";
 import HealthBar from "../../entities/HealthBar.js";
+import CommanderPowers from "../power/CommanderPowers.js";
+import Turret from "../../entities/units/Turret.js";
+import {TURRET_TEXTURES} from "../../entities/powers/PowerArt.js";
 
 export default abstract class Player {
+    /** Every unit of the player, deployed structures (turrets) included, see {@link army} */
     units: Unit[] = [];
     visibleEnemyUnits: Unit[] = [];
+    /** Tiles the player currently sees, updated by the fog of war pass every tick */
+    visibleTiles: Set<GameTile> = new Set();
     buildings: Building[] = [];
     selectedUnit: Unit | null = null;
     resources: Resource[] = [];
@@ -44,12 +50,19 @@ export default abstract class Player {
     createCoolDownDuration = 0;
     protected gameScene: GameScene;
     private baseHealthBar?: HealthBar;
+    readonly powers: CommanderPowers;
 
     protected constructor(
         public index: number,
         protected systems: Systems
     ) {
         this.gameScene = systems.gameScene;
+        this.powers = new CommanderPowers(this, systems);
+    }
+
+    /** Recruited units, without structures; the unit cap and the recruitment cooldown count these */
+    get army(): Unit[] {
+        return this.units.filter(unit => unit.stat.type !== "structure");
     }
 
     update(delta: number) {
@@ -59,6 +72,7 @@ export default abstract class Player {
             this.currentHarvestTime -= this.harvestTime;
             console.log(this.resource);
         }
+        this.powers.update(delta);
         if (this.createCoolDown > 0) {
             this.createCoolDown = Math.max(0, this.createCoolDown - delta);
             // console.log("Create cooldown", this.createCoolDown | 0);
@@ -70,7 +84,7 @@ export default abstract class Player {
     }
 
     private resetCreateCoolDown() {
-        this.createCoolDownDuration = this.baseCreateCoolDown * this.units.length;
+        this.createCoolDownDuration = this.baseCreateCoolDown * this.army.length;
         this.createCoolDown = this.createCoolDownDuration;
     }
 
@@ -97,7 +111,7 @@ export default abstract class Player {
 
         if (!this.gameScene.canIssueCommands) return false;
         if (this.createCoolDown !== 0) return false;
-        if (this.units.length >= this.maxUnitCount) return false;
+        if (this.army.length >= this.maxUnitCount) return false;
         if (this.resource < unitStat.cost) return false;
 
         if (!this.buildings.some(b => b.stat.type === unitStat.building)) return false;
@@ -149,7 +163,9 @@ export default abstract class Player {
 
     protected freeHandler(unit: Unit): void {
         if (unit.markedForDeletion || !this.units.includes(unit)) return;
-        unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
+        if (unit.stat.type !== "structure") {
+            unit.player.createCoolDown = Math.max(0, unit.player.createCoolDown - unit.player.baseCreateCoolDown);
+        }
         if (unit instanceof Harvester) {
             const playerToReward = this.systems.players.filter(e => e !== this)[0];
             playerToReward.resource += 80;
@@ -165,6 +181,27 @@ export default abstract class Player {
             if (unitToFreeInd !== -1) this.units.splice(unitToFreeInd, 1);
             this.onUnitRemoved(unit);
         });
+    }
+
+    /** A structure ran out of lifespan; it is removed like a destroyed one */
+    expireStructure(unit: Unit): void {
+        this.freeHandler(unit);
+    }
+
+    /** Puts a turret on the tile; validation and cost are handled by {@link CommanderPowers} */
+    deployTurret(tile: GameTile): Turret {
+        const pos = this.systems.hexToPos(tile.hex);
+        const texture = TURRET_TEXTURES[this === this.systems.player1 ? 0 : 1];
+        const turret = new Turret(this.systems, pos.x, pos.y, texture, Turret.stat, this, this.freeHandler.bind(this));
+        turret.play(Unit.AnimationKeys.IDLE_DOWN);
+        if (this !== this.systems.player1) turret.setActivelyVisible(false);
+        this.units.push(turret);
+        return turret;
+    }
+
+    /** Leaves the power targeting mode; returns true if it was active (only a human player has one) */
+    cancelTargeting(): boolean {
+        return false;
     }
 
     /** Called once a dead unit finished dying and left {@link units} */

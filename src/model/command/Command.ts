@@ -1,5 +1,6 @@
 import type {Buildings} from "../../entities/Building.js";
 import type {UnitName} from "../../entities/UnitsStats.js";
+import type {PowerName} from "../power/PowerRules.js";
 
 /**
  * Commands are plain, serializable data. They reference units by id and tiles by
@@ -57,11 +58,26 @@ export interface CreateUnitCommand extends BaseCommand {
     unit: UnitName;
 }
 
+/** Use a commander power on a tile (deploy a turret, call the ion cannon) */
+export interface UsePowerCommand extends BaseCommand {
+    kind: "power";
+    power: PowerName;
+    tile: TileRef;
+}
+
 /** Give up the match (the "Retire" button) */
 export interface SurrenderCommand extends BaseCommand {
     kind: "surrender";
 }
 
-export type Command = MoveCommand | AttackCommand | StopCommand | DisbandCommand | BuildCommand | CreateUnitCommand | SurrenderCommand;
+export type Command =
+    | MoveCommand
+    | AttackCommand
+    | StopCommand
+    | DisbandCommand
+    | BuildCommand
+    | CreateUnitCommand
+    | UsePowerCommand
+    | SurrenderCommand;
 
 export type CommandKind = Command["kind"];

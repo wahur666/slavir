@@ -10,6 +10,7 @@ import Graphics = Phaser.GameObjects.Graphics;
 import Systems from "../model/Systems.js";
 import {SHARED_CONFIG} from "../model/config.js";
 import {type Replay, ReplayRecorder, ReplayVerifier, TICK_MS} from "../model/replay/Replay.js";
+import {ensurePowerTextures} from "../entities/powers/PowerArt.js";
 
 const grey = 0x808080;
 const white = 0xffffff;
@@ -82,6 +83,7 @@ export default class GameScene extends Phaser.Scene {
         this.physics.disableUpdate();
         this.physics.resume();
         this.bg = this.add.sprite(this.config.width / 2, this.config.height / 2, Images.BROWN_BG).setScale(1.25);
+        ensurePowerTextures(this);
 
         this.systems = this.createSystems();
         this.player1 = this.systems.player1;
@@ -181,10 +183,14 @@ export default class GameScene extends Phaser.Scene {
                 this.scene.pause();
             }
         };
+        // Escape first leaves the power targeting mode, if it is on
+        const onEscape = () => {
+            if (!this.player1.cancelTargeting()) pause();
+        };
         this.add.image(1200, 60, Images.BUTTON).setScale(0.7, 0.9).setInteractive().on("pointerup", pause);
         this.add.text(1200, 60, "Pause", {fontFamily: defaultFont, fontSize: "28px"}).setOrigin(0.5);
-        this.input.keyboard.on("keyup-ESC", pause);
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keyup-ESC", pause));
+        this.input.keyboard.on("keyup-ESC", onEscape);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keyup-ESC", onEscape));
     }
 
     setCurrentTile(tile: GameTile): void {
@@ -212,6 +218,7 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
+        player.visibleTiles = visibleTiles;
         player.visibleEnemyUnits = [];
         for (const unit of player.enemyPlayer.units) {
             if (visibleTiles.has(unit.gameTile())) {
