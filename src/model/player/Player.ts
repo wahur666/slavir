@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import Unit from "../../entities/Unit";
 import Building, {Buildings, buildingStat} from "../../entities/Building";
 import type GameTile from "../GameTile";

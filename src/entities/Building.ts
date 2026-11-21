@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import {Images} from "../scenes/PreloadScene";
 import Vector2 = Phaser.Math.Vector2;
 import type GameTile from "../model/GameTile";

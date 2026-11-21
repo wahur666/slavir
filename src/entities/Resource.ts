@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import type GameTile from "../model/GameTile";
 import type GameScene from "../scenes/GameScene";
 

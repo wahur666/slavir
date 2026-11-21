@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import Vector2 = Phaser.Math.Vector2;
 
 /** Return (0..num-1) values */

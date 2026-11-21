@@ -26,7 +26,7 @@ async function main() {
         if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
         fs.readFile(file, (error, data) => {
             if (error) { response.writeHead(404).end(); return; }
-            const types = {".html": "text/html", ".js": "text/javascript", ".png": "image/png", ".ttf": "font/ttf"};
+            const types = {".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".ttf": "font/ttf"};
             response.setHeader("Content-Type", types[path.extname(file)] || "application/octet-stream");
             response.end(data);
         });

@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import type GameScene from "../scenes/GameScene";
 
 export default class HealthBar {

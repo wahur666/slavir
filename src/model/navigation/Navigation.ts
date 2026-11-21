@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import type GameTile from "../GameTile";
 import type HexMap from "../HexMap";
 import {Pathfinding} from "../HexMap";

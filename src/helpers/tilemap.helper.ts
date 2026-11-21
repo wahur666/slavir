@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 export const enum TILESETS {
     Hex_v01_grid = "Hex_v01_grid"
 }

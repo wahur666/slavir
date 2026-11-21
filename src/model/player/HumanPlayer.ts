@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import Player from "./Player";
 import Pointer = Phaser.Input.Pointer;
 import cursorGauntlet_grey from "../../assets/cursorGauntlet_grey.png";
