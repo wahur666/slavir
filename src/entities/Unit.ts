@@ -264,14 +264,35 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.drawSelectionRing();
             }
         }
-        this.volley.update(delta, this.isEngaged());
+        this.updateVolleys(delta, this.isEngaged());
         this.healthBar.update(this.x, this.y - 100, this.currentHealth / this.stat.health / this.stat.squadSize);
         this.ammoBar?.update(this.x, this.y - 94);
     }
 
     /** Standing on a hex center with the target in range, the state in which the weapon winds up and fires */
-    private isEngaged(): boolean {
+    protected isEngaged(): boolean {
         return !!this.target && this.canAttack(this.target) && this.isStationaryAtCenter() && this.inAttackRange(this.target);
+    }
+
+    /** The weapon used against the given target; override for units with more than one weapon */
+    protected volleyFor(_target: Unit): Volley {
+        return this.volley;
+    }
+
+    /** Advance every weapon's timers; override together with {@link volleyFor} */
+    protected updateVolleys(delta: number, engaged: boolean) {
+        this.volley.update(delta, engaged);
+    }
+
+    /** Visual for a single shot; by default only burst-fire units show a missile */
+    protected playShotEffect(target: Unit, _volley: Volley) {
+        if (this.stat.volley) {
+            fireShotEffect(this.scene, this.x, this.y - 30, target.x, target.y - 20, this.visible || target.visible);
+        }
+    }
+
+    private canFire(): boolean {
+        return this.isEngaged() && this.volleyFor(this.target!).ready;
     }
 
     canAttack(target: Unit): boolean {
@@ -291,12 +312,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     attackTarget() {
-        if (this.volley.ready && this.isEngaged()) {
+        if (this.canFire()) {
             const target = this.target!;
-            this.volley.fire();
-            if (this.stat.volley) {
-                fireShotEffect(this.scene, this.x, this.y - 30, target.x, target.y - 20, this.visible || target.visible);
-            }
+            const volley = this.volleyFor(target);
+            volley.fire();
+            this.playShotEffect(target, volley);
             target.takeDamage(this);
             this.attackAnimationPlaying = true;
         }
@@ -305,7 +325,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
-            if (this.volley.ready && this.isEngaged()) {
+            if (this.canFire()) {
                 if (this.target.pos.x <= this.pos.x) {
                     this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
                     this.lastDirection = "left";

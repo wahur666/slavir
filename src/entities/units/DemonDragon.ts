@@ -1,6 +1,8 @@
 import Unit from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
+import Volley, {type VolleyStat} from "../Volley.js";
+import {AA_MISSILE, fireShotEffect, TRACER} from "../ShotEffect.js";
 
 /**
  * Texture "demon_dragon", mapped to the reference unit: Talon
@@ -17,18 +19,20 @@ export default class DemonDragon extends Unit {
         canAttackAir: true,
         className: DemonDragon,
         cost: 30,
-        damageAgainstAir: 172.5,
-        damageAgainstBase: 172.5,
-        damageAgainstInfantry: 114,
-        damageAgainstHarvester: 40,
-        damageAgainstVehicle: 40,
+        // Per shot: damageAgainstAir is the anti-air missile, the rest is the ground gun
+        damageAgainstAir: 345,
+        damageAgainstBase: 57,
+        damageAgainstInfantry: 57,
+        damageAgainstHarvester: 20,
+        damageAgainstVehicle: 20,
         goodAgainstInfantry: true,
         goodAgainstFactory: false,
         goodAgainstAir: true,
         flying: true,
         health: 909,
         limit: -1,
-        rateOfFire: 1,
+        // Ground gun; the anti-air missile uses airVolley
+        rateOfFire: 0.5,
         reference: "Talon",
         speed: 140,
         squadSize: 1,
@@ -36,4 +40,24 @@ export default class DemonDragon extends Unit {
         type: "aircraft",
         visionRadius: 2,
     };
+
+    static readonly airVolley: VolleyStat = {shots: 1, initialChargeUp: 0.1, shotInterval: 0, reload: 2};
+
+    /** Anti-air missile; the inherited `volley` is the ground gun */
+    airVolley = new Volley(DemonDragon.airVolley);
+
+    protected volleyFor(target: Unit): Volley {
+        return target.stat.type === "aircraft" ? this.airVolley : this.volley;
+    }
+
+    protected updateVolleys(delta: number, engaged: boolean) {
+        const againstAir = this.target?.stat.type === "aircraft";
+        this.volley.update(delta, engaged && !againstAir);
+        this.airVolley.update(delta, engaged && againstAir);
+    }
+
+    protected playShotEffect(target: Unit, volley: Volley) {
+        const style = volley === this.airVolley ? AA_MISSILE : TRACER;
+        fireShotEffect(this.scene, this.x, this.y - 30, target.x, target.y - 20, this.visible || target.visible, style);
+    }
 }
