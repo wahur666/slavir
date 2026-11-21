@@ -206,7 +206,7 @@ export default abstract class Player {
         }
 
         let baseTile: Phaser.Types.Tilemaps.TiledObject = null;
-        if (building === Buildings.CASTLE || building == Buildings.SPAWN) {
+        if (building === Buildings.CASTLE || building === Buildings.SPAWN) {
             const id = building === Buildings.CASTLE ? 0 : 5;
             baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", id);
         } else {
