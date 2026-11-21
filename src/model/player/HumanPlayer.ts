@@ -13,7 +13,6 @@ import {buildingStat} from "../../entities/Building";
 import BuildingCard from "../../entities/BuildingCard";
 import CommandHub from "../command/CommandHub";
 
-
 export default class HumanPlayer extends Player {
     resourceSpeedTicks: Phaser.GameObjects.Image[];
     private path: GameTile[];
@@ -42,8 +41,12 @@ export default class HumanPlayer extends Player {
             if (!this.gameScene.canIssueCommands) return;
             if (ev.leftButtonDown()) {
                 // this.deselectUnit();
-                if (ev.x < this.systems.scaledBaseOffset.x || ev.x > this.systems.width - this.systems.scaledBaseOffset.x
-                    || ev.y < this.systems.scaledBaseOffset.y || ev.y > this.systems.height - this.systems.scaledBaseOffset.y) {
+                if (
+                    ev.x < this.systems.scaledBaseOffset.x ||
+                    ev.x > this.systems.width - this.systems.scaledBaseOffset.x ||
+                    ev.y < this.systems.scaledBaseOffset.y ||
+                    ev.y > this.systems.height - this.systems.scaledBaseOffset.y
+                ) {
                     return;
                 }
                 // target tile, to check does have unit on it
@@ -67,18 +70,18 @@ export default class HumanPlayer extends Player {
                     }
                 }
             }
-
         });
     }
 
     private createCards() {
         console.log(unitStatMap);
-        this.buildCards = [...buildingStat.values()].slice(1, 4).map((e, i) =>
-            new BuildingCard(this.gameScene, this.systems.width / 2 - 255 + i * 180, this.systems.height / 2 + 245, this, e));
-        this.cards = [...unitStatMap.values()].map((e, index, arr) =>
-            new Card(this.gameScene, (this.systems.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, this));
+        this.buildCards = [...buildingStat.values()]
+            .slice(1, 4)
+            .map((e, i) => new BuildingCard(this.gameScene, this.systems.width / 2 - 255 + i * 180, this.systems.height / 2 + 245, this, e));
+        this.cards = [...unitStatMap.values()].map(
+            (e, index, arr) => new Card(this.gameScene, (this.systems.width - arr.length * 90 + 45) / 2 + index * 90, 600, e, this)
+        );
     }
-
 
     setupResourceUI() {
         const baseX = 50;
@@ -88,14 +91,14 @@ export default class HumanPlayer extends Player {
         const crystal = this.gameScene.add.image(baseX + 20, baseY, Images.CRYSTAL);
         crystal.setDepth(12).setScale(0.5);
         this.resourceText = this.gameScene.add.text(baseX + 35, baseY - 17, `${this.resource}`, {
-           fontFamily: defaultFont,
-           fontSize: "20px"
+            fontFamily: defaultFont,
+            fontSize: "20px",
         });
         this.resourceText.setDepth(12);
-        const resourceBarBg = this.gameScene.add.rectangle(baseX + 70, baseY - 7, 65, 15, 0xFFFFFF);
+        const resourceBarBg = this.gameScene.add.rectangle(baseX + 70, baseY - 7, 65, 15, 0xffffff);
         resourceBarBg.setDepth(12).setOrigin(0, 0.5);
 
-        this.resourceBarFg = this.gameScene.add.rectangle(baseX + 70, baseY - 7, 65, 15, 0x00FF00);
+        this.resourceBarFg = this.gameScene.add.rectangle(baseX + 70, baseY - 7, 65, 15, 0x00ff00);
         this.resourceBarFg.setDepth(12).setOrigin(0, 0.5);
 
         this.resourceSpeedTicks = [];
@@ -112,14 +115,13 @@ export default class HumanPlayer extends Player {
     update(delta: number) {
         super.update(delta);
         this.resourceText.setText(`${this.resource}`);
-        this.resourceBarFg.setDisplaySize(65 * this.currentHarvestTime / this.harvestTime, 15);
+        this.resourceBarFg.setDisplaySize((65 * this.currentHarvestTime) / this.harvestTime, 15);
         this.cards.forEach(c => c.update());
         this.buildCards.forEach(c => c.update());
     }
 
     updateTicks() {
-        this.resourceSpeedTicks.forEach((item, index) =>
-            item.setTexture(index <= this.numberOfHarvesters ? Images.TICK_BROWN : Images.TICK_SILVER));
+        this.resourceSpeedTicks.forEach((item, index) => item.setTexture(index <= this.numberOfHarvesters ? Images.TICK_BROWN : Images.TICK_SILVER));
     }
 
     increaseHarvesterCount() {
@@ -139,7 +141,7 @@ export default class HumanPlayer extends Player {
         panel.setDepth(11).setScale(1.5, 0.6).setOrigin(0, 0.5);
         const image = this.gameScene.add.image(baseX + 30, baseY, Images.ICON_UNIT);
         image.setDepth(12);
-        const unitBg = this.gameScene.add.rectangle(baseX + 60, baseY, 72, 12, 0xFFFFFF);
+        const unitBg = this.gameScene.add.rectangle(baseX + 60, baseY, 72, 12, 0xffffff);
         unitBg.setDepth(12).setOrigin(0, 0.5);
         this.unitTicks = [];
         for (let i = 0; i < 6; i++) {
@@ -167,14 +169,12 @@ export default class HumanPlayer extends Player {
         this.unitTicks.forEach((e, i) => {
             e.setVisible(i < unitsLength);
             if (unitsLength <= 2) {
-                e.tint = 0xFFFFFF;
+                e.tint = 0xffffff;
             } else if (unitsLength > 2 && unitsLength <= 4) {
-                e.tint = 0xFFA500;
+                e.tint = 0xffa500;
             } else {
-                e.tint = 0xFF0000;
+                e.tint = 0xff0000;
             }
         });
     }
-
-
 }

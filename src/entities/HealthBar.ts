@@ -2,10 +2,8 @@ import Phaser from "phaser";
 import type GameScene from "../scenes/GameScene";
 
 export default class HealthBar {
-
     bg: Phaser.GameObjects.Rectangle;
     fg: Phaser.GameObjects.Rectangle;
-
 
     constructor(
         private gameScene: GameScene,
@@ -13,11 +11,13 @@ export default class HealthBar {
         private y: number,
         private width: number,
         private height: number,
-        color = 0x00FF00) {
-
+        color = 0x00ff00
+    ) {
         this.bg = this.gameScene.add.rectangle(x, y, width, height, 0x000000).setDepth(16);
-        this.fg = this.gameScene.add.rectangle(x  - width / 2 | 0, y, width - 2, height - 2, color).setOrigin(0, 0.5).setDepth(16);
-
+        this.fg = this.gameScene.add
+            .rectangle((x - width / 2) | 0, y, width - 2, height - 2, color)
+            .setOrigin(0, 0.5)
+            .setDepth(16);
     }
 
     setActivelyVisible(visible: boolean) {
@@ -31,7 +31,7 @@ export default class HealthBar {
 
     update(x: number, y: number, percent: number) {
         this.bg.setPosition(x, y);
-        this.fg.setPosition(x - this.width / 2 + 1 | 0 , y);
+        this.fg.setPosition((x - this.width / 2 + 1) | 0, y);
         this.fg.setSize(Math.max(0, this.width * percent - 2), this.height - 2);
     }
 
@@ -39,5 +39,4 @@ export default class HealthBar {
         this.fg.destroy();
         this.bg.destroy();
     }
-
 }

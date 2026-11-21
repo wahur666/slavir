@@ -7,9 +7,7 @@ import type {UnitStat} from "../../entities/UnitsStats";
 import {Buildings, buildingStat} from "../../entities/Building";
 import CommandHub from "../command/CommandHub";
 
-
 export default class AiPlayer extends Player {
-
     private decisionCoolDown = 0;
 
     constructor(index: number, systems: Systems) {
@@ -42,10 +40,12 @@ export default class AiPlayer extends Player {
         if (!this.hasBuildings.BARRACK) this.build(Buildings.BARRACK);
 
         // Expand after establishing a force, leaving money for another rifle squad.
-        const nextBuilding = !this.hasBuildings.FACTORY ? Buildings.FACTORY
-            : !this.hasBuildings.HANGAR ? Buildings.HANGAR : null;
-        if (nextBuilding && fighters.length >= (nextBuilding === Buildings.FACTORY ? 2 : 3)
-            && this.resource >= buildingStat.get(nextBuilding)!.cost + unitStatMap.get(UnitName.B1_Fantasy8)!.cost) {
+        const nextBuilding = !this.hasBuildings.FACTORY ? Buildings.FACTORY : !this.hasBuildings.HANGAR ? Buildings.HANGAR : null;
+        if (
+            nextBuilding &&
+            fighters.length >= (nextBuilding === Buildings.FACTORY ? 2 : 3) &&
+            this.resource >= buildingStat.get(nextBuilding)!.cost + unitStatMap.get(UnitName.B1_Fantasy8)!.cost
+        ) {
             this.build(nextBuilding);
         }
         if (harvesters.length === 1 && fighters.length >= 2 && this.resources.some(resource => !resource.occupied)) {
@@ -58,7 +58,8 @@ export default class AiPlayer extends Player {
         const pads = [this.systems.pad1GameTiles, this.systems.pad2GameTiles, this.systems.pad3GameTiles];
         for (const unit of this.units) {
             if (unit.markedForDeletion || !unit.stat.canAttack || unit.target || unit.moving) continue;
-            const threat = this.visibleEnemyUnits.filter(enemy => unit.canAttack(enemy))
+            const threat = this.visibleEnemyUnits
+                .filter(enemy => unit.canAttack(enemy))
                 .sort((a, b) => unit.gameTile().distance(a.gameTile()) - unit.gameTile().distance(b.gameTile()))[0];
             if (threat && unit.gameTile().distance(threat.gameTile()) <= unit.stat.visionRadius) {
                 this.systems.commands.issue({kind: "attack", playerIndex: this.index, unitIds: [unit.id], targetId: threat.id});
@@ -66,13 +67,20 @@ export default class AiPlayer extends Player {
             }
             // Hold a pad; send reinforcements to the least occupied pad.
             if (pads.some(pad => pad.includes(unit.gameTile()))) continue;
-            const occupancy = (pad: typeof pads[number]) => this.units.filter(ally => !ally.markedForDeletion
-                && (pad.includes(ally.gameTile()) || (ally.destination && pad.includes(ally.destination)))).length;
+            const occupancy = (pad: (typeof pads)[number]) =>
+                this.units.filter(
+                    ally => !ally.markedForDeletion && (pad.includes(ally.gameTile()) || (ally.destination && pad.includes(ally.destination)))
+                ).length;
             const destinations = [...pads].sort((a, b) => occupancy(a) - occupancy(b));
             for (const pad of destinations) {
-                const tile = [...pad].sort((a, b) => unit.gameTile().distance(a) - unit.gameTile().distance(b))
-                    .find(tile => !this.units.some(ally => ally !== unit && !ally.markedForDeletion
-                        && (ally.gameTile() === tile || ally.destination === tile)));
+                const tile = [...pad]
+                    .sort((a, b) => unit.gameTile().distance(a) - unit.gameTile().distance(b))
+                    .find(
+                        tile =>
+                            !this.units.some(
+                                ally => ally !== unit && !ally.markedForDeletion && (ally.gameTile() === tile || ally.destination === tile)
+                            )
+                    );
                 if (tile) {
                     this.systems.commands.issue({kind: "move", playerIndex: this.index, unitIds: [unit.id], tile: CommandHub.tileRef(tile)});
                     if (unit.moving) break;
@@ -92,11 +100,22 @@ export default class AiPlayer extends Player {
     private counterScore(stat: UnitStat): number {
         const enemies = this.visibleEnemyUnits.filter(enemy => !enemy.markedForDeletion && enemy.stat.canAttack);
         if (enemies.length === 0) return stat.texture === UnitName.B1_Fantasy8 ? 1 : 0;
-        const strengths = enemies.reduce((score, enemy) => score + (
-            enemy.stat.type === "aircraft" ? (stat.canAttackAir && stat.goodAgainstAir ? 1 : 0)
-                : enemy.stat.type === "vehicle" ? (stat.goodAgainstFactory ? 1 : 0)
-                    : (stat.goodAgainstInfantry ? 1 : 0)), 0);
+        const strengths = enemies.reduce(
+            (score, enemy) =>
+                score +
+                (enemy.stat.type === "aircraft"
+                    ? stat.canAttackAir && stat.goodAgainstAir
+                        ? 1
+                        : 0
+                    : enemy.stat.type === "vehicle"
+                      ? stat.goodAgainstFactory
+                          ? 1
+                          : 0
+                      : stat.goodAgainstInfantry
+                        ? 1
+                        : 0),
+            0
+        );
         return strengths / enemies.length;
     }
-
 }

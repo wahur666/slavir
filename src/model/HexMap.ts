@@ -6,9 +6,9 @@ import Vector2 = Phaser.Math.Vector2;
 
 export enum Pathfinding {
     WATER = 1,
-    GROUND= 2,
+    GROUND = 2,
     HIGH_GROUND = 4,
-    OBSTACLE = 8
+    OBSTACLE = 8,
 }
 
 export default class HexMap {
@@ -34,7 +34,7 @@ export default class HexMap {
         });
         const tilemap = layers.base.tilemap;
         this.mapSize = new Vector2(tilemap.width, tilemap.height);
-        this.tileOrigin = new Vector2(tilemap.tileWidth / 2 | 0, tilemap.tileHeight / 2 | 0);
+        this.tileOrigin = new Vector2((tilemap.tileWidth / 2) | 0, (tilemap.tileHeight / 2) | 0);
         this.tileSize = new Vector2(tilemap.tileWidth / sqrt3, tilemap.tileHeight / 3);
         this.layout = new Layout(Layout.layoutPointy, this.tileSize, this.tileOrigin);
     }
@@ -60,9 +60,9 @@ export default class HexMap {
      * @param src - Start tile
      * @param target - End tile
      */
-    getTileHits(src: GameTile, target: GameTile): { tile: GameTile, distance: number }[] {
+    getTileHits(src: GameTile, target: GameTile): {tile: GameTile; distance: number}[] {
         const hexes = src.hex.lineDraw(target.hex);
-        const res: { tile: GameTile, distance: number }[] = [];
+        const res: {tile: GameTile; distance: number}[] = [];
 
         for (const hex of hexes) {
             const tile = this.coordsToTile(...OffsetCoordinate.rOffsetFromCube(hex).toArray());
@@ -91,7 +91,7 @@ export default class HexMap {
 
             for (const value of tiles) {
                 const hits = this.getTileHits(tile, value);
-                const groups: { [k: number]: { tile: GameTile, distance: number }[] } = {};
+                const groups: {[k: number]: {tile: GameTile; distance: number}[]} = {};
                 for (const item of hits) {
                     const list = groups[item.distance];
                     if (list) {
@@ -127,7 +127,7 @@ export default class HexMap {
     }
 
     /** Converts coordinates to GameTile */
-    coordsToTile(col: number, row: number): GameTile | undefined{
+    coordsToTile(col: number, row: number): GameTile | undefined {
         const index = row * this.mapSize.x + col;
         return index < this.tiles.length ? this.tiles[index] : undefined;
     }
@@ -136,7 +136,8 @@ export default class HexMap {
      * @param mask - Walkable mask
      */
     generateNavigationPolygons(mask: number): Phaser.Geom.Polygon[] {
-        return this.tiles.filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
+        return this.tiles
+            .filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
             .map(value => new Phaser.Geom.Polygon(this.layout.polygonCorners2(value.hex, 1.33)));
     }
 
@@ -144,10 +145,10 @@ export default class HexMap {
      * @param mask - Walkable mask
      */
     generateNavigationPolygons2(mask: number): Vector2[][] {
-        return this.tiles.filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
+        return this.tiles
+            .filter(e => e.pathfinding !== undefined && !(e.pathfinding & mask))
             .map(value => this.layout.polygonCorners2(value.hex, 1.33));
     }
-
 
     /** Finds the boundaries of the map multiplied with scale
      * @param scale - scale factor */

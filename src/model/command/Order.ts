@@ -15,8 +15,7 @@ export interface Order {
 
 /** Walk to a tile; done once the unit stopped moving */
 export class MoveOrder implements Order {
-    constructor(private readonly tile: GameTile) {
-    }
+    constructor(private readonly tile: GameTile) {}
 
     start(unit: Unit): void {
         unit.moveToGameTile(this.tile);
@@ -33,8 +32,7 @@ export class MoveOrder implements Order {
 
 /** Chase and attack a unit; done once the unit lost its target (dead, invisible) */
 export class AttackOrder implements Order {
-    constructor(private readonly target: Unit) {
-    }
+    constructor(private readonly target: Unit) {}
 
     start(unit: Unit): void {
         unit.moveToGameTile(null, this.target);

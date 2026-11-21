@@ -12,9 +12,12 @@ export default class PauseScene extends Phaser.Scene {
     create() {
         const {width, height} = SHARED_CONFIG;
         this.add.rectangle(0, 0, width, height, 0x000000, 0.75).setOrigin(0).setInteractive();
-        this.add.text(width / 2, height / 2 - 140, "Paused", {
-            fontFamily: defaultFont, fontSize: "56px"
-        }).setOrigin(0.5);
+        this.add
+            .text(width / 2, height / 2 - 140, "Paused", {
+                fontFamily: defaultFont,
+                fontSize: "56px",
+            })
+            .setOrigin(0.5);
         const resume = () => {
             this.scene.resume(SceneRegistry.GAME);
             this.scene.stop();
@@ -29,10 +32,16 @@ export default class PauseScene extends Phaser.Scene {
     }
 
     private addButton(y: number, label: string, onClick: () => void) {
-        this.add.image(SHARED_CONFIG.width / 2, y, Images.BUTTON)
-            .setScale(2, 1.3).setInteractive().on("pointerup", onClick);
-        this.add.text(SHARED_CONFIG.width / 2, y, label, {
-            fontFamily: defaultFont, fontSize: "28px"
-        }).setOrigin(0.5);
+        this.add
+            .image(SHARED_CONFIG.width / 2, y, Images.BUTTON)
+            .setScale(2, 1.3)
+            .setInteractive()
+            .on("pointerup", onClick);
+        this.add
+            .text(SHARED_CONFIG.width / 2, y, label, {
+                fontFamily: defaultFont,
+                fontSize: "28px",
+            })
+            .setOrigin(0.5);
     }
 }

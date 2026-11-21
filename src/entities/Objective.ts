@@ -9,7 +9,6 @@ import Lightning from "./Lightning";
 const sum = (arr: number[]) => arr.reduce((acc, item) => acc + item, 0);
 
 export default class Objective {
-
     maxCoolDown = 60_000;
     currentCoolDown = 0;
     bufferZone = 55_000;
@@ -23,12 +22,15 @@ export default class Objective {
 
     player1: Player;
     player2: Player;
-    padTiles: { nuke: GameTile, pad1: GameTile[]; pad2: GameTile[]; pad3: GameTile[] };
+    padTiles: {nuke: GameTile; pad1: GameTile[]; pad2: GameTile[]; pad3: GameTile[]};
     private healthBar: HealthBar;
     private nukePos: Phaser.Math.Vector2;
     private lightning: Lightning;
 
-    constructor(private systems: Systems, padTiles: {nuke: GameTile, pad1: GameTile[], pad2: GameTile[], pad3: GameTile[]}) {
+    constructor(
+        private systems: Systems,
+        padTiles: {nuke: GameTile; pad1: GameTile[]; pad2: GameTile[]; pad3: GameTile[]}
+    ) {
         this.padTiles = padTiles;
         this.player1 = this.systems.player1;
         this.player2 = this.systems.player2;
@@ -49,8 +51,12 @@ export default class Objective {
     update(delta: number) {
         if (this.peaceCoolDown > 0) {
             this.peaceCoolDown = Math.max(0, this.peaceCoolDown - delta);
-            this.healthBar.update(this.nukePos.x + 1, this.nukePos.y + 20, Math.max(0, 1 - (this.maxPeaceCoolDown - this.peaceCoolDown) / this.bufferTime));
-            this.healthBar.setColor(0xFF0000);
+            this.healthBar.update(
+                this.nukePos.x + 1,
+                this.nukePos.y + 20,
+                Math.max(0, 1 - (this.maxPeaceCoolDown - this.peaceCoolDown) / this.bufferTime)
+            );
+            this.healthBar.setColor(0xff0000);
             return;
         }
         this.healthBar.setColor(0x23aa65);
@@ -68,7 +74,7 @@ export default class Objective {
                 this.peaceCoolDown = this.maxPeaceCoolDown;
             }
         } else if (this.currentCoolDown > this.bufferZone) {
-            this.currentCoolDown = Math.max(this.bufferZone, this.currentCoolDown - delta | 0);
+            this.currentCoolDown = Math.max(this.bufferZone, (this.currentCoolDown - delta) | 0);
         }
         this.healthBar.update(this.nukePos.x + 1, this.nukePos.y + 20, this.currentCoolDown / this.maxCoolDown);
     }
@@ -117,5 +123,4 @@ export default class Objective {
             this.pads[i] = player1pads[i] - player2pads[i];
         }
     }
-
 }

@@ -5,9 +5,7 @@ import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
 import {defaultFont} from "../helpers/utils";
 import {SHARED_CONFIG} from "../model/config";
 
-
 export default class ScoreScene extends Phaser.Scene {
-
     startButton: Phaser.GameObjects.Sprite;
     startButtonText: Phaser.GameObjects.Text;
     result: Phaser.GameObjects.Text;
@@ -25,13 +23,13 @@ export default class ScoreScene extends Phaser.Scene {
         this.result = this.add.text(this.config.width / 2 - 150, this.config.height / 2, data.result ? "Victory" : "Defeat", {
             fontFamily: defaultFont,
             fontSize: "75px",
-            color: "#0685e5"
+            color: "#0685e5",
         });
-        this.result.setPosition((this.config.width - this.result.width) / 2, this.config.height / 2 - 150 );
+        this.result.setPosition((this.config.width - this.result.width) / 2, this.config.height / 2 - 150);
         this.startButton = this.add.sprite(this.config.width / 2, this.config.height / 2 + 170, Images.BUTTON).setScale(3, 2);
         this.startButtonText = this.add.text(this.config.width / 2 - 155, this.config.height / 2 + 130, "Return to menu", {
             fontFamily: defaultFont,
-            fontSize: "50px"
+            fontSize: "50px",
         });
         this.startButton.setInteractive();
         this.startButton.on("pointerup", () => {

@@ -1,0 +1,63 @@
+{
+    "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "includes": ["**", "!**/public", "!**/out", "!src/maps/*.json", "!package.json", "!package-lock.json"]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineEnding": "auto",
+        "lineWidth": 150
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double",
+            "semicolons": "always",
+            "bracketSpacing": false,
+            "trailingCommas": "es5",
+            "arrowParentheses": "asNeeded"
+        }
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "off"
+            }
+        }
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "preset": "recommended",
+            "complexity": {
+                "noForEach": "off",
+                "useLiteralKeys": "off"
+            },
+            "style": {
+                "noNonNullAssertion": "off",
+                "noParameterAssign": "off",
+                "useConst": "warn",
+                "useTemplate": "off",
+                "noNamespace": "warn"
+            },
+            "suspicious": {
+                "noExplicitAny": "off",
+                "noDoubleEquals": { "level": "warn", "options": { "ignoreNull": true } },
+                "noDebugger": "warn",
+                "noConsole": "off",
+                "useIterableCallbackReturn": "off"
+            },
+            "correctness": {
+                "noUnusedVariables": "warn",
+                "noUnusedImports": "warn"
+            }
+        }
+    }
+}

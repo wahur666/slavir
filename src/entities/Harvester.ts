@@ -3,9 +3,7 @@ import type {UnitStat} from "./UnitsStats";
 import type Player from "../model/player/Player";
 import type Systems from "../model/Systems";
 
-
 export default class Harvester extends Unit {
-
     harvesting = false;
 
     constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
@@ -14,15 +12,17 @@ export default class Harvester extends Unit {
     }
 
     findNearestResource() {
-        const resources = this.player.resources.filter(e => !e.occupied).sort((a, b) => {
-            const aDist = a.gameTile.distance(this.gameTile());
-            const bDist = b.gameTile.distance(this.gameTile());
-            if (aDist === bDist) {
-                return a.priority - b.priority;
-            } else {
-                return aDist - bDist;
-            }
-        });
+        const resources = this.player.resources
+            .filter(e => !e.occupied)
+            .sort((a, b) => {
+                const aDist = a.gameTile.distance(this.gameTile());
+                const bDist = b.gameTile.distance(this.gameTile());
+                if (aDist === bDist) {
+                    return a.priority - b.priority;
+                } else {
+                    return aDist - bDist;
+                }
+            });
         const targetResource = resources.length > 0 ? resources[0] : null;
         if (targetResource) {
             this.moveToGameTile(targetResource.gameTile);
@@ -104,11 +104,9 @@ export default class Harvester extends Unit {
                 this.stopHarvesting();
             }
         }
-        if(this.harvesting && !resource) {
+        if (this.harvesting && !resource) {
             this.stopHarvesting();
             this.findNearestResource();
         }
     }
-
-
 }

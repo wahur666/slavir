@@ -10,10 +10,12 @@ class Node {
     public gCost: number;
     public hCost: number;
 
-    constructor(public tile: GameTile,
-                public walkable: boolean,
-                start: GameTile,
-                end: GameTile) {
+    constructor(
+        public tile: GameTile,
+        public walkable: boolean,
+        start: GameTile,
+        end: GameTile
+    ) {
         this.gCost = this.cost(start);
         this.hCost = this.cost(end);
     }
@@ -25,14 +27,14 @@ class Node {
     cost(tile: GameTile) {
         return this.tile.distance(tile);
     }
-
 }
 
-
 export class Navigation {
-
-    constructor(private hexMap: HexMap, private baseOffset: Vector2, private scaleFactor: number) {
-    }
+    constructor(
+        private hexMap: HexMap,
+        private baseOffset: Vector2,
+        private scaleFactor: number
+    ) {}
 
     private createNode(tile: GameTile, mask: number, start: GameTile, end: GameTile): Node {
         return new Node(tile, Boolean(tile.pathfinding & mask), start, end);
@@ -50,7 +52,7 @@ export class Navigation {
     }
 
     private findPath(start: GameTile, end: GameTile, mask: number, nearestFree = 0, dynamicObstacles: GameTile[]): GameTile[] {
-        if ((!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask))) {
+        if (!Boolean(start.pathfinding & mask) || !Boolean(end.pathfinding & mask)) {
             return [];
         }
         const open = new Heap<Node>((a, b) => {
@@ -115,11 +117,15 @@ export class Navigation {
                     for (let j = i + 1; j < path.length; j++) {
                         const currentTile = path[i];
                         const destTile = path[j];
-                        if (this.hexMap.getTileHits(currentTile, destTile).every(e => {
-                            return (e.tile.pathfinding & mask)
-                                && (!dynamicObstacles.find(dynOb => dynOb.equals(e.tile)))
-                                && this.checkNavMesh(currentTile, destTile, mask);
-                        })) {
+                        if (
+                            this.hexMap.getTileHits(currentTile, destTile).every(e => {
+                                return (
+                                    e.tile.pathfinding & mask &&
+                                    !dynamicObstacles.find(dynOb => dynOb.equals(e.tile)) &&
+                                    this.checkNavMesh(currentTile, destTile, mask)
+                                );
+                            })
+                        ) {
                             bestForwardPosition = j;
                         } else {
                             break;
@@ -161,7 +167,7 @@ export class Navigation {
         } else {
             const lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
             const gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+            return 0 < lambda && lambda < 1 && 0 < gamma && gamma < 1;
         }
     }
 

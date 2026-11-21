@@ -8,13 +8,16 @@ const {setTimeout: delay} = require("node:timers/promises");
 
 // Exercise the built game in Chromium, without adding a browser automation dependency.
 const root = path.resolve(__dirname, "../public");
-const browserPath = process.env.CHROME_PATH || [
-    "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
-    "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
-    "/usr/bin/chromium", "/usr/bin/google-chrome",
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-].find(candidate => fs.existsSync(candidate));
+const browserPath =
+    process.env.CHROME_PATH ||
+    [
+        "C:/Program Files/Google/Chrome/Application/chrome.exe",
+        "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+        "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+        "/usr/bin/chromium",
+        "/usr/bin/google-chrome",
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    ].find(candidate => fs.existsSync(candidate));
 assert.ok(browserPath, "Set CHROME_PATH to a Chrome, Chromium, or Edge executable.");
 assert.ok(fs.existsSync(path.join(root, "index.html")), "Run npm run build first.");
 
@@ -23,9 +26,15 @@ async function main() {
     const profile = fs.mkdtempSync(path.join(os.tmpdir(), "slavir-test-"));
     const server = http.createServer((request, response) => {
         const file = path.resolve(root, "." + (request.url === "/" ? "/index.html" : request.url));
-        if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
+        if (!file.startsWith(root + path.sep)) {
+            response.writeHead(403).end();
+            return;
+        }
         fs.readFile(file, (error, data) => {
-            if (error) { response.writeHead(404).end(); return; }
+            if (error) {
+                response.writeHead(404).end();
+                return;
+            }
             const types = {".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".ttf": "font/ttf"};
             response.setHeader("Content-Type", types[path.extname(file)] || "application/octet-stream");
             response.end(data);
@@ -35,26 +44,50 @@ async function main() {
     let browser;
     let socket;
     try {
-        console.log("Spawning browser from", browserPath)
-        browser = spawn(browserPath, ["--headless=new", "--remote-debugging-port=0", "--no-first-run",
-            "--no-default-browser-check", "--use-angle=swiftshader", "--enable-unsafe-swiftshader",
-            "--window-size=1400,900", `--user-data-dir=${profile}`, "about:blank"], {windowsHide: true});
+        console.log("Spawning browser from", browserPath);
+        browser = spawn(
+            browserPath,
+            [
+                "--headless=new",
+                "--remote-debugging-port=0",
+                "--no-first-run",
+                "--no-default-browser-check",
+                "--use-angle=swiftshader",
+                "--enable-unsafe-swiftshader",
+                "--window-size=1400,900",
+                `--user-data-dir=${profile}`,
+                "about:blank",
+            ],
+            {windowsHide: true}
+        );
         let stderr = "";
         const endpoint = await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error(`Browser startup timed out: ${stderr}`)), 15000);
-            browser.once("error", error => { clearTimeout(timeout); reject(error); });
-            browser.once("exit", code => { clearTimeout(timeout); reject(new Error(`Browser exited (${code}): ${stderr}`)); });
+            browser.once("error", error => {
+                clearTimeout(timeout);
+                reject(error);
+            });
+            browser.once("exit", code => {
+                clearTimeout(timeout);
+                reject(new Error(`Browser exited (${code}): ${stderr}`));
+            });
             browser.stderr.on("data", chunk => {
                 stderr += chunk;
                 const match = stderr.match(/DevTools listening on (ws:\/\/[^\s]+)/);
-                if (match) { clearTimeout(timeout); resolve(match[1]); }
+                if (match) {
+                    clearTimeout(timeout);
+                    resolve(match[1]);
+                }
             });
         });
         const port = new URL(endpoint).port;
         console.log("Browser connected; loading the game");
         const pages = await (await fetch(`http://127.0.0.1:${port}/json`, {signal: AbortSignal.timeout(10000)})).json();
         socket = new WebSocket(pages.find(page => page.type === "page").webSocketDebuggerUrl);
-        await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = reject; });
+        await new Promise((resolve, reject) => {
+            socket.onopen = resolve;
+            socket.onerror = reject;
+        });
         let nextId = 0;
         const pending = new Map();
         const errors = [];
@@ -68,13 +101,22 @@ async function main() {
                 else request.resolve(message.result);
             }
         };
-        const command = (method, params = {}) => new Promise((resolve, reject) => {
-            const id = ++nextId;
-            const timeout = setTimeout(() => reject(new Error(`CDP command timed out: ${method}`)), 10000);
-            pending.set(id, {resolve: value => { clearTimeout(timeout); resolve(value); },
-                reject: error => { clearTimeout(timeout); reject(error); }});
-            socket.send(JSON.stringify({id, method, params}));
-        });
+        const command = (method, params = {}) =>
+            new Promise((resolve, reject) => {
+                const id = ++nextId;
+                const timeout = setTimeout(() => reject(new Error(`CDP command timed out: ${method}`)), 10000);
+                pending.set(id, {
+                    resolve: value => {
+                        clearTimeout(timeout);
+                        resolve(value);
+                    },
+                    reject: error => {
+                        clearTimeout(timeout);
+                        reject(error);
+                    },
+                });
+                socket.send(JSON.stringify({id, method, params}));
+            });
         const evaluate = async expression => {
             const result = await command("Runtime.evaluate", {expression, returnByValue: true, awaitPromise: true});
             assert.ok(!result.exceptionDetails, JSON.stringify(result.exceptionDetails));
@@ -87,24 +129,32 @@ async function main() {
             }
             assert.fail(`Timed out waiting for ${expression}\n${JSON.stringify(errors)}`);
         };
-        const escape = () => command("Input.dispatchKeyEvent", {
-            type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27
-        });
-        const state = () => evaluate(`JSON.stringify({countdown: game.countdownRemaining, elapsed: game.elapsedTime,
+        const pressEscape = () =>
+            command("Input.dispatchKeyEvent", {
+                type: "keyUp",
+                key: "Escape",
+                code: "Escape",
+                windowsVirtualKeyCode: 27,
+            });
+        const state = () =>
+            evaluate(`JSON.stringify({countdown: game.countdownRemaining, elapsed: game.elapsedTime,
             money: game.systems.players.map(p => p.resource), objective: game.systems.objective.currentCoolDown,
             units: game.systems.players.map(p => p.units.map(u => [u.x, u.y, u.currentHealth, u.attackCoolDown])),
             cooldowns: game.systems.players.map(p => p.createCoolDown)})`);
         await command("Runtime.enable");
         await command("Page.navigate", {url: `http://127.0.0.1:${server.address().port}`});
         await until("!!window.game?.systems && game.scene.isActive() && game.countdownRemaining > 0");
-        assert.equal(await evaluate(`game.player1.createUnit('male_engineer') === null
-            && game.player1.createBuilding('barrack') === null && game.player1.resource === 100`), true);
-        await escape();
+        assert.equal(
+            await evaluate(`game.player1.createUnit('male_engineer') === null
+            && game.player1.createBuilding('barrack') === null && game.player1.resource === 100`),
+            true
+        );
+        await pressEscape();
         await until("game.scene.isPaused() && game.scene.isActive('PauseScene')");
         const countdownState = await state();
         await delay(300);
         assert.equal(await state(), countdownState, "Pause must freeze the countdown and match");
-        await escape();
+        await pressEscape();
         await until("game.canIssueCommands");
         console.log("PASS countdown blocks commands and pauses/resumes with Escape");
 
@@ -153,22 +203,37 @@ async function main() {
                 rejectedKeptMoney, limited: limited === null, limitKeptMoney, delays,
                 capped: capped === null, capKeptMoney: p.resource === beforeCap};
         })()`);
-        assert.deepEqual(production, {building: true, duplicate: true, duplicateKeptMoney: true,
-            missingSlot: true, missingSlotKeptMoney: true, blockedSpawn: true, blockedSpawnKeptMoney: true,
-            first: true, second: true, firstDelay: 5000, secondDelay: 10000, rejected: true,
-            rejectedKeptMoney: true, limited: true, limitKeptMoney: true, delays: [25000, 30000],
-            capped: true, capKeptMoney: true});
+        assert.deepEqual(production, {
+            building: true,
+            duplicate: true,
+            duplicateKeptMoney: true,
+            missingSlot: true,
+            missingSlotKeptMoney: true,
+            blockedSpawn: true,
+            blockedSpawnKeptMoney: true,
+            first: true,
+            second: true,
+            firstDelay: 5000,
+            secondDelay: 10000,
+            rejected: true,
+            rejectedKeptMoney: true,
+            limited: true,
+            limitKeptMoney: true,
+            delays: [25000, 30000],
+            capped: true,
+            capKeptMoney: true,
+        });
         console.log("PASS production timing, six-unit cap, harvester limit, and failed purchase refunds");
 
         await evaluate(`window.rocketFinished = false;
             game.systems.objective.playRocketAnimation(false).then(() => window.rocketFinished = true); void 0`);
-        await escape();
+        await pressEscape();
         await until("game.scene.isPaused()");
         const pausedState = await state();
         await delay(3200);
         assert.equal(await state(), pausedState, "Pause must freeze movement, economy, combat, and objective");
         assert.equal(await evaluate("window.rocketFinished"), false, "Rocket timer must pause");
-        await escape();
+        await pressEscape();
         await until("window.rocketFinished");
         console.log("PASS pause freezes the simulation and pending rocket timers");
 
@@ -202,8 +267,7 @@ async function main() {
             unit.update(16);
             return {acquired, damaged, harvesterCannotAttack, following, clearedDeadTarget: unit.target === null};
         })()`);
-        assert.deepEqual(combat, {acquired: true, damaged: true, harvesterCannotAttack: true,
-            following: true, clearedDeadTarget: true});
+        assert.deepEqual(combat, {acquired: true, damaged: true, harvesterCannotAttack: true, following: true, clearedDeadTarget: true});
         console.log("PASS idle auto-attack, moving target pursuit, dead targets, and peaceful harvesters");
 
         const ai = await evaluate(`(() => {
@@ -230,18 +294,20 @@ async function main() {
             return {builtForce, expanded, holdsObjectives, countersAir: archerScore > rifleScore,
                 producedCounter, capped: ai.units.length <= 6};
         })()`);
-        assert.deepEqual(ai, {builtForce: true, expanded: true, holdsObjectives: true, countersAir: true,
-            producedCounter: true, capped: true});
+        assert.deepEqual(ai, {builtForce: true, expanded: true, holdsObjectives: true, countersAir: true, producedCounter: true, capped: true});
         console.log("PASS AI army production, tech expansion, objectives, and counter preferences");
 
-        await escape();
+        await pressEscape();
         await until("game.scene.isPaused()");
         await evaluate(`game.scene.get('PauseScene').scene.stop('GameScene');
             game.scene.get('PauseScene').scene.start('MenuScene'); void 0`);
         await until("game.scene.isActive('MenuScene') && !game.scene.isActive('PauseScene')");
         await evaluate("game.scene.get('MenuScene').scene.start('GameScene'); void 0");
         await until("game.scene.isActive() && game.countdownRemaining > 0");
-        assert.equal(await evaluate("!game.gameEnded && game.elapsedTime === 0 && game.player1.resource === 100 && game.player1.units.length === 0"), true);
+        assert.equal(
+            await evaluate("!game.gameEnded && game.elapsedTime === 0 && game.player1.resource === 100 && game.player1.units.length === 0"),
+            true
+        );
         assert.deepEqual(errors, [], "No uncaught browser exceptions");
         console.log("PASS return to menu and fresh match restart without reloading");
     } finally {
@@ -259,4 +325,7 @@ async function main() {
     }
 }
 
-main().catch(error => { console.error(error); process.exitCode = 1; });
+main().catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+});

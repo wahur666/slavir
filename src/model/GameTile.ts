@@ -4,7 +4,6 @@ import Tile = Phaser.Tilemaps.Tile;
 import {Hex, OffsetCoordinate} from "./hexgrid";
 
 export default class GameTile {
-
     // Hex
     hex: Hex;
     // Tilemap
@@ -38,7 +37,4 @@ export default class GameTile {
         this.hex = OffsetCoordinate.rOffsetToCube(new OffsetCoordinate(this.x, this.y));
         this.distance = (tile: GameTile) => this.hex.distance(tile.hex);
     }
-
-
-
 }

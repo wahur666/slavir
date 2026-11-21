@@ -20,12 +20,15 @@ export default class Card extends Phaser.GameObjects.Sprite {
         this.setCrop(28, 0, 72, 100);
         this.setOrigin(0.54, 0.58);
         this.setDepth(11);
-        const backdrop = this.scene.add.image(x - 6, y + 5, Images.PANEL_BLUE).setScale(0.8, 1.4).setDepth(10);
+        const backdrop = this.scene.add
+            .image(x - 6, y + 5, Images.PANEL_BLUE)
+            .setScale(0.8, 1.4)
+            .setDepth(10);
         backdrop.setInteractive();
         backdrop.on("pointerdown", () => scene.systems.commands.issue({kind: "createUnit", playerIndex: player.index, unit: unitStat.texture}));
         this.costText = this.scene.add.text(x - 6, y + 25, `${unitStat.cost}`, {
             fontFamily: defaultFont,
-            fontSize: "18px"
+            fontSize: "18px",
         });
         this.costText.setDepth(12);
         const crystal = this.scene.add.image(x - 20, y + 38, Images.CRYSTAL);
@@ -35,33 +38,33 @@ export default class Card extends Phaser.GameObjects.Sprite {
         wizardIcon.setDepth(12).setScale(0.5);
         if (unitStat.canAttack) {
             if (unitStat.goodAgainstInfantry) {
-                wizardIcon.tint = 0x00FF00;
+                wizardIcon.tint = 0x00ff00;
             }
         } else {
-            wizardIcon.tint = 0xFF0000;
+            wizardIcon.tint = 0xff0000;
         }
 
         const armorIcon = this.scene.add.image(x - 5, y + 58, Images.ICON_ARMOR);
         armorIcon.setDepth(12).setScale(0.5);
         if (unitStat.canAttack) {
             if (unitStat.goodAgainstFactory) {
-                armorIcon.tint = 0x00FF00;
+                armorIcon.tint = 0x00ff00;
             }
         } else {
-            armorIcon.tint = 0xFF0000;
+            armorIcon.tint = 0xff0000;
         }
 
         const wingIcon = this.scene.add.image(x + 15, y + 58, Images.ICON_WING);
         wingIcon.setDepth(12).setScale(0.5);
         if (unitStat.canAttack && unitStat.canAttackAir) {
             if (unitStat.goodAgainstAir) {
-                wingIcon.tint = 0x00FF00;
+                wingIcon.tint = 0x00ff00;
             }
         } else {
-            wingIcon.tint = 0xFF0000;
+            wingIcon.tint = 0xff0000;
         }
 
-        this.cooldownLine = this.scene.add.rectangle(x - 5, y, 80, 5, 0xFF0000, 0.7);
+        this.cooldownLine = this.scene.add.rectangle(x - 5, y, 80, 5, 0xff0000, 0.7);
         this.cooldownLine.setDepth(13);
         this.cooldownLine.setVisible(false);
     }
@@ -82,5 +85,4 @@ export default class Card extends Phaser.GameObjects.Sprite {
             this.cooldownLine.setY(Phaser.Math.Linear(maxHeight, minHeight, percent));
         }
     }
-
 }

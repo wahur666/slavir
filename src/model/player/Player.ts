@@ -14,7 +14,6 @@ import {findObjectByProperty} from "../../helpers/tilemap.helper";
 import HealthBar from "../../entities/HealthBar";
 
 export default abstract class Player {
-
     units: Unit[] = [];
     visibleEnemyUnits: Unit[] = [];
     buildings: Building[] = [];
@@ -29,7 +28,7 @@ export default abstract class Player {
         BARRACK: false,
         FACTORY: false,
         HANGAR: false,
-        TECH: false
+        TECH: false,
     };
 
     protected maxUnitCount: number = 10;
@@ -45,12 +44,15 @@ export default abstract class Player {
     protected gameScene: GameScene;
     private baseHealthBar?: HealthBar;
 
-    protected constructor(public index: number, protected systems: Systems) {
+    protected constructor(
+        public index: number,
+        protected systems: Systems
+    ) {
         this.gameScene = systems.gameScene;
     }
 
     update(delta: number) {
-        this.currentHarvestTime +=  delta * 5 / (5 - this.numberOfHarvesters * 2);
+        this.currentHarvestTime += (delta * 5) / (5 - this.numberOfHarvesters * 2);
         while (this.currentHarvestTime >= this.harvestTime) {
             this.resource += 10;
             this.currentHarvestTime -= this.harvestTime;
@@ -85,7 +87,7 @@ export default abstract class Player {
     }
 
     decreaseHarvesterCount() {
-        this.numberOfHarvesters = Math.max(this.numberOfHarvesters - 1 , 0);
+        this.numberOfHarvesters = Math.max(this.numberOfHarvesters - 1, 0);
     }
 
     canCreateUnit(e: UnitName): boolean {
@@ -110,14 +112,15 @@ export default abstract class Player {
     createUnit(e: UnitName): Unit | null {
         if (!this.canCreateUnit(e)) return null;
         const unitStat = unitStatMap.get(e)!;
-        const alreadyOccupiedPositions = this.systems.players.flatMap(player => player.units)
+        const alreadyOccupiedPositions = this.systems.players
+            .flatMap(player => player.units)
             .filter(unit => !unit.markedForDeletion && unit.stat.flying === unitStat.flying)
             .map(unit => unit.gameTile());
-        const possibleTiles: { distance: number; tile: GameTile }[] = this.systems.map.tiles
+        const possibleTiles: {distance: number; tile: GameTile}[] = this.systems.map.tiles
             .filter(tile => !alreadyOccupiedPositions.includes(tile) && tile.pathfinding === Pathfinding.GROUND)
             .map(tile => ({
                 tile,
-                distance: this.systems.map.tileDistance(tile, this.base!) + this.systems.map.tileDistance(tile, this.spawn!)
+                distance: this.systems.map.tileDistance(tile, this.base!) + this.systems.map.tileDistance(tile, this.spawn!),
             }))
             .sort((a, b) => a.distance - b.distance);
         if (possibleTiles.length > 0) {
@@ -193,13 +196,13 @@ export default abstract class Player {
         }
         const initialBuilding = building === Buildings.CASTLE || building === Buildings.SPAWN;
         if (!initialBuilding && !this.gameScene.canIssueCommands) {
-            return null
+            return null;
         }
         if (this.buildings.some(existing => existing.stat.type === building)) {
-            return null
+            return null;
         }
         if (this.resource < stats.cost) {
-            return null
+            return null;
         }
 
         let baseTile: Phaser.Types.Tilemaps.TiledObject = null;
@@ -207,7 +210,11 @@ export default abstract class Player {
             const id = building === Buildings.CASTLE ? 0 : 5;
             baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", id);
         } else {
-            baseTile = findObjectByProperty(this.systems.layers["base" + this.index].objects, "id", Object.values(this.hasBuildings).filter(e => !!e).length + 1);
+            baseTile = findObjectByProperty(
+                this.systems.layers["base" + this.index].objects,
+                "id",
+                Object.values(this.hasBuildings).filter(e => !!e).length + 1
+            );
         }
         let gameTile: GameTile | undefined;
         if (baseTile && baseTile.x !== undefined && baseTile.y !== undefined) {

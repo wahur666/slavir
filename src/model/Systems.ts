@@ -26,12 +26,10 @@ interface TileMapSet {
     pad2: Phaser.Tilemaps.ObjectLayer;
     water: Phaser.Tilemaps.ObjectLayer;
     terrain: Phaser.Tilemaps.ObjectLayer;
-    base: Phaser.Tilemaps.TilemapLayer
+    base: Phaser.Tilemaps.TilemapLayer;
 }
 
-
 export default class Systems {
-
     map: HexMap;
     navigation: Navigation;
     objective: Objective;
@@ -56,11 +54,14 @@ export default class Systems {
     readonly commands: CommandHub = new CommandHub(this);
     private lastUnitId = 0;
 
-    constructor(gameScene: GameScene, mapDimensions: {
-        scaleFactor: number,
-        width: number,
-        height: number
-    }) {
+    constructor(
+        gameScene: GameScene,
+        mapDimensions: {
+            scaleFactor: number;
+            width: number;
+            height: number;
+        }
+    ) {
         this.gameScene = gameScene;
         this.scaleFactor = mapDimensions.scaleFactor;
         this.width = mapDimensions.width;
@@ -81,7 +82,7 @@ export default class Systems {
 
     private createMap(gameScene: GameScene): Phaser.Tilemaps.Tilemap {
         const map = gameScene.make.tilemap({
-            key: Tilemaps.MAP1
+            key: Tilemaps.MAP1,
         });
         map.addTilesetImage(TILESETS.Hex_v01_grid, Images.HEX_GRID);
         return map;
@@ -89,8 +90,7 @@ export default class Systems {
 
     private createLayers(map: Phaser.Tilemaps.Tilemap): TileMapSet {
         const baseTileset = map.getTileset(TILESETS.Hex_v01_grid);
-        const base = map.createLayer(LAYERS.BASE, baseTileset, 0, 0)
-            .setScale(this.scaleFactor) as TilemapLayer;
+        const base = map.createLayer(LAYERS.BASE, baseTileset, 0, 0).setScale(this.scaleFactor) as TilemapLayer;
         const base1 = map.getObjectLayer("Bases/Base1");
         const base2 = map.getObjectLayer("Bases/Base2");
         const pad1 = map.getObjectLayer("Pads/Pad1");
@@ -107,7 +107,7 @@ export default class Systems {
 
     private calculateBaseOffset(base: TilemapLayer): [Vector2, Vector2] {
         const point = this.getFurthersPoints();
-        const scaledBaseOffset = new Vector2((this.width - point.x) / 2 | 0, (this.height - point.y - 180));
+        const scaledBaseOffset = new Vector2(((this.width - point.x) / 2) | 0, this.height - point.y - 180);
         const baseOffset = scaledBaseOffset.clone().scale(1 / this.scaleFactor);
         base.setX(scaledBaseOffset.x);
         base.setY(scaledBaseOffset.y);
@@ -156,7 +156,7 @@ export default class Systems {
                 if (tile) {
                     const pos = this.hexToPos(tile.hex);
                     const priority = getPropertyValue(object, "priority") as number;
-                    const res = new Resource(gameScene, pos.x, pos.y, Images.CRYSTAL, tile, priority, (resource) => {
+                    const res = new Resource(gameScene, pos.x, pos.y, Images.CRYSTAL, tile, priority, resource => {
                         this.player1.resources = this.player1.resources.filter(e => e !== resource);
                         this.player2.resources = this.player2.resources.filter(e => e !== resource);
                         const resourceInd = resources.indexOf(resource);
@@ -188,8 +188,8 @@ export default class Systems {
     /** Pixel to tile on scaled and moved values
      * @see {@link HexMap.pixelToTile} for the unscaled resolve */
     public pointToTile(x: number, y: number): GameTile | undefined {
-        const normalizedX = (x / this.scaleFactor | 0) - this.baseOffset.x;
-        const normalizedY = (y / this.scaleFactor | 0) - this.baseOffset.y;
+        const normalizedX = ((x / this.scaleFactor) | 0) - this.baseOffset.x;
+        const normalizedY = ((y / this.scaleFactor) | 0) - this.baseOffset.y;
         return this.map.pixelToTile(normalizedX, normalizedY);
     }
 
@@ -205,7 +205,7 @@ export default class Systems {
             nuke: this.nukeGameTile,
             pad1: this.pad1GameTiles,
             pad2: this.pad2GameTiles,
-            pad3: this.pad3GameTiles
+            pad3: this.pad3GameTiles,
         });
     }
 }

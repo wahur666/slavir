@@ -11,7 +11,7 @@ import Systems from "../model/Systems";
 import {SHARED_CONFIG} from "../model/config";
 
 const grey = 0x808080;
-const white = 0xFFFFFF;
+const white = 0xffffff;
 
 const c1 = Phaser.Display.Color.ValueToColor(grey);
 const c2 = Phaser.Display.Color.ValueToColor(white);
@@ -25,7 +25,6 @@ const shadeValues = range(shadeSteps)
     .map(value => Phaser.Display.Color.GetColor(value.r, value.g, value.b));
 
 export default class GameScene extends Phaser.Scene {
-
     currentTile: GameTile;
     scaleFactor: number = 3;
     graphics: Graphics;
@@ -53,12 +52,12 @@ export default class GameScene extends Phaser.Scene {
         this.gameEnded = false;
         this.elapsedTime = 0;
         this.countdownRemaining = 3000;
-        this.bg = this.add.sprite(this.config.width / 2 , this.config.height / 2, Images.BROWN_BG).setScale(1.25);
+        this.bg = this.add.sprite(this.config.width / 2, this.config.height / 2, Images.BROWN_BG).setScale(1.25);
 
         this.systems = new Systems(this, {
             scaleFactor: this.scaleFactor,
             width: this.config.width,
-            height: this.config.height
+            height: this.config.height,
         });
         this.player1 = this.systems.player1;
         this.player2 = this.systems.player2;
@@ -69,12 +68,12 @@ export default class GameScene extends Phaser.Scene {
         this.fpsText = this.add.text(0, 0, "0 FPS", {
             fontFamily: "sans-serif",
             fontSize: "12px",
-            color: "#0000FF"
+            color: "#0000FF",
         });
         const timeBg = this.add.image(this.config.width / 2, 10, Images.PANEL_BLUE);
         this.currentTimeText = this.add.text(this.config.width / 2 - 25, 10, "00:00", {
             fontFamily: defaultFont,
-            fontSize: "30px"
+            fontSize: "30px",
         });
 
         for (const tile of this.systems.map.tiles) {
@@ -92,12 +91,15 @@ export default class GameScene extends Phaser.Scene {
         this.player2.create();
         this.setupRetireButton();
         this.setupPauseButton();
-        this.countdownText = this.add.text(this.config.width / 2, this.config.height / 2, "3", {
-            fontFamily: defaultFont,
-            fontSize: "90px",
-            stroke: "#000000",
-            strokeThickness: 8
-        }).setOrigin(0.5).setDepth(100);
+        this.countdownText = this.add
+            .text(this.config.width / 2, this.config.height / 2, "3", {
+                fontFamily: defaultFont,
+                fontSize: "90px",
+                stroke: "#000000",
+                strokeThickness: 8,
+            })
+            .setOrigin(0.5)
+            .setDepth(100);
         this.physics.pause();
         this.drawVisibleTiles();
     }
@@ -113,8 +115,7 @@ export default class GameScene extends Phaser.Scene {
                 this.scene.pause();
             }
         };
-        this.add.image(1200, 60, Images.BUTTON).setScale(0.7, 0.9)
-            .setInteractive().on("pointerup", pause);
+        this.add.image(1200, 60, Images.BUTTON).setScale(0.7, 0.9).setInteractive().on("pointerup", pause);
         this.add.text(1200, 60, "Pause", {fontFamily: defaultFont, fontSize: "28px"}).setOrigin(0.5);
         this.input.keyboard.on("keyup-ESC", pause);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keyup-ESC", pause));
@@ -122,7 +123,7 @@ export default class GameScene extends Phaser.Scene {
 
     setCurrentTile(tile: GameTile): void {
         this.currentTile = tile;
-        const colors = {blue: 0x0000FF, green: 0x00FF00, red: 0xFF0000};
+        const colors = {blue: 0x0000ff, green: 0x00ff00, red: 0xff0000};
         this.graphics.clear();
         this.graphics.lineStyle(1, colors.green, 1);
         const center = this.systems.map.getCenter(tile).add(this.systems.baseOffset);
@@ -161,7 +162,7 @@ export default class GameScene extends Phaser.Scene {
             p2unit.setActivelyVisible(this.player1.visibleEnemyUnits.includes(p2unit));
         }
         for (const building of this.player2.buildings) {
-            if(!building.revealed && visibleTiles.has(building.gameTile())) {
+            if (!building.revealed && visibleTiles.has(building.gameTile())) {
                 building.setRevealed(true);
             }
         }
@@ -169,8 +170,6 @@ export default class GameScene extends Phaser.Scene {
             this.drawVisibility(tile, visibleTiles.has(tile));
         }
     }
-
-
 
     drawVisibility(tile: GameTile, visible: boolean) {
         if (tile.tile.index !== -1) {
@@ -184,12 +183,12 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        this.fpsText.setText(`${1000 / delta | 0} FPS`);
+        this.fpsText.setText(`${(1000 / delta) | 0} FPS`);
         if (this.gameEnded) {
             return;
         }
         if (this.countdownRemaining > 0) {
-            this.currentTimeText.setText(formatTime(0))
+            this.currentTimeText.setText(formatTime(0));
             this.countdownRemaining = Math.max(0, this.countdownRemaining - delta);
             this.countdownText.setText(`${Math.ceil(this.countdownRemaining / 1000)}`);
             if (this.countdownRemaining === 0) {
@@ -199,7 +198,7 @@ export default class GameScene extends Phaser.Scene {
             return;
         }
         this.elapsedTime += delta;
-        this.currentTimeText.setText(formatTime(this.elapsedTime / 1000 | 0));
+        this.currentTimeText.setText(formatTime((this.elapsedTime / 1000) | 0));
         this.drawVisibleTiles();
         for (const unit of this.player1.units) {
             unit.update(delta);
@@ -253,8 +252,9 @@ export default class GameScene extends Phaser.Scene {
     drawNavMesh() {
         const polyiz = this.systems.map.generateNavigationPolygons(Pathfinding.GROUND);
         for (const polygon of polyiz) {
-            this.graphics2.lineStyle(1, 0xFF0000, 1);
-            this.graphics2.strokePoints(polygon.points, true, true)
+            this.graphics2.lineStyle(1, 0xff0000, 1);
+            this.graphics2
+                .strokePoints(polygon.points, true, true)
                 .setX(this.systems.scaledBaseOffset.x)
                 .setY(this.systems.scaledBaseOffset.y)
                 .setScale(this.scaleFactor);
@@ -263,8 +263,9 @@ export default class GameScene extends Phaser.Scene {
 
     drawHex(graphics: Graphics, hex: Hex): void {
         const points = this.systems.map.layout.polygonCorners(hex);
-        graphics.lineStyle(1, 0xFF0000, 1);
-        graphics.strokePoints(points, true, true)
+        graphics.lineStyle(1, 0xff0000, 1);
+        graphics
+            .strokePoints(points, true, true)
             .setX(this.systems.scaledBaseOffset.x)
             .setY(this.systems.scaledBaseOffset.y)
             .setScale(this.scaleFactor);
@@ -282,7 +283,4 @@ export default class GameScene extends Phaser.Scene {
             fontSize: "28px",
         });
     }
-
 }
-
-

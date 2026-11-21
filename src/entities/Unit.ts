@@ -15,9 +15,7 @@ import HealthBar from "./HealthBar";
 
 type Direction = "up" | "down" | "left" | "right";
 
-
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
-
     static AnimationKeys = {
         IDLE_: "unit-idle-",
         ATTACK_: "unit-attack-",
@@ -66,7 +64,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     systems: Systems;
     private healthBar: HealthBar;
 
-    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player,  free: (unit: Unit) => Promise<void>) {
+    constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
         super(systems.gameScene, x, y, texture);
         this.systems = systems;
         this.id = systems.nextUnitId();
@@ -97,7 +95,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     setupGraphics() {
         this.graphics = this.scene.add.graphics();
-        this.graphics.lineStyle(3, 0xFF0000, 1);
+        this.graphics.lineStyle(3, 0xff0000, 1);
         this.selectedGraphics = this.scene.add.graphics();
     }
 
@@ -177,7 +175,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     stopUnitWhenHexCenterIsReached() {
-        this.moveToGameTile(this.gameTile())
+        this.moveToGameTile(this.gameTile());
         this.stopUnit();
     }
 
@@ -186,7 +184,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             return;
         }
         if (this.target && (!this.canAttack(this.target) || !this.player.visibleEnemyUnits.includes(this.target))) {
-            this.stopUnitWhenHexCenterIsReached()
+            this.stopUnitWhenHexCenterIsReached();
             this.attackAnimationPlaying = false;
         }
         if (!this.target && !this.moving && this.navPoints.length === 0 && this.stat.canAttack) {
@@ -229,13 +227,19 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
 
     canAttack(target: Unit): boolean {
-        return target !== this && target.player !== this.player && !target.markedForDeletion
-            && this.stat.canAttack && (target.stat.type !== "aircraft" || this.stat.canAttackAir);
+        return (
+            target !== this &&
+            target.player !== this.player &&
+            !target.markedForDeletion &&
+            this.stat.canAttack &&
+            (target.stat.type !== "aircraft" || this.stat.canAttackAir)
+        );
     }
 
     private inAttackRange(target: Unit): boolean {
-        return target.gameTile().distance(this.gameTile()) <= this.stat.attackRange
-            && this.navigation.checkBlockade(this.gameTile(), target.gameTile());
+        return (
+            target.gameTile().distance(this.gameTile()) <= this.stat.attackRange && this.navigation.checkBlockade(this.gameTile(), target.gameTile())
+        );
     }
 
     attackTarget() {
@@ -284,29 +288,31 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-
     drawSelectionRing() {
-        this.selectedGraphics.lineStyle(5, 0xFFFFFF, 1);
+        this.selectedGraphics.lineStyle(5, 0xffffff, 1);
         this.selectedGraphics.strokeCircle(this.x, this.y, this.radius);
     }
 
     drawPath() {
         this.graphics.clear();
         // If there is nothing, of we are half on the tile dont draw anymore
-        if ((this.navPoints.length === 0 && !this.target) || (this.selected && this.navPoints.length === 1 && this.pos.distance(this.navPoints[0]) < this.radius) && !this.target) {
+        if (
+            (this.navPoints.length === 0 && !this.target) ||
+            (this.selected && this.navPoints.length === 1 && this.pos.distance(this.navPoints[0]) < this.radius && !this.target)
+        ) {
             return;
         }
         if (this.navPoints.length === 0 && this.target) {
-            this.graphics.lineStyle(3, 0xFF0000, 1);
+            this.graphics.lineStyle(3, 0xff0000, 1);
             const curve = new Phaser.Curves.Path(this.x, this.y);
             curve.add(new Phaser.Curves.Line(this.pos, this.target.pos));
             curve.draw(this.graphics, 64);
             this.graphics.stroke();
             return;
         }
-        this.graphics.lineStyle(3, 0xFFFFFF, 1);
+        this.graphics.lineStyle(3, 0xffffff, 1);
         const curve = new Phaser.Curves.Path(this.x, this.y);
-        let origin;
+        let origin: Vector2;
         // If selected, we draw a circle around the unit, and the line goes from there, else the origin
         if (this.selected) {
             const angle = Phaser.Math.Angle.BetweenPoints(this.pos, this.navPoints[0]);
@@ -330,7 +336,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 if (this.selected && i === 0 && this.navPoints[0].distance(this.pos) < this.radius) {
                     const out: any[] = [];
                     point2 = points[i + 2];
-                    GetLineToCircle(new Line(points[i + 1].x, points[i + 1].y, point2.x, point2.y), new Circle(this.pos.x, this.pos.y, this.radius), out);
+                    GetLineToCircle(
+                        new Line(points[i + 1].x, points[i + 1].y, point2.x, point2.y),
+                        new Circle(this.pos.x, this.pos.y, this.radius),
+                        out
+                    );
                     if (out[0]) point1 = new Vector2(Math.round(out[0].x), Math.round(out[0].y));
                     i++;
                 }
@@ -346,20 +356,19 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.healthBar.setActivelyVisible(visible);
     }
 
-
     generateAnimations() {
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_DOWN,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [0, 1, 2, 3]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_DOWN,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [4, 5, 6, 7]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
@@ -373,21 +382,21 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             key: Unit.AnimationKeys.DIE_DOWN,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [12, 13, 14, 15]}),
             frameRate: 6,
-            repeat: 0
+            repeat: 0,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_UP,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [16, 17, 18, 19]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_UP,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [20, 21, 22, 23]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
@@ -401,21 +410,21 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             key: Unit.AnimationKeys.DIE_UP,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [28, 29, 30, 31]}),
             frameRate: 6,
-            repeat: 0
+            repeat: 0,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_LEFT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [32, 33, 34, 35]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_LEFT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [36, 37, 38, 39]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
@@ -429,21 +438,21 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             key: Unit.AnimationKeys.DIE_LEFT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [44, 45, 46, 47]}),
             frameRate: 6,
-            repeat: 0
+            repeat: 0,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.IDLE_RIGHT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [48, 49, 50, 51]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
             key: Unit.AnimationKeys.WALK_RIGHT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [52, 53, 54, 55]}),
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
 
         this.anims.create({
@@ -457,7 +466,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             key: Unit.AnimationKeys.DIE_RIGHT,
             frames: this.anims.generateFrameNames(this.stat.texture, {frames: [60, 61, 62, 63]}),
             frameRate: 6,
-            repeat: 0
+            repeat: 0,
         });
 
         this.on("animationcomplete", e => {
@@ -478,8 +487,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             }
         }
         const end = target ? target.gameTile() : gameTile || this.gameTile();
-        const path = this.systems.navigation.findPathAsVector2(this.gameTile(), end, this.pathfinding, target ? this.stat.attackRange : 0, dynamicObstacles);
+        const path = this.systems.navigation.findPathAsVector2(
+            this.gameTile(),
+            end,
+            this.pathfinding,
+            target ? this.stat.attackRange : 0,
+            dynamicObstacles
+        );
         this.setNav(path, target);
-        this.destination = this.navPoints.length > 0 ? this.systems.pointToTile(this.navPoints[this.navPoints.length - 1].x, this.navPoints[this.navPoints.length - 1].y) || null : null;
+        this.destination =
+            this.navPoints.length > 0
+                ? this.systems.pointToTile(this.navPoints[this.navPoints.length - 1].x, this.navPoints[this.navPoints.length - 1].y) || null
+                : null;
     }
 }

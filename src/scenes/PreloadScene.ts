@@ -72,11 +72,11 @@ export enum Images {
     OBELISK_NUMS = "obelisk-nums",
     NUKE = "nuke",
     NUKE_NUMS = "nuke-nums",
-    LIGHTNING = "lightning"
+    LIGHTNING = "lightning",
 }
 
 export enum Tilemaps {
-    MAP1 = "map1"
+    MAP1 = "map1",
 }
 
 export default class PreloadScene extends Phaser.Scene {
@@ -93,13 +93,12 @@ export default class PreloadScene extends Phaser.Scene {
     createLoadingGui() {
         this.loadingText = this.add.text(this.config.width / 2 - 85, this.config.height / 2 - 110, "Loading...", {
             fontFamily: defaultFont,
-            fontSize: "50px"
+            fontSize: "50px",
         });
-        this.background = this.add.rectangle(this.config.width / 2, this.config.height / 2 + 50, 600, 50, 0xFFFFFF);
-        this.foreground = this.add.rectangle(343, this.config.height / 2 + 50, 595, 45, 0x233565)
-            .setOrigin(0, 0.5);
-        this.load.on("progress", (value) => {
-            this.foreground.setDisplaySize(595 * value | 0, 45);
+        this.background = this.add.rectangle(this.config.width / 2, this.config.height / 2 + 50, 600, 50, 0xffffff);
+        this.foreground = this.add.rectangle(343, this.config.height / 2 + 50, 595, 45, 0x233565).setOrigin(0, 0.5);
+        this.load.on("progress", value => {
+            this.foreground.setDisplaySize((595 * value) | 0, 45);
         });
     }
 
@@ -158,17 +157,17 @@ export default class PreloadScene extends Phaser.Scene {
         });
         this.load.spritesheet(Images.MALE_ENGINEER, male_engineer, {
             frameWidth: 128,
-            frameHeight: 128
+            frameHeight: 128,
         });
 
         this.load.spritesheet(Images.NUKE_NUMS, nuke_nums, {
             frameWidth: 7,
-            frameHeight: 7
+            frameHeight: 7,
         });
 
         this.load.spritesheet(Images.LIGHTNING, lightning, {
             frameWidth: 256,
-            frameHeight: 256
+            frameHeight: 256,
         });
 
         this.load.tilemapTiledJSON(Tilemaps.MAP1, map1);
@@ -192,5 +191,4 @@ export default class PreloadScene extends Phaser.Scene {
             }
         }, 1000);
     }
-
 }

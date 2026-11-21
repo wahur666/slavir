@@ -2,10 +2,12 @@ function lerp(a: number, b: number, t: number) {
     return a * (1 - t) + b * t;
 }
 
-
 export class Hex {
-    constructor(public q: number, public r: number, public s = -q-r) {
-    }
+    constructor(
+        public q: number,
+        public r: number,
+        public s = -q - r
+    ) {}
 
     equals(hex: Hex): boolean {
         return this.q === hex.q && this.r === hex.r && this.s === hex.s;
@@ -24,25 +26,22 @@ export class Hex {
     }
 
     length(): number {
-        return (Math.abs(this.q) + Math.abs(this.r) + Math.abs(this.s)) / 2 | 0;
+        return ((Math.abs(this.q) + Math.abs(this.r) + Math.abs(this.s)) / 2) | 0;
     }
 
     distance(hex: Hex): number {
         return this.sub(hex).length();
     }
 
-    static directions:Hex[] = [new Hex(1, 0, -1), new Hex(1, -1, 0), new Hex(0, -1, 1), new Hex(-1, 0, 1), new Hex(-1, 1, 0), new Hex(0, 1, -1)];
+    static directions: Hex[] = [new Hex(1, 0, -1), new Hex(1, -1, 0), new Hex(0, -1, 1), new Hex(-1, 0, 1), new Hex(-1, 1, 0), new Hex(0, 1, -1)];
 
-    static direction(direction:number):Hex
-    {
+    static direction(direction: number): Hex {
         return Hex.directions[direction];
     }
 
-    neighbor(direction:number):Hex
-    {
+    neighbor(direction: number): Hex {
         return this.add(Hex.direction(direction));
     }
-
 
     round(): Hex {
         let q = Math.round(this.q) | 0;
@@ -67,15 +66,15 @@ export class Hex {
 
     lineDraw(b: Hex): Hex[] {
         const N = this.distance(b);
-        const aNudge: Hex = new Hex(this.q + 1e-06, this.r + 1e-06, this.s - 2e-06);
-        const bNudge: Hex = new Hex(b.q + 1e-06, b.r + 1e-06, b.s - 2e-06);
+        const aNudge: Hex = new Hex(this.q + 1e-6, this.r + 1e-6, this.s - 2e-6);
+        const bNudge: Hex = new Hex(b.q + 1e-6, b.r + 1e-6, b.s - 2e-6);
         const results: Hex[] = [];
         const step = 1 / Math.max(N, 1);
         for (let i = 0; i <= N; i++) {
             results.push(aNudge.lerp(bNudge, step * i).round());
         }
-        const cNudge: Hex = new Hex(this.q - 1e-06, this.r - 1e-06, this.s + 2e-06);
-        const dNudge: Hex = new Hex(b.q - 1e-06, b.r - 1e-06, b.s + 2e-06);
+        const cNudge: Hex = new Hex(this.q - 1e-6, this.r - 1e-6, this.s + 2e-6);
+        const dNudge: Hex = new Hex(b.q - 1e-6, b.r - 1e-6, b.s + 2e-6);
         for (let i = 0; i <= N; i++) {
             const hex = cNudge.lerp(dNudge, step * i).round();
             if (!results.find(e => e.equals(hex))) {

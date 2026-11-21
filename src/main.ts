@@ -8,7 +8,6 @@ import {SHARED_CONFIG} from "./model/config";
 import ScoreScene from "./scenes/ScoreScene";
 import PauseScene from "./scenes/PauseScene";
 
-
 const config: GameConfig = {
     ...SHARED_CONFIG,
     type: Phaser.WEBGL,
@@ -20,8 +19,8 @@ const config: GameConfig = {
     physics: {
         default: "arcade",
         arcade: {
-            debug: SHARED_CONFIG.debug.arcade
-        }
+            debug: SHARED_CONFIG.debug.arcade,
+        },
     },
     canvas: document.getElementById("cv1") as HTMLCanvasElement,
 };
@@ -30,7 +29,6 @@ let game: Phaser.Game;
 window.addEventListener("load", ev => {
     game = new Phaser.Game(config);
 });
-
 
 window.addEventListener("beforeunload", ev => {
     game.destroy(true, false);

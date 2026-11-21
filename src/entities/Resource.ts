@@ -2,14 +2,12 @@ import Phaser from "phaser";
 import type GameTile from "../model/GameTile";
 import type GameScene from "../scenes/GameScene";
 
-
 export default class Resource extends Phaser.GameObjects.Sprite {
-
     gameTile: GameTile;
     /** when a new "harvester" is created, the priority, which resource patch is automatically selected  */
     priority: number;
     /** The resource is available for 100 seconds of active harvesting */
-    availableResource =  100_000;
+    availableResource = 100_000;
     free: (resource: Resource) => void;
     occupied = false;
 
@@ -31,5 +29,4 @@ export default class Resource extends Phaser.GameObjects.Sprite {
             this.free(this);
         }
     }
-
 }

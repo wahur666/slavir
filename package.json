@@ -11,7 +11,11 @@
     "prod": "tsc --noEmit -p src && vite build",
     "zip": "zip slavir.zip -r ./public/ -j /public/",
     "release": "npm run prod && npm run zip",
-    "preview": "vite preview --port 8081"
+    "preview": "vite preview --port 8081",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write ."
   },
   "private": true,
   "repository": {
@@ -33,10 +37,8 @@
     "phaser": "^4.2.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.8",
     "@types/node": "^26.6.6",
-    "@typescript-eslint/eslint-plugin": "^8.73.0",
-    "@typescript-eslint/parser": "^8.73.0",
-    "eslint": "^10.15.0",
     "typescript": "^6.0.3",
     "vite": "^8.3.8"
   }

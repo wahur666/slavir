@@ -15,55 +15,72 @@ export enum Buildings {
 }
 
 export interface BuildingStat {
-    type:  Buildings
-    cost: number,
+    type: Buildings;
+    cost: number;
     origin?: Vector2;
     scale?: Vector2;
-    texture: string
+    texture: string;
 }
 export const buildingStat: Map<Buildings, BuildingStat> = new Map([
-    [Buildings.CASTLE, {
-        type: Buildings.CASTLE,
-        cost: 0,
-        scale: new Vector2(0.8),
-        origin: new Vector2(0.5, 0.6),
-        texture: Images.CASTLE
-    }],
-    [Buildings.BARRACK, {
-        type: Buildings.BARRACK,
-        texture: Images.BARRACK,
-        scale: new Vector2(0.8),
-        cost: 30
-    }],
-    [Buildings.FACTORY, {
-        type: Buildings.FACTORY,
-        texture: Images.FACTORY,
-        scale: new Vector2(0.8),
-        cost: 60
-    }],
-    [Buildings.HANGAR, {
-        type: Buildings.HANGAR,
-        texture: Images.HANGAR,
-        scale: new Vector2(0.8),
-        cost: 50
-    }],
-    [Buildings.TECH, {
-        type: Buildings.TECH,
-        cost: 100,
-        scale: new Vector2(0.8),
-        texture: Images.TECH
-    }],
-    [Buildings.SPAWN, {
-        type: Buildings.SPAWN,
-        cost: 0,
-        scale: new Vector2(1.1),
-        origin: new Vector2(0.5, 0.42),
-        texture: Images.SPAWN
-    }]
+    [
+        Buildings.CASTLE,
+        {
+            type: Buildings.CASTLE,
+            cost: 0,
+            scale: new Vector2(0.8),
+            origin: new Vector2(0.5, 0.6),
+            texture: Images.CASTLE,
+        },
+    ],
+    [
+        Buildings.BARRACK,
+        {
+            type: Buildings.BARRACK,
+            texture: Images.BARRACK,
+            scale: new Vector2(0.8),
+            cost: 30,
+        },
+    ],
+    [
+        Buildings.FACTORY,
+        {
+            type: Buildings.FACTORY,
+            texture: Images.FACTORY,
+            scale: new Vector2(0.8),
+            cost: 60,
+        },
+    ],
+    [
+        Buildings.HANGAR,
+        {
+            type: Buildings.HANGAR,
+            texture: Images.HANGAR,
+            scale: new Vector2(0.8),
+            cost: 50,
+        },
+    ],
+    [
+        Buildings.TECH,
+        {
+            type: Buildings.TECH,
+            cost: 100,
+            scale: new Vector2(0.8),
+            texture: Images.TECH,
+        },
+    ],
+    [
+        Buildings.SPAWN,
+        {
+            type: Buildings.SPAWN,
+            cost: 0,
+            scale: new Vector2(1.1),
+            origin: new Vector2(0.5, 0.42),
+            texture: Images.SPAWN,
+        },
+    ],
 ]);
 
 export default class Building extends Phaser.GameObjects.Sprite {
-
     /** Important for the enemy base, if It's revealed or not */
     revealed = false;
     readonly stat: BuildingStat;
@@ -95,5 +112,4 @@ export default class Building extends Phaser.GameObjects.Sprite {
     gameTile(): GameTile {
         return this.systems.pointToTile(this.x, this.y)!;
     }
-
 }

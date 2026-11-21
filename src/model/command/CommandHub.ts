@@ -15,12 +15,10 @@ export type CommandListener = (command: Command) => void;
  * validates it, turns it into per-unit {@link Order}s, and steps those orders.
  */
 export default class CommandHub {
-
     private readonly orders = new Map<Unit, Order>();
     private readonly listeners: CommandListener[] = [];
 
-    constructor(private readonly systems: Systems) {
-    }
+    constructor(private readonly systems: Systems) {}
 
     /** Called for every accepted command, e.g. to send local commands to a network peer or record a replay */
     onCommand(listener: CommandListener): () => void {
