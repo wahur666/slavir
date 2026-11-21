@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type GameTile from "../GameTile.js";
 import type HexMap from "../HexMap.js";
 import {Pathfinding} from "../HexMap.js";
-import Heap from "heap-js";
+import {Heap} from "heap-js";
 import Vector2 = Phaser.Math.Vector2;
 
 class Node {
