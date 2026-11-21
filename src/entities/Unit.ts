@@ -12,15 +12,20 @@ import type Player from "../model/player/Player.js";
 import type {Navigation} from "../model/navigation/Navigation.js";
 import type Systems from "../model/Systems.js";
 import HealthBar from "./HealthBar.js";
-import Volley, {volleyStatOf} from "./Volley.js";
+import Volley from "./Volley.js";
 import AmmoBar from "./AmmoBar.js";
 import {fireShotEffect} from "./ShotEffect.js";
+import {aliveMembers, damagePerMember, formationOffsets, maxSquadHealth, shootingMembers, squadVolleyStat} from "./Squad.js";
 
 type Direction = "up" | "down" | "left" | "right";
 
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
     /** Distance in pixels within which a navigation point (hex center) counts as reached */
     static readonly ARRIVAL_DISTANCE = 5;
+    /** Sprite scale of squad members, so a whole squad fits on one hex */
+    static readonly SQUAD_SCALE = 0.55;
+    /** Distance of the squad members from the leader, in pixels */
+    static readonly SQUAD_FORMATION_RADIUS = 26;
 
     static AnimationKeys = {
         IDLE_: "unit-idle-",
@@ -71,6 +76,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     private healthBar: HealthBar;
     /** Only for burst-fire units */
     private ammoBar: AmmoBar | null = null;
+    /** Living squad members besides the leader (the unit itself), in the order they die (last first) */
+    private followers: Phaser.GameObjects.Sprite[] = [];
+    /** Members playing their death animation */
+    private dyingFollowers: Phaser.GameObjects.Sprite[] = [];
+    private formation: {x: number; y: number}[] = [];
 
     constructor(systems: Systems, x: number, y: number, texture: string, stat: UnitStat, player: Player, free: (unit: Unit) => Promise<void>) {
         super(systems.gameScene, x, y, texture);
@@ -78,7 +88,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.id = systems.nextUnitId();
         this.scene = systems.gameScene;
         this.stat = stat;
-        this.volley = new Volley(volleyStatOf(stat));
+        this.volley = new Volley(squadVolleyStat(stat));
         this.free = free;
         this.player = player;
         this.navigation = systems.navigation;
@@ -92,15 +102,81 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.setupGraphics();
         this.setOrigin(0.5, 0.8);
         this.setCircle(this.radius, this.width / 2 - this.radius, this.height - this.radius - 20);
-        this.currentHealth = this.stat.health * this.stat.squadSize;
-        this.generateAnimations();
+        this.currentHealth = maxSquadHealth(this.stat);
+        this.generateAnimations(this);
+        this.on("animationcomplete", (e: Phaser.Animations.Animation) => {
+            if (e.key.includes(Unit.AnimationKeys.ATTACK_)) {
+                this.attackAnimationPlaying = false;
+                this.play(Unit.AnimationKeys.IDLE_DOWN, true);
+            }
+        });
+        this.setupSquad();
         this.setupHealthBar();
         this.play(Unit.AnimationKeys.IDLE_DOWN, true);
     }
 
+    /** Squads show one sprite per member; the unit itself is the leader, the followers only mirror it */
+    private setupSquad() {
+        if (this.stat.squadSize <= 1) return;
+        this.setScale(Unit.SQUAD_SCALE);
+        this.formation = formationOffsets(this.stat.squadSize, Unit.SQUAD_FORMATION_RADIUS);
+        for (let i = 1; i < this.stat.squadSize; i++) {
+            const follower = this.scene.add.sprite(this.x, this.y, this.texture.key);
+            follower.setOrigin(this.originX, this.originY).setScale(Unit.SQUAD_SCALE).setDepth(this.depth);
+            this.generateAnimations(follower);
+            follower.play(Unit.AnimationKeys.IDLE_DOWN);
+            this.followers.push(follower);
+        }
+        this.updateFollowers();
+    }
+
+    /** Living members of the squad, the unit itself included */
+    get aliveMembers(): number {
+        return aliveMembers(this.currentHealth, this.stat);
+    }
+
+    /** Sprite of a squad member, 0 is the leader (the unit itself) */
+    private memberSprite(index: number): Phaser.GameObjects.Sprite {
+        return index === 0 ? this : this.followers[index - 1];
+    }
+
+    /**
+     * Keep the followers in formation and in step with the leader's idle and walk animations. Attacks are not mirrored,
+     * every member plays its own attack when it shoots, see {@link playAnimation}.
+     */
+    private updateFollowers() {
+        const key = this.anims.currentAnim?.key;
+        const leaderAttacking = !!key?.includes(Unit.AnimationKeys.ATTACK_);
+        this.followers.forEach((follower, i) => {
+            const offset = this.formation[i + 1];
+            follower.setPosition(this.x + offset.x, this.y + offset.y);
+            // Members behind the leader are drawn below it
+            follower.setDepth(this.depth + (offset.y < 0 ? -0.1 : 0.1));
+            const followerAttacking = follower.anims.isPlaying && !!follower.anims.currentAnim?.key.includes(Unit.AnimationKeys.ATTACK_);
+            if (!key || leaderAttacking || (followerAttacking && !this.moving)) return;
+            if (follower.anims.currentAnim?.key !== key) {
+                follower.play(key);
+            }
+        });
+    }
+
+    /** Remove followers until only the living members are left */
+    private killFollowers(alive: number) {
+        while (this.followers.length > Math.max(0, alive - 1)) {
+            const follower = this.followers.pop()!;
+            this.dyingFollowers.push(follower);
+            follower.play(Unit.AnimationKeys.DIE_ + this.lastDirection);
+            follower.once("animationcomplete", () => {
+                this.dyingFollowers.splice(this.dyingFollowers.indexOf(follower), 1);
+                follower.destroy();
+            });
+        }
+    }
+
     setupHealthBar() {
         this.healthBar = new HealthBar(this.scene, this.x, this.y - 50, 70, 10);
-        if (this.volley.stat.shots > 1) {
+        // A rotating squad's magazine is its members taking turns, not ammo worth showing
+        if (this.volley.stat.shots > 1 && this.stat.squadFire !== "rotating") {
             this.ammoBar = new AmmoBar(this.scene, this.volley, 70);
         }
     }
@@ -166,19 +242,15 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         return !this.moving && this.navPoints.length === 0 && this.isAtTileCenter();
     }
 
-    takeDamage(unit: Unit) {
-        switch (this.stat.type) {
-            case "aircraft":
-                this.currentHealth -= unit.stat.damageAgainstAir * unit.stat.squadSize;
-                break;
-            case "infantry":
-                this.currentHealth -= unit.stat.damageAgainstInfantry * unit.stat.squadSize;
-                break;
-            case "vehicle":
-                this.currentHealth -= unit.stat.damageAgainstVehicle * unit.stat.squadSize;
-                break;
-        }
-        console.log("Remaining health", this.currentHealth);
+    /**
+     * One shot of the attacker
+     * @param unit attacker
+     * @param shooters members of the attacker's squad that hit this unit, each deals its per-member damage
+     */
+    takeDamage(unit: Unit, shooters = unit.aliveMembers) {
+        this.currentHealth -= damagePerMember(unit.stat, this.stat) * shooters;
+        console.log("Remaining health", this.currentHealth, "members", this.aliveMembers);
+        this.killFollowers(this.aliveMembers);
         if (this.currentHealth <= 0) {
             unit.target = null;
             this.free(this);
@@ -199,6 +271,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.stopUnit();
         this.healthBar.free();
         this.ammoBar?.free();
+        this.killFollowers(0);
         this.markedForDeletion = true;
         this.play("unit-die-" + this.lastDirection);
         return new Promise<void>(resolve => {
@@ -265,7 +338,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             }
         }
         this.updateVolleys(delta, this.isEngaged());
-        this.healthBar.update(this.x, this.y - 100, this.currentHealth / this.stat.health / this.stat.squadSize);
+        this.updateFollowers();
+        this.healthBar.update(this.x, this.y - 100, this.currentHealth / maxSquadHealth(this.stat));
         this.ammoBar?.update(this.x, this.y - 94);
     }
 
@@ -284,10 +358,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.volley.update(delta, engaged);
     }
 
-    /** Visual for a single shot; by default only burst-fire units show a missile */
-    protected playShotEffect(target: Unit, _volley: Volley) {
+    /**
+     * Visual for a single shot; by default only units with an explicit `volley` stat show a missile
+     * @param from the squad member that shoots
+     */
+    protected playShotEffect(target: Unit, _volley: Volley, from: Phaser.GameObjects.Sprite = this) {
         if (this.stat.volley) {
-            fireShotEffect(this.scene, this.x, this.y - 30, target.x, target.y - 20, this.visible || target.visible);
+            fireShotEffect(this.scene, from.x, from.y - 30 * from.scaleY, target.x, target.y - 20, this.visible || target.visible);
         }
     }
 
@@ -311,29 +388,41 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         );
     }
 
-    attackTarget() {
-        if (this.canFire()) {
-            const target = this.target!;
-            const volley = this.volleyFor(target);
-            volley.fire();
-            this.playShotEffect(target, volley);
-            target.takeDamage(this);
+    /**
+     * Fire the next shot if the weapon is ready. A rotating squad still spends the turn of a dead member, without a shot.
+     * @returns the squad members that shot
+     */
+    attackTarget(): number[] {
+        if (!this.canFire()) return [];
+        const target = this.target!;
+        const volley = this.volleyFor(target);
+        const shooters = shootingMembers(this.stat, this.aliveMembers, volley.ammo);
+        volley.fire();
+        if (shooters.length === 0) return shooters;
+        for (const member of shooters) {
+            this.playShotEffect(target, volley, this.memberSprite(member));
+        }
+        if (shooters.includes(0)) {
             this.attackAnimationPlaying = true;
         }
+        target.takeDamage(this, shooters.length);
+        return shooters;
     }
 
     playAnimation() {
         const velocity = this.body.velocity;
         if (velocity.length() === 0) {
             if (this.canFire()) {
-                if (this.target.pos.x <= this.pos.x) {
-                    this.play(Unit.AnimationKeys.ATTACK_LEFT, true);
-                    this.lastDirection = "left";
-                } else {
-                    this.play(Unit.AnimationKeys.ATTACK_RIGHT, true);
-                    this.lastDirection = "right";
+                const target = this.target!;
+                for (const member of this.attackTarget()) {
+                    const sprite = this.memberSprite(member);
+                    const direction: Direction = target.x <= sprite.x ? "left" : "right";
+                    sprite.play(Unit.AnimationKeys.ATTACK_ + direction, member === 0);
+                    if (member === 0) this.lastDirection = direction;
                 }
-                this.attackTarget();
+                if (!this.attackAnimationPlaying) {
+                    this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
+                }
             } else {
                 if (!this.attackAnimationPlaying) {
                     this.play(Unit.AnimationKeys.IDLE_ + this.lastDirection, true);
@@ -427,126 +516,121 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.setVisible(visible);
         this.healthBar.setActivelyVisible(visible);
         this.ammoBar?.setActivelyVisible(visible);
+        for (const follower of [...this.followers, ...this.dyingFollowers]) follower.setVisible(visible);
     }
 
-    generateAnimations() {
-        this.anims.create({
+    /** Animations are local to each sprite, so every squad member needs its own set */
+    generateAnimations(sprite: Phaser.GameObjects.Sprite) {
+        sprite.anims.create({
             key: Unit.AnimationKeys.IDLE_DOWN,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [0, 1, 2, 3]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [0, 1, 2, 3]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.WALK_DOWN,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [4, 5, 6, 7]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [4, 5, 6, 7]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.ATTACK_DOWN,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [8, 9, 10, 11]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [8, 9, 10, 11]}),
             frameRate: 8,
             repeat: 0,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.DIE_DOWN,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [12, 13, 14, 15]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [12, 13, 14, 15]}),
             frameRate: 6,
             repeat: 0,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.IDLE_UP,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [16, 17, 18, 19]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [16, 17, 18, 19]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.WALK_UP,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [20, 21, 22, 23]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [20, 21, 22, 23]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.ATTACK_UP,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [24, 25, 26, 27]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [24, 25, 26, 27]}),
             frameRate: 8,
             repeat: 0,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.DIE_UP,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [28, 29, 30, 31]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [28, 29, 30, 31]}),
             frameRate: 6,
             repeat: 0,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.IDLE_LEFT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [32, 33, 34, 35]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [32, 33, 34, 35]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.WALK_LEFT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [36, 37, 38, 39]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [36, 37, 38, 39]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.ATTACK_LEFT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [40, 41, 42, 43]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [40, 41, 42, 43]}),
             frameRate: 8,
             repeat: 0,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.DIE_LEFT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [44, 45, 46, 47]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [44, 45, 46, 47]}),
             frameRate: 6,
             repeat: 0,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.IDLE_RIGHT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [48, 49, 50, 51]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [48, 49, 50, 51]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.WALK_RIGHT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [52, 53, 54, 55]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [52, 53, 54, 55]}),
             frameRate: 5,
             repeat: -1,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.ATTACK_RIGHT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [56, 57, 58, 59]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [56, 57, 58, 59]}),
             frameRate: 8,
             repeat: 0,
         });
 
-        this.anims.create({
+        sprite.anims.create({
             key: Unit.AnimationKeys.DIE_RIGHT,
-            frames: this.anims.generateFrameNames(this.stat.texture, {frames: [60, 61, 62, 63]}),
+            frames: sprite.anims.generateFrameNames(this.stat.texture, {frames: [60, 61, 62, 63]}),
             frameRate: 6,
             repeat: 0,
-        });
-
-        this.on("animationcomplete", e => {
-            if (e.key.includes(Unit.AnimationKeys.ATTACK_)) {
-                this.attackAnimationPlaying = false;
-                this.play(Unit.AnimationKeys.IDLE_DOWN, true);
-            }
         });
     }
 

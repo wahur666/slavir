@@ -40,7 +40,7 @@
 - [x] Add stat info on card
 - [x] Add health bar
 - [x] Add building damage parameter
-- [ ] Add unit groups (low priority)
+- [x] Add unit groups (low priority)
 - [x] Decrease unit help on damage
 - [x] Make sure it cannot target itself
 - [x] Harvester should not able to target units

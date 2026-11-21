@@ -29,5 +29,7 @@ export default class FemaleArcher extends Unit {
         texture: UnitName.B2_Female_Archer,
         type: "infantry",
         visionRadius: 2,
+        volley: {shots: 1, initialChargeUp: 0.25, shotInterval: 0, reload: 5},
+        squadFire: "rotating",
     };
 }

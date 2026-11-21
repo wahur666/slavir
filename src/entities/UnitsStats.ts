@@ -39,4 +39,11 @@ export interface UnitStat {
     visionRadius: 1 | 2 | 3;
     /** Burst fire; without it the unit fires one shot every `rateOfFire` seconds */
     volley?: VolleyStat;
+    /**
+     * How a squad's members use their weapon (`volley`/`rateOfFire` describes one member's weapon):
+     * - "volley" (default): every living member fires at once
+     * - "rotating": members take turns in a fixed order, one shot every `reload / squadSize` seconds; the slot of a
+     *   dead member is skipped without a shot, so the squad fires slower as it loses members
+     */
+    squadFire?: "volley" | "rotating";
 }
