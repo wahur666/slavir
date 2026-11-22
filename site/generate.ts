@@ -3,6 +3,7 @@ import path from "node:path";
 import type {Plugin} from "vite";
 import {renderDocs} from "./docs.js";
 import {loadGameData} from "./gameData.js";
+import {renderPowerSprites} from "./powerSprites.js";
 import {renderWiki} from "./wiki.js";
 
 /**
@@ -10,6 +11,7 @@ import {renderWiki} from "./wiki.js";
  *
  * - src/docs/: one page per Markdown file (README, roadmap, docs/*.md)
  * - src/wiki/: one page per unit, from the live unit stats in src/entities
+ * - src/wiki/sprites/: the commander power art, which the game only draws at runtime (powerSprites.ts)
  *
  * Both folders are generated (and git ignored); vite.config.ts runs this before every dev server start and build, and
  * adds the pages as build entries so Vite bundles their styles, script and images like any other page.
@@ -44,7 +46,22 @@ function writePages(dir: string, pages: Map<string, string>): boolean {
 export async function generateSite(repoRoot: string): Promise<boolean> {
     const src = path.join(repoRoot, "src");
     const docsChanged = writePages(path.join(src, "docs"), renderDocs(repoRoot));
-    const wikiChanged = writePages(path.join(src, "wiki"), renderWiki(await loadGameData(repoRoot)));
+    const data = await loadGameData(repoRoot);
+    // The turret is drawn on a canvas at runtime, not loaded from a file: render its sheets next to the wiki pages
+    const sprites = renderPowerSprites(path.join(src, "wiki", "sprites"));
+    const sheet = (name: string) => ({url: `wiki/sprites/${name}`, frameWidth: sprites.frame, frameHeight: sprites.frame});
+    const turret = data.units.find(stat => stat.type === "structure");
+    if (turret) {
+        data.textures.set(turret.texture, sheet(sprites.turretSheets[0]));
+        data.generated.set(turret.texture, {sheets: sprites.turretSheets.map(sheet), icon: `wiki/sprites/${sprites.turretIcon}`});
+    }
+    data.ionStrike = {
+        sheet: {url: `wiki/sprites/${sprites.ionStrike.file}`, frameWidth: sprites.ionStrike.frame, frameHeight: sprites.ionStrike.frame},
+        frames: sprites.ionStrike.frames,
+        step: sprites.ionStrike.step,
+        icon: `wiki/sprites/${sprites.ionCannonIcon}`,
+    };
+    const wikiChanged = writePages(path.join(src, "wiki"), renderWiki(data));
     return docsChanged || wikiChanged;
 }
 

@@ -99,6 +99,7 @@ const own = (id: number, col: number, row: number, overrides: Partial<OwnUnitInf
     parked: true,
     immobile: false,
     targetId: null,
+    attackingBase: false,
     destination: null,
     givenUpOn: [],
     ...overrides,

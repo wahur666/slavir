@@ -36,6 +36,14 @@ export interface AttackCommand extends UnitCommand {
     targetId: number;
 }
 
+/**
+ * Attack the enemy base: walk to the closest free hex within range of one of its five hexes (the castle and the
+ * building slots, built or not) and shoot it. The target is always the issuer's enemy, so it needs no id.
+ */
+export interface AttackBaseCommand extends UnitCommand {
+    kind: "attackBase";
+}
+
 /** Drop every order and stop at the current tile */
 export interface StopCommand extends UnitCommand {
     kind: "stop";
@@ -73,6 +81,7 @@ export interface SurrenderCommand extends BaseCommand {
 export type Command =
     | MoveCommand
     | AttackCommand
+    | AttackBaseCommand
     | StopCommand
     | DisbandCommand
     | BuildCommand

@@ -1,5 +1,6 @@
 import type Unit from "../../entities/Unit.js";
 import type GameTile from "../GameTile.js";
+import type Player from "../player/Player.js";
 
 export type OrderStatus = "running" | "done";
 
@@ -40,6 +41,23 @@ export class AttackOrder implements Order {
 
     update(unit: Unit): OrderStatus {
         return unit.target === this.target ? "running" : "done";
+    }
+
+    cancel(unit: Unit): void {
+        unit.stopUnitWhenHexCenterIsReached();
+    }
+}
+
+/** Attack the enemy base; done once the unit dropped it (no free hex in range, a new order) */
+export class AttackBaseOrder implements Order {
+    constructor(private readonly enemy: Player) {}
+
+    start(unit: Unit): void {
+        unit.attackBase(this.enemy);
+    }
+
+    update(unit: Unit): OrderStatus {
+        return unit.targetBase === this.enemy ? "running" : "done";
     }
 
     cancel(unit: Unit): void {

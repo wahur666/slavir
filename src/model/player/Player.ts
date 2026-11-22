@@ -16,6 +16,7 @@ import HealthBar from "../../entities/HealthBar.js";
 import CommanderPowers from "../power/CommanderPowers.js";
 import Turret from "../../entities/units/Turret.js";
 import {TURRET_TEXTURES} from "../../entities/powers/PowerArt.js";
+import {showDamageNumber} from "../../entities/DamageNumber.js";
 
 export default abstract class Player {
     /** Paid to the enemy of a player who loses a harvester */
@@ -31,7 +32,9 @@ export default abstract class Player {
     resources: Resource[] = [];
     base: GameTile | undefined;
     spawn: GameTile | undefined;
-    maxBaseHealth = 30_000;
+    /** Health of a full base (the castle and its building slots), see takeBaseDamage */
+    static readonly MAX_BASE_HEALTH = 30_000;
+    maxBaseHealth = Player.MAX_BASE_HEALTH;
     currentBaseHealth = this.maxBaseHealth;
     resource = 100;
     hasBuildings = {
@@ -98,8 +101,22 @@ export default abstract class Player {
         this.createCoolDown = this.createCoolDownDuration;
     }
 
+    /**
+     * Every hit on the base goes through here (unit shots, the Titan's shockwave, the ion cannon, the nuke), and shows
+     * a floating damage number
+     * @param at the base hex that was hit, the castle when not given
+     */
+    takeBaseDamage(amount: number, at: GameTile | undefined = this.base) {
+        if (amount <= 0) return;
+        this.currentBaseHealth = Math.max(0, this.currentBaseHealth - amount);
+        if (at) {
+            const pos = this.systems.hexToPos(at.hex);
+            showDamageNumber(this.gameScene, pos.x, pos.y - 40, amount);
+        }
+    }
+
     takeObjectiveDamage() {
-        this.currentBaseHealth = Math.max(0, this.currentBaseHealth - this.maxBaseHealth / 2);
+        this.takeBaseDamage(this.maxBaseHealth / 2);
     }
 
     private createUnitWithPos(hex: Hex, texture: string, stats: UnitStat): Unit {
@@ -254,7 +271,8 @@ export default abstract class Player {
 
     /**
      * The base's five hexes: the castle and the four building slots around it (the spawn is not part of it).
-     * Units cannot attack the base; the ion cannon damages it when it hits on or next to one of these.
+     * Units attack the base by shooting any of these (see {@link Unit.attackBase}); the ion cannon damages it when it
+     * hits on or next to one of these.
      */
     get baseTiles(): GameTile[] {
         if (!this.cachedBaseTiles) {

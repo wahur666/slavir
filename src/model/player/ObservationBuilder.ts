@@ -135,6 +135,7 @@ function ownUnit(unit: Unit, visibleEnemies: Unit[]): OwnUnitInfo {
         parked: unit.parked,
         immobile: unit.immobile,
         targetId: unit.target?.id ?? null,
+        attackingBase: unit.targetBase !== null,
         destination: unit.destination ? ref(unit.destination as GameTile) : null,
         givenUpOn: visibleEnemies.filter(enemy => unit.hasGivenUpOn(enemy)).map(enemy => enemy.id),
     };

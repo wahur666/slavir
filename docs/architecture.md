@@ -39,7 +39,7 @@ flowchart TB
     Hub -- "createUnit" --> Player
     Player -- "createBuilding()" --> Buildings
     Player -- "placeUnit()" --> Units
-    Hub -- "move / attack / stop" --> Orders
+    Hub -- "move / attack / attackBase / stop" --> Orders
     Orders -- "moveToGameTile()" --> Units
     Hub -- "disband" --> Player
     Hub -- "surrender" --> Scene["GameScene.endGame()"]
@@ -123,6 +123,7 @@ and tiles by `{col, row}`, never by object, so they can be logged, recorded, or 
 | ------------ | --------------------- | ---------------------------------------------------------------------- |
 | `move`       | `unitIds`, `tile`     | `MoveOrder` for each unit                                              |
 | `attack`     | `unitIds`, `targetId` | `AttackOrder` for each unit (target must be a _visible_ enemy)         |
+| `attackBase` | `unitIds`             | `AttackBaseOrder` for each unit that deals damage to structures        |
 | `stop`       | `unitIds`             | Cancel order, stop at the next hex center                              |
 | `disband`    | `unitIds`             | `player.disband(unit)` (the F key)                                     |
 | `build`      | `building`            | `player.createBuilding(building)` (castle and spawn are not buildable) |

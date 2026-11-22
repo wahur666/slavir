@@ -1,4 +1,4 @@
-import HexMap from "./HexMap.js";
+import HexMap, {Pathfinding} from "./HexMap.js";
 import {Navigation} from "./navigation/Navigation.js";
 import Objective from "../entities/Objective.js";
 import Resource from "../entities/Resource.js";
@@ -74,6 +74,7 @@ export default class Systems {
         this.tileMap = this.createMap(gameScene);
         this.layers = this.createLayers(this.tileMap);
         this.map = new HexMap(this.layers);
+        this.markStructureTiles();
         [this.baseOffset, this.scaledBaseOffset] = this.calculateBaseOffset(this.layers.base);
         this.calculatePadGameTiles();
         this.navigation = new Navigation(this.map, this.baseOffset, this.scaleFactor);
@@ -198,6 +199,13 @@ export default class Systems {
         const normalizedX = ((x / this.scaleFactor) | 0) - this.baseOffset.x;
         const normalizedY = ((y / this.scaleFactor) | 0) - this.baseOffset.y;
         return this.map.pixelToTile(normalizedX, normalizedY);
+    }
+
+    /** The tileset marks base hexes as obstacles; they only block movement, not the line of sight */
+    private markStructureTiles() {
+        for (const player of this.players) {
+            for (const tile of player.baseTiles) tile.pathfinding = Pathfinding.STRUCTURE;
+        }
     }
 
     private calculatePadGameTiles() {

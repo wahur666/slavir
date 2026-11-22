@@ -1,4 +1,4 @@
-import Unit from "../Unit.js";
+import Unit, {type ShotTarget} from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 import Volley, {type VolleyStat} from "../Volley.js";
@@ -50,13 +50,14 @@ export default class DemonDragon extends Unit {
         return target.stat.type === "aircraft" ? this.airVolley : this.volley;
     }
 
-    protected updateVolleys(delta: number, fireTarget: Unit | null) {
+    protected updateVolleys(delta: number, fireTarget: Unit | null, atBase: boolean) {
         const againstAir = fireTarget?.stat.type === "aircraft";
-        this.volley.update(delta, !!fireTarget && !againstAir);
+        // The base is a ground target, the ground gun shoots it
+        this.volley.update(delta, (!!fireTarget && !againstAir) || atBase);
         this.airVolley.update(delta, !!fireTarget && againstAir);
     }
 
-    protected playShotEffect(target: Unit, volley: Volley) {
+    protected playShotEffect(target: ShotTarget, volley: Volley) {
         const style = volley === this.airVolley ? AA_MISSILE : TRACER;
         fireShotEffect(this.scene, this.x, this.y - 30, target.x, target.y - 20, this.visible || target.visible, style);
     }

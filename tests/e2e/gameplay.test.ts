@@ -87,7 +87,9 @@ const state = () =>
 
 function startServer(): Promise<http.Server> {
     const created = http.createServer((request, response) => {
-        const file = path.resolve(root, "." + (request.url === "/" ? "/index.html" : request.url));
+        // Pages are folders with an index.html (/, /play/, /sandbox/)
+        const url = (request.url ?? "/").split("?")[0];
+        const file = path.resolve(root, "." + (url.endsWith("/") ? url + "index.html" : url));
         if (!file.startsWith(root + path.sep)) {
             response.writeHead(403).end();
             return;
@@ -330,6 +332,117 @@ describe("gameplay in a headless browser", () => {
             return {acquired, damaged, harvesterCannotAttack, keepsTarget, clearedDeadTarget: unit.target === null};
         })()`);
         expect(combat).toEqual({acquired: true, damaged: true, harvesterCannotAttack: true, keepsTarget: true, clearedDeadTarget: true});
+    });
+
+    it("attacks the enemy base from a free hex in range before enemy units, and rejects units that deal no damage to structures", async () => {
+        const result = await evaluate(`(() => {
+            game.game.loop.sleep();
+            const p = game.player1, ai = game.player2, s = game.systems;
+            // Base hexes only block movement: the spawn stays ground, and the castle can be seen from next to it
+            const structures = [...p.baseTiles, ...ai.baseTiles].every(t => t.pathfinding === 16) && ai.spawn.pathfinding === 2;
+            const nextToCastle = s.map.tiles.find(t => t.pathfinding === 2 && t.distance(ai.base) === 1);
+            const castleInSight = !nextToCastle || s.navigation.checkBlockade(nextToCastle, ai.base);
+            const unit = p.units.find(u => u.canAttackBase && !u.markedForDeletion);
+            const harvester = p.units.find(u => !u.stat.canAttack && !u.markedForDeletion);
+            const taken = s.allUnits().map(u => u.claimedTile);
+            const far = s.map.tiles.find(t => t.distance(ai.base) === 3 && t.pathfinding === 2 && !taken.includes(t));
+            const farPos = s.hexToPos(far.hex);
+            const home = {tile: unit.claimedTile, x: unit.x, y: unit.y};
+            unit.stopUnit(); unit.setPosition(farPos.x, farPos.y); unit.claimedTile = far; unit.volley.reset();
+            let visible = [];
+            const step = delta => { p.visibleEnemyUnits = visible; unit.update(delta); };
+            const harvesterRejected = !s.commands.issue({kind: 'attackBase', playerIndex: p.index, unitIds: [harvester.id]});
+            const accepted = s.commands.issue({kind: 'attackBase', playerIndex: p.index, unitIds: [unit.id]});
+            const walks = unit.targetBase === ai && unit.navPoints.length > 0;
+            // No physics step while the loop sleeps: hop from navigation point to navigation point
+            for (let i = 0; i < 20 && unit.navPoints.length > 0; i++) {
+                const next = unit.navPoints[0];
+                unit.setPosition(next.x, next.y);
+                step(16);
+            }
+            const inRange = ai.baseTiles.some(t => t.distance(unit.gameTile()) <= unit.stat.attackRange);
+            // An enemy right next to the unit does not pull its fire off the base
+            ai.resource = 1000; ai.createCoolDown = 0; ai.createBuilding('barrack');
+            const enemy = ai.createUnit('fantasy8') || ai.units.find(u => u.stat.canAttack && !u.immobile && !u.markedForDeletion);
+            const occupied = s.allUnits().map(u => u.claimedTile);
+            const beside = s.map.tiles.find(t => t.pathfinding === 2 && t.distance(unit.gameTile()) === 1 && !occupied.includes(t)
+                && s.navigation.checkBlockade(unit.gameTile(), t));
+            const besidePos = s.hexToPos(beside.hex);
+            enemy.stopUnit(); enemy.setPosition(besidePos.x, besidePos.y); enemy.claimedTile = beside;
+            visible = [enemy];
+            const health = ai.currentBaseHealth, enemyHealth = enemy.currentHealth;
+            for (let i = 0; i < 10 && ai.currentBaseHealth === health; i++) step(500);
+            const damaged = ai.currentBaseHealth < health;
+            const enemySpared = enemy.currentHealth === enemyHealth;
+            const stillAttacking = s.commands.orderOf(unit)?.constructor.name === 'AttackBaseOrder';
+            s.commands.issue({kind: 'stop', playerIndex: p.index, unitIds: [unit.id]});
+            const stopped = unit.targetBase === null;
+            // Back home, so the AI does not see a fighter next to its base in the following tests
+            unit.stopUnit(); unit.setPosition(home.x, home.y); unit.claimedTile = home.tile;
+            return {structures, castleInSight, harvesterRejected, accepted, walks, inRange, damaged, enemySpared, stillAttacking, stopped};
+        })()`);
+        expect(result).toEqual({
+            structures: true,
+            castleInSight: true,
+            harvesterRejected: true,
+            accepted: true,
+            walks: true,
+            inRange: true,
+            damaged: true,
+            enemySpared: true,
+            stillAttacking: true,
+            stopped: true,
+        });
+    });
+
+    it("hits the base with the Titan's shockwave once per shot, behind an enemy or straight on", async () => {
+        const result = await evaluate(`(() => {
+            game.game.loop.sleep();
+            const p = game.player1, ai = game.player2, s = game.systems;
+            p.resource = 10000; p.maxUnitCount = 20; p.createCoolDown = 0;
+            p.createBuilding('barrack'); p.createBuilding('tech');
+            const titan = p.createUnit('titan');
+            ai.resource = 1000; ai.createCoolDown = 0; ai.createBuilding('barrack');
+            const enemy = ai.createUnit('fantasy8') || ai.units.find(u => u.stat.type === 'infantry' && !u.markedForDeletion);
+            const Titan = titan.constructor;
+            const isBase = t => !!t && ai.baseTiles.some(b => b.equals(t));
+            const behind = (from, to) => s.map.hexToTile(Titan.hexBehind(from.hex, to.hex));
+            const taken = s.allUnits().filter(u => u !== titan && u !== enemy).map(u => u.claimedTile);
+            const ground = s.map.tiles.filter(t => t.pathfinding === 2 && !taken.includes(t));
+            const place = (unit, tile) => {
+                const pos = s.hexToPos(tile.hex);
+                unit.stopUnit(); unit.setPosition(pos.x, pos.y); unit.claimedTile = tile;
+            };
+            const shoot = enemies => {
+                const health = ai.currentBaseHealth;
+                titan.volley.reset();
+                for (let i = 0; i < 10 && ai.currentBaseHealth === health; i++) { p.visibleEnemyUnits = enemies; titan.update(200); }
+                return health - ai.currentBaseHealth;
+            };
+            const home = {tile: titan.claimedTile, x: titan.x, y: titan.y};
+
+            // Enemy right next to the Titan, a base hex right behind the enemy
+            const line = ground.flatMap(t => ground.filter(e => e.distance(t) === 1 && isBase(behind(t, e))
+                && s.navigation.checkBlockade(t, e)).map(e => ({t, e})))[0];
+            place(titan, line.t); place(enemy, line.e);
+            p.visibleEnemyUnits = [enemy];
+            titan.moveToGameTile(null, enemy);
+            const enemyHealth = enemy.currentHealth;
+            const throughEnemy = shoot([enemy]);
+            const enemyHit = enemy.currentHealth < enemyHealth;
+
+            // Straight at a base hex with another base hex behind it: still a single hit
+            place(enemy, ground.find(t => t.distance(ai.base) > 4 && !taken.includes(t)));
+            const straight = ground.find(t => ai.baseTiles.some(b => b.distance(t) === 1 && isBase(behind(t, b))));
+            place(titan, straight);
+            s.commands.issue({kind: 'attackBase', playerIndex: p.index, unitIds: [titan.id]});
+            const straightOn = shoot([]);
+
+            titan.stopUnit(); titan.setPosition(home.x, home.y); titan.claimedTile = home.tile;
+            enemy.applyDamage(1e9);
+            return {throughEnemy, enemyHit, straightOn, damage: titan.stat.damageAgainstBase};
+        })()`);
+        expect(result).toEqual({throughEnemy: 2000, enemyHit: true, straightOn: 2000, damage: 2000});
     });
 
     it("only attacks from a hex center and never stops between hex centers", async () => {

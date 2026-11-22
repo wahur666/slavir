@@ -36,8 +36,24 @@ export function ensurePowerTextures(scene: Phaser.Scene) {
 }
 
 function createTurretSheet(scene: Phaser.Scene, key: string, side: number) {
-    const texture = scene.textures.createCanvas(key, FRAME * 4, FRAME * 16)!;
-    const ctx = texture.getContext();
+    const texture = scene.textures.createCanvas(key, TURRET_SHEET.width, TURRET_SHEET.height)!;
+    drawTurretSheet(texture.getContext(), side);
+    for (let row = 0; row < 16; row++) {
+        for (let frame = 0; frame < 4; frame++) {
+            texture.add(row * 4 + frame, 0, frame * FRAME, row * FRAME, FRAME, FRAME);
+        }
+    }
+    texture.refresh();
+}
+
+/** Size of a turret sheet: 4 frames x 16 rows (4 directions x idle / walk / attack / die) */
+export const TURRET_SHEET = {width: FRAME * 4, height: FRAME * 16, frame: FRAME};
+
+/**
+ * Draws a whole turret sheet for one side (0: player 1, 1: player 2) on a context of {@link TURRET_SHEET}'s size. Plain
+ * canvas calls only, so the site generator can render the same sheet in Node (site/powerSprites.ts).
+ */
+export function drawTurretSheet(ctx: CanvasRenderingContext2D, side: number) {
     DIRECTIONS.forEach((direction, d) => {
         KINDS.forEach((kind, k) => {
             const row = d * 4 + k;
@@ -49,11 +65,9 @@ function createTurretSheet(scene: Phaser.Scene, key: string, side: number) {
                 ctx.clip();
                 drawTurretFrame(ctx, direction, kind, frame, ACCENTS[side]);
                 ctx.restore();
-                texture.add(row * 4 + frame, 0, frame * FRAME, row * FRAME, FRAME, FRAME);
             }
         });
     });
-    texture.refresh();
 }
 
 function createIcon(scene: Phaser.Scene, key: string, draw: (ctx: CanvasRenderingContext2D) => void) {
@@ -333,7 +347,7 @@ function explosion(ctx: CanvasRenderingContext2D, x: number, y: number, radius: 
 }
 
 /** Card icon: the turret's head and barrels, front view */
-function drawTurretIcon(ctx: CanvasRenderingContext2D) {
+export function drawTurretIcon(ctx: CanvasRenderingContext2D) {
     ctx.save();
     // The frame's turret spans about x 22..112, y 50..117
     ctx.scale(0.6, 0.6);
@@ -346,7 +360,7 @@ function drawTurretIcon(ctx: CanvasRenderingContext2D) {
 }
 
 /** Card icon: an orbital beam hitting the ground */
-function drawIonIcon(ctx: CanvasRenderingContext2D) {
+export function drawIonIcon(ctx: CanvasRenderingContext2D) {
     const ground = ctx.createRadialGradient(32, 50, 0, 32, 50, 26);
     ground.addColorStop(0, "rgba(220,245,255,1)");
     ground.addColorStop(0.4, "rgba(90,190,255,0.85)");

@@ -4,7 +4,7 @@ import type Player from "../player/Player.js";
 import type {Command, TileRef} from "./Command.js";
 import type GameTile from "../GameTile.js";
 import type {Order} from "./Order.js";
-import {AttackOrder, MoveOrder} from "./Order.js";
+import {AttackBaseOrder, AttackOrder, MoveOrder} from "./Order.js";
 import {Buildings} from "../../entities/Building.js";
 import type {ReplayEntry} from "../replay/Replay.js";
 
@@ -120,10 +120,12 @@ export default class CommandHub {
     }
 
     private commandUnits(player: Player, command: Exclude<Command, {kind: "build" | "createUnit" | "power" | "surrender"}>): boolean {
-        // Structures (turrets) cannot be moved; they still attack (their auto attack is an order too)
+        // Structures (turrets) cannot be moved; they still attack (their auto attack is an order too).
+        // Only mobile units that deal damage to structures can attack the base.
         const units = command.unitIds
             .map(id => player.units.find(unit => unit.id === id))
-            .filter((unit): unit is Unit => !!unit && !unit.markedForDeletion && !(unit.immobile && command.kind === "move"));
+            .filter((unit): unit is Unit => !!unit && !unit.markedForDeletion && !(unit.immobile && command.kind === "move"))
+            .filter(unit => command.kind !== "attackBase" || unit.canAttackBase);
         if (units.length === 0) return false;
 
         switch (command.kind) {
@@ -137,6 +139,12 @@ export default class CommandHub {
                 const target = this.findEnemyUnit(player, command.targetId);
                 if (!target) return false;
                 units.forEach(unit => this.assign(unit, new AttackOrder(target)));
+                break;
+            }
+            case "attackBase": {
+                const enemy = player.enemyPlayer;
+                if (enemy.baseTiles.length === 0) return false;
+                units.forEach(unit => this.assign(unit, new AttackBaseOrder(enemy)));
                 break;
             }
             case "stop":

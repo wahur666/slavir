@@ -94,6 +94,8 @@ export interface OwnUnitInfo {
     /** Structures (turrets) take no orders */
     immobile: boolean;
     targetId: number | null;
+    /** Attacking the enemy base, see the `attackBase` command */
+    attackingBase: boolean;
     destination: TileRef | null;
     /** Enemies this unit gave up attacking for lack of room around them; attacking them again would fail */
     givenUpOn: number[];

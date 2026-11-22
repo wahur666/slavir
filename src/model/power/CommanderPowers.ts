@@ -145,7 +145,7 @@ export default class CommanderPowers {
         for (const player of this.systems.players) {
             if (player.baseTiles.length === 0) continue;
             const damage = ionCannonStructureDamage(distanceToBase(tile, player.baseTiles, (a, b) => a.distance(b)));
-            player.currentBaseHealth = Math.max(0, player.currentBaseHealth - damage);
+            player.takeBaseDamage(damage);
         }
     }
 }

@@ -80,16 +80,24 @@ export default class HumanPlayer extends Player {
                 if (unit) {
                     this.selectUnit(unit);
                 } else {
-                    if (target) {
-                        this.gameScene.setCurrentTile(target);
-                        if (this.selectedUnit) {
-                            const unitIds = [this.selectedUnit.id];
-                            const enemyUnit = this.visibleEnemyUnits.find(e => !e.markedForDeletion && e.gameTile() === target);
-                            if (enemyUnit) {
-                                this.systems.commands.issue({kind: "attack", playerIndex: this.index, unitIds, targetId: enemyUnit.id});
-                            } else {
-                                this.systems.commands.issue({kind: "move", playerIndex: this.index, unitIds, tile: CommandHub.tileRef(target)});
-                            }
+                    if (target) this.gameScene.setCurrentTile(target);
+                    if (this.selectedUnit) {
+                        const unitIds = [this.selectedUnit.id];
+                        const enemyUnit = target && this.visibleEnemyUnits.find(e => !e.markedForDeletion && e.gameTile() === target);
+                        const onBaseTile = !!target && this.enemyPlayer.baseTiles.includes(target);
+                        // The castle and buildings are drawn taller than their hex, the roof can even be off the map:
+                        // a click on the sprite counts too
+                        const onBuilding = this.enemyPlayer.buildings.some(b => b.visible && b.getBounds().contains(ev.x, ev.y));
+                        const canAttackBase = this.selectedUnit.canAttackBase;
+                        if (onBaseTile && canAttackBase) {
+                            // The castle or one of its building slots, built or not: attack the base (no unit can stand there)
+                            this.systems.commands.issue({kind: "attackBase", playerIndex: this.index, unitIds});
+                        } else if (enemyUnit) {
+                            this.systems.commands.issue({kind: "attack", playerIndex: this.index, unitIds, targetId: enemyUnit.id});
+                        } else if (onBuilding && canAttackBase) {
+                            this.systems.commands.issue({kind: "attackBase", playerIndex: this.index, unitIds});
+                        } else if (target) {
+                            this.systems.commands.issue({kind: "move", playerIndex: this.index, unitIds, tile: CommandHub.tileRef(target)});
                         }
                     }
                 }

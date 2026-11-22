@@ -11,6 +11,11 @@ export enum Pathfinding {
     GROUND = 2,
     HIGH_GROUND = 4,
     OBSTACLE = 8,
+    /**
+     * A base hex (castle or building slot): no unit can walk or fly onto it, but unlike {@link OBSTACLE} it does not
+     * block the line of sight, so it can be shot at and over. Set by {@link Systems}, not by the tileset.
+     */
+    STRUCTURE = 16,
 }
 
 export default class HexMap {

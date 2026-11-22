@@ -15,7 +15,7 @@ export const OBSERVATION_INTERVAL_MS = 1000;
 /** Command batches decided on an observation older than this many ticks (3 s) are dropped */
 const MAX_COMMAND_AGE_TICKS = 180;
 
-const COMMAND_KINDS = new Set<Command["kind"]>(["move", "attack", "stop", "disband", "build", "createUnit", "power", "surrender"]);
+const COMMAND_KINDS = new Set<Command["kind"]>(["move", "attack", "attackBase", "stop", "disband", "build", "createUnit", "power", "surrender"]);
 
 /**
  * Player 2 played by a remote AI over the network. The host's browser runs the simulation: this player sends the

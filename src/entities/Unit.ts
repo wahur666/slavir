@@ -20,6 +20,13 @@ import {canEnter, canPark, enemyHolding, freeTilesNear, isFreeEndTile, sameLayer
 
 type Direction = "up" | "down" | "left" | "right";
 
+/** Where a shot effect flies to: a unit, or a point such as a base hex */
+export interface ShotTarget {
+    x: number;
+    y: number;
+    visible: boolean;
+}
+
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
     /** Distance in pixels within which a navigation point (hex center) counts as reached */
     static readonly ARRIVAL_DISTANCE = 5;
@@ -71,6 +78,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     target: Unit | null;
     /** The unit the weapon is aimed at this frame, see {@link findFireTarget} */
     fireTarget: Unit | null = null;
+    /** Ordered to attack this player's base (the castle and its building slots), see {@link attackBase} */
+    targetBase: Player | null = null;
+    /** The base hex the weapon is aimed at this frame, see {@link findBaseFireTile} */
+    protected baseFireTile: GameTile | null = null;
     currentHealth: number;
     free: (unit: Unit) => void;
     markedForDeletion = false;
@@ -316,6 +327,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
+    /** Whether the unit can be ordered to attack the enemy base */
+    get canAttackBase(): boolean {
+        return !this.immobile && this.stat.canAttack && this.stat.damageAgainstBase > 0;
+    }
+
     /** Structures (turrets) never move */
     get immobile(): boolean {
         return this.stat.type === "structure";
@@ -329,6 +345,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.moving = false;
         this.target = null;
         this.fireTarget = null;
+        this.targetBase = null;
+        this.baseFireTile = null;
         this.destination = null;
         this.goal = null;
         this.retreating = false;
@@ -365,6 +383,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     stopUnitWhenHexCenterIsReached() {
         this.setNav([], null);
         this.goal = null;
+        this.targetBase = null;
+        this.baseFireTile = null;
         this.destination = this.moving ? this.claimedTile : null;
     }
 
@@ -391,19 +411,19 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             this.attackAnimationPlaying = false;
             this.engaged = false;
         }
-        if (!this.target && this.stat.canAttack && this.isStationaryAtCenter()) {
+        // A unit attacking the base shoots enemies in range without dropping the base order, see findFireTarget
+        if (!this.target && !this.targetBase && this.stat.canAttack && this.isStationaryAtCenter()) {
             // Auto attack an enemy in range, as an order like any other so the command hub knows about it
             const enemy = this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy));
             if (enemy) this.systems.commands.issue({kind: "attack", playerIndex: this.player.index, unitIds: [this.id], targetId: enemy.id});
         }
-        // Chasing a target that is already in range from the current hex: finish the path at this hex's center
-        // instead of walking further, the attack itself starts once the center is reached.
+        // Chasing a target (or walking to the base) that is already in range from the current hex: finish the path at
+        // this hex's center instead of walking further, the attack itself starts once the center is reached.
         // Only where the unit may stop: leaving a hex another unit stands on must not be cut short here.
         if (
             !this.retreating &&
-            this.target &&
             this.navPoints.length > 0 &&
-            this.inAttackRange(this.target) &&
+            (this.target ? this.inAttackRange(this.target) : this.targetBase !== null && this.baseTileInRange(this.gameTile()) !== null) &&
             canPark(this, this.claimedTile, this.systems.allUnits())
         ) {
             const center = this.claimedCenter();
@@ -414,7 +434,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
         this.leaveSharedTile(delta);
         this.recalculateNavigationIfNeeded();
-        this.fireTarget = this.findFireTarget();
+        // An ordered base attack shoots the base whenever it is in range, enemy units only when it is not
+        this.baseFireTile = this.findBaseFireTile();
+        this.fireTarget = this.baseFireTile ? null : this.findFireTarget();
         if (this.target && this.fireTarget === this.target && this.isStationaryAtCenter()) this.engaged = true;
         this.playAnimation();
         if (this.navPoints.length > 0) {
@@ -443,7 +465,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 this.drawSelectionRing();
             }
         }
-        this.updateVolleys(delta, this.fireTarget);
+        this.updateVolleys(delta, this.fireTarget, this.baseFireTile !== null);
         this.updateFollowers();
         this.healthBar.update(this.x, this.y - 100, this.currentHealth / maxSquadHealth(this.stat));
         this.ammoBar?.update(this.x, this.y - 94);
@@ -453,13 +475,34 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
      * The unit the weapon winds up against and fires at, null when there is none.
      * - Normal units: the target, only while standing on a hex center with it in range.
      * - Fire-on-move units: also while driving; the target when in range, otherwise any visible enemy in range.
+     * - Units attacking the base: any visible enemy in range while the base is out of range, without chasing it.
      */
     private findFireTarget(): Unit | null {
         if (!this.stat.canAttack) return null;
         if (!this.stat.fireOnMove && !this.isStationaryAtCenter()) return null;
         if (this.target && this.canAttack(this.target) && this.inAttackRange(this.target)) return this.target;
-        if (!this.stat.fireOnMove) return null;
+        if (!this.stat.fireOnMove && !this.targetBase) return null;
         return this.player.visibleEnemyUnits.find(enemy => this.canAttack(enemy) && this.inAttackRange(enemy)) ?? null;
+    }
+
+    /** The base hex the weapon is aimed at: only while standing on a hex center */
+    private findBaseFireTile(): GameTile | null {
+        if (!this.targetBase || !this.stat.canAttack || !this.isStationaryAtCenter()) return null;
+        return this.baseTileInRange(this.gameTile());
+    }
+
+    /**
+     * The closest hex of the attacked base the unit could shoot from `from`, null if there is none.
+     * Base hexes are {@link Pathfinding.STRUCTURE}, they do not block the line of sight.
+     */
+    private baseTileInRange(from: GameTile): GameTile | null {
+        if (!this.targetBase) return null;
+        let best: GameTile | null = null;
+        for (const tile of this.targetBase.baseTiles) {
+            if (!this.inAttackRangeFrom(from, tile)) continue;
+            if (!best || tile.distance(from) < best.distance(from)) best = tile;
+        }
+        return best;
     }
 
     /** The weapon used against the given target; override for units with more than one weapon */
@@ -470,16 +513,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     /**
      * Advance every weapon's timers; override together with {@link volleyFor}
      * @param fireTarget the unit the weapon is aimed at, null when not engaged (the wind-up starts over)
+     * @param atBase the weapon is aimed at the enemy base instead (a ground target, {@link volley} shoots it)
      */
-    protected updateVolleys(delta: number, fireTarget: Unit | null) {
-        this.volley.update(delta, fireTarget !== null);
+    protected updateVolleys(delta: number, fireTarget: Unit | null, atBase: boolean) {
+        this.volley.update(delta, fireTarget !== null || atBase);
     }
 
     /**
      * Visual for a single shot; by default only units with an explicit `volley` stat show a missile
      * @param from the squad member that shoots
      */
-    protected playShotEffect(target: Unit, _volley: Volley, from: Phaser.GameObjects.Sprite = this) {
+    protected playShotEffect(target: ShotTarget, _volley: Volley, from: Phaser.GameObjects.Sprite = this) {
         if (this.stat.volley) {
             fireShotEffect(this.scene, from.x, from.y - 30 * from.scaleY, target.x, target.y - 20, this.visible || target.visible);
         }
@@ -529,14 +573,44 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         return shooters;
     }
 
+    /**
+     * Fire the next shot at the base hex the unit aims at, if the weapon is ready. Each shooting member deals its
+     * damage against structures to the base.
+     * @returns the squad members that shot
+     */
+    protected attackBaseTile(): number[] {
+        const tile = this.baseFireTile;
+        const enemy = this.targetBase;
+        if (!tile || !enemy || !this.volley.ready) return [];
+        const shooters = shootingMembers(this.stat, this.aliveMembers, this.volley.ammo);
+        this.volley.fire();
+        if (shooters.length === 0) return shooters;
+        const pos = this.systems.hexToPos(tile.hex);
+        const shotTarget: ShotTarget = {x: pos.x, y: pos.y, visible: this.systems.player1.visibleTiles.has(tile)};
+        for (const member of shooters) {
+            this.playShotEffect(shotTarget, this.volley, this.memberSprite(member));
+        }
+        if (shooters.includes(0)) {
+            this.attackAnimationPlaying = true;
+        }
+        enemy.takeBaseDamage(this.stat.damageAgainstBase * shooters.length, tile);
+        return shooters;
+    }
+
     playAnimation() {
         const velocity = this.body.velocity;
         // Normal units only get a fire target while standing still, fire-on-move units also while driving
+        let shot: {x: number; shooters: number[]} | null = null;
         if (this.canFire()) {
-            const target = this.fireTarget!;
-            for (const member of this.attackTarget()) {
+            const x = this.fireTarget!.x;
+            shot = {x, shooters: this.attackTarget()};
+        } else if (this.baseFireTile && this.volley.ready) {
+            shot = {x: this.systems.hexToPos(this.baseFireTile.hex).x, shooters: this.attackBaseTile()};
+        }
+        if (shot) {
+            for (const member of shot.shooters) {
                 const sprite = this.memberSprite(member);
-                const direction: Direction = target.x <= sprite.x ? "left" : "right";
+                const direction: Direction = shot.x <= sprite.x ? "left" : "right";
                 sprite.play(Unit.AnimationKeys.ATTACK_ + direction, member === 0);
                 if (member === 0) this.lastDirection = direction;
             }
@@ -586,18 +660,26 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         this.graphics.lineBetween(this.x, this.y, this.fireTarget.x, this.fireTarget.y);
     }
 
+    /** Where the red attack line points to: the target, or the base hex being shot */
+    private aimPos(): Vector2 | null {
+        if (this.target) return this.target.pos;
+        if (this.baseFireTile) return this.systems.hexToPos(this.baseFireTile.hex);
+        return null;
+    }
+
     private drawRoute() {
+        const aim = this.aimPos();
         // If there is nothing, of we are half on the tile dont draw anymore
         if (
-            (this.navPoints.length === 0 && !this.target) ||
-            (this.selected && this.navPoints.length === 1 && this.pos.distance(this.navPoints[0]) < this.radius && !this.target)
+            (this.navPoints.length === 0 && !aim) ||
+            (this.selected && this.navPoints.length === 1 && this.pos.distance(this.navPoints[0]) < this.radius && !aim)
         ) {
             return;
         }
-        if (this.navPoints.length === 0 && this.target) {
+        if (this.navPoints.length === 0 && aim) {
             this.graphics.lineStyle(3, 0xff0000, 1);
             const curve = new Phaser.Curves.Path(this.x, this.y);
-            curve.add(new Phaser.Curves.Line(this.pos, this.target.pos));
+            curve.add(new Phaser.Curves.Line(this.pos, aim));
             curve.draw(this.graphics, 64);
             this.graphics.stroke();
             return;
@@ -613,8 +695,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             origin = this.pos;
         }
         const points = [origin, ...this.navPoints];
-        if (this.target) {
-            points.push(this.target.pos);
+        if (aim) {
+            points.push(aim);
         }
         for (let i = 0; i < points.length - 1; i++) {
             let point1 = points[i];
@@ -778,6 +860,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
         if (target && !this.canAttack(target)) target = null;
         this.goal = target ? null : gameTile;
+        this.targetBase = null;
+        this.baseFireTile = null;
         this.bumpedTiles = [];
         // A new order starts unengaged, so an ordered target may be chased until it is first in range
         this.engaged = false;
@@ -787,6 +871,62 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             return;
         }
         this.navigateTo(gameTile, target);
+    }
+
+    /**
+     * New order: attack the enemy's base. The unit walks to the closest free hex it can shoot one of the base's hexes
+     * from (the castle or a building slot, built or not) and shoots the base from there; enemy units in range are
+     * shot first, but not chased. Without a free hex in range the order is dropped.
+     */
+    attackBase(enemy: Player) {
+        if (this.markedForDeletion || !this.canAttackBase || enemy === this.player) return;
+        this.goal = null;
+        this.target = null;
+        this.fireTarget = null;
+        this.bumpedTiles = [];
+        this.engaged = false;
+        this.targetBase = enemy;
+        // Finish walking back to the held hex first, the attack is planned from there, see arrive()
+        if (this.retreating) return;
+        this.navigateToBase();
+    }
+
+    /** Plan the walk to a free hex in range of the attacked base, or drop the attack if there is none */
+    private navigateToBase() {
+        const enemy = this.targetBase;
+        if (!enemy || this.immobile) return;
+        const units = this.systems.allUnits();
+        const obstacles = this.knownObstacles(null);
+        const start = this.claimedTile;
+        const inRange = (tile: GameTile) => this.baseTileInRange(tile) !== null;
+        let path: GameTile[] | null;
+        if (inRange(start) && canPark(this, start, units)) {
+            // Already in range from the held hex: stay (or walk back to its center) and shoot from here
+            path = [start];
+        } else {
+            const castle = enemy.base ?? enemy.baseTiles[0];
+            path = this.navigation.findPathTiles(start, castle, this.pathfinding, this.stat.attackRange, obstacles);
+            const end = path[path.length - 1];
+            if (!end || !isFreeEndTile(this, end, units) || !inRange(end)) {
+                path = this.pathToFreeTile(end ?? castle, obstacles, inRange);
+            }
+        }
+        if (!path) {
+            this.dropBaseAttack();
+            return;
+        }
+        this.followPath(path, null);
+    }
+
+    /** No room to shoot the base from: the attack ends, the unit stays on its hex or leaves a shared one */
+    private dropBaseAttack() {
+        this.targetBase = null;
+        this.baseFireTile = null;
+        if (canPark(this, this.claimedTile, this.systems.allUnits())) {
+            this.followPath([], null);
+        } else {
+            this.moveToFreeTile();
+        }
     }
 
     /**
@@ -832,6 +972,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     private renavigate() {
         if (this.target) {
             this.navigateTo(null, this.target);
+        } else if (this.targetBase) {
+            this.navigateToBase();
         } else if (this.goal) {
             this.navigateTo(this.goal, null);
         }
@@ -856,6 +998,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
             if (this.parked || target.claimedTile !== this.chaseTile || this.pathBlocked(target)) {
                 this.repathCoolDown = Unit.REPATH_INTERVAL;
                 this.navigateTo(null, target);
+            }
+        } else if (this.targetBase) {
+            if (this.baseTileInRange(this.gameTile())) return;
+            if (this.parked || this.pathBlocked(null)) {
+                this.repathCoolDown = Unit.REPATH_INTERVAL;
+                this.navigateToBase();
             }
         } else if (this.goal && !this.parked && this.pathBlocked(null)) {
             this.repathCoolDown = Unit.REPATH_INTERVAL;
@@ -948,6 +1096,16 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
                 return true;
             }
             return this.giveUpTarget(target);
+        }
+        if (this.targetBase) {
+            const path = this.pathToFreeTile(this.claimedTile, this.knownObstacles(null), tile => this.baseTileInRange(tile) !== null);
+            if (path) {
+                this.followPath(path, null);
+                return true;
+            }
+            // No free hex in range: the attack ends and the unit just looks for any free hex
+            this.targetBase = null;
+            this.baseFireTile = null;
         }
         const path = this.pathToFreeTile(this.claimedTile, this.knownObstacles(null));
         if (!path) return false;

@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import Unit from "../Unit.js";
+import Unit, {type ShotTarget} from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 import type Systems from "../../model/Systems.js";
@@ -125,7 +125,7 @@ export default class Turret extends Unit {
         this.deployGraphics.fillCircle(this.x, this.y, radius);
     }
 
-    protected playShotEffect(target: Unit, _volley: unknown, from: Phaser.GameObjects.Sprite = this) {
+    protected playShotEffect(target: ShotTarget, _volley: unknown, from: Phaser.GameObjects.Sprite = this) {
         fireShotEffect(this.scene, from.x, from.y - 30, target.x, target.y - 20, this.visible || target.visible, TRACER);
     }
 

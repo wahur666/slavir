@@ -441,6 +441,7 @@ From the host every `info.observationIntervalMs` (1000) ms of **simulation** tim
                 "parked": true,
                 "immobile": false,
                 "targetId": null,
+                "attackingBase": false,
                 "destination": null,
                 "givenUpOn": []
             },
@@ -454,6 +455,7 @@ From the host every `info.observationIntervalMs` (1000) ms of **simulation** tim
                 "parked": false,
                 "immobile": false,
                 "targetId": null,
+                "attackingBase": false,
                 "destination": { "col": 8, "row": 3 },
                 "givenUpOn": []
             }
@@ -573,6 +575,22 @@ the target (an air unit for a unit without `canAttackAir`) do not attack it. A u
 target found no free hex to attack it from; ordering the attack again will fail the same way for a while. The
 order ends when the target dies or goes out of sight.
 
+### `attackBase`
+
+Attack the enemy base.
+
+<!-- type: WireCommand -->
+```json
+{ "kind": "attackBase", "playerIndex": 2, "unitIds": [5] }
+```
+
+Each unit walks to the closest free hex within its `attackRange` of one of `enemyBaseTiles` (the castle and its four
+building slots, built or not) and shoots the base from there, taking `damageAgainstBase` per shooting squad member
+off `enemy.baseHealth`. The base is shot whenever it is in range; enemy units only while it is not, and they are
+not chased. Base hexes block movement (flying too) but not the line of sight. Units that cannot attack, or deal no
+damage to structures (harvesters, turrets), are skipped; the command is rejected if none is left. The order ends
+when no free hex in range is found, or with a new order. Units attacking the base have `attackingBase: true`.
+
 ### `stop`
 
 Drop the units' orders; they stop on the next hex center.
@@ -684,7 +702,7 @@ Hex distance between two tiles: `(|q1 − q2| + |r1 − r2| + |q1 + r1 − q2 �
 | `self.resources[]`                  | Your crystal patches and whether a harvester works them                                                                                                                     |
 | `self.powers[]`                     | Per power: `ready` (usable now) and `coolDown` ms left                                                                                                                      |
 | `self.turretTiles`                  | Tiles a turret may go on now; empty while the turret is not ready                                                                                                           |
-| `units[]`                           | All your living units: `id`, `name`, `tile`, `health` / `maxHealth`, `moving`, `parked` (still, no path left), `immobile` (turrets), `targetId`, `destination`, `givenUpOn` |
+| `units[]`                           | All your living units: `id`, `name`, `tile`, `health` / `maxHealth`, `moving`, `parked` (still, no path left), `immobile` (turrets), `targetId`, `attackingBase`, `destination`, `givenUpOn` |
 | `visibleTiles`                      | Every tile your player sees right now                                                                                                                                       |
 | `enemy.baseHealth`, `maxBaseHealth` | The enemy castle (its health bar is on screen for both players)                                                                                                             |
 | `enemy.units[]`                     | Enemy units on visible tiles **only**: `id`, `name`, `type`, `tile`, `health` / `maxHealth`, `moving`, `parked`, `harvester`                                                |

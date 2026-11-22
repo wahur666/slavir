@@ -1,4 +1,4 @@
-import Unit from "../Unit.js";
+import Unit, {type ShotTarget} from "../Unit.js";
 import {Buildings} from "../Building.js";
 import {UnitName, type UnitStat} from "../UnitsStats.js";
 import type Volley from "../Volley.js";
@@ -37,7 +37,7 @@ export default class Wolverine extends Unit {
         visionRadius: 2,
     };
 
-    protected playShotEffect(target: Unit, _volley: Volley) {
+    protected playShotEffect(target: ShotTarget, _volley: Volley) {
         fireShotEffect(this.scene, this.x, this.y - 30, target.x, target.y - 20, this.visible || target.visible, TRACER);
     }
 }
