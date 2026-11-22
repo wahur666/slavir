@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p src && tsc --noEmit -p tests && tsc --noEmit -p server",
     "server": "tsx server/server.ts",
     "bot": "tsx server/bot.ts",
+    "sprites": "tsx site/powerSprites.ts",
     "build": "tsc --noEmit -p src && vite build --mode development",
     "watch": "vite build --mode development --watch",
     "dev": "vite",
@@ -48,6 +49,7 @@
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
+    "@napi-rs/canvas": "^1.2.0",
     "@types/node": "^26.6.6",
     "@types/ws": "^8.18.2",
     "marked": "^18.2.1",
