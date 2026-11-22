@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import {SceneRegistry} from "./SceneRegistry.js";
+import {addHomePageLink, SceneRegistry} from "./SceneRegistry.js";
 import {Images} from "./PreloadScene.js";
 import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
 import {defaultFont} from "../helpers/utils.js";
@@ -43,5 +43,6 @@ export default class MenuScene extends Phaser.Scene {
             .on("pointerup", () => {
                 window.location.href = "../networkgame/";
             });
+        addHomePageLink(this, defaultFont);
     }
 }

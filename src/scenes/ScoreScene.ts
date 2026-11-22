@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import {returnToMenu, SceneRegistry} from "./SceneRegistry.js";
+import {addHomePageLink, returnToMenu, SceneRegistry} from "./SceneRegistry.js";
 import {Images} from "./PreloadScene.js";
 import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
 import {defaultFont} from "../helpers/utils.js";
@@ -39,6 +39,7 @@ export default class ScoreScene extends Phaser.Scene {
             returnToMenu(this);
         });
         this.setupReplayButtons(data.replay);
+        addHomePageLink(this, defaultFont);
     }
 
     private setupReplayButtons(replay: Replay | undefined) {
