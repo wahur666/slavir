@@ -14,11 +14,20 @@ export enum SceneRegistry {
 /** Registry key of a function that replaces "return to menu" (the network game page goes back to its lobby) */
 export const RETURN_TO_MENU_KEY = "returnToMenu";
 
+/**
+ * The itch.io build ships only the single player game, so links to the site's other pages
+ * (homepage, network game) would lead nowhere and are hidden.
+ */
+export const IS_ITCH_BUILD = typeof __ITCH_BUILD__ !== "undefined" && __ITCH_BUILD__ === true;
+
 /** URL of the site's homepage; the game pages (/play/, /networkgame/) live one folder below it */
 export const HOME_PAGE_URL = "../";
 
-/** Adds a "← Home page" link to the top left corner that leaves the game for the site's homepage */
-export function addHomePageLink(scene: Phaser.Scene, fontFamily: string): Phaser.GameObjects.Text {
+/** Adds a "← Home page" link to the top left corner that leaves the game for the site's homepage; none in the itch.io build */
+export function addHomePageLink(scene: Phaser.Scene, fontFamily: string): Phaser.GameObjects.Text | undefined {
+    if (IS_ITCH_BUILD) {
+        return undefined;
+    }
     return scene.add
         .text(20, 20, "← Home page", {
             fontFamily,

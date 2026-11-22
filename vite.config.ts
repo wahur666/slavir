@@ -6,6 +6,27 @@ import {generateSite, siteEntries, sitePlugin} from "./site/generate.js";
 const wsTarget = `ws://localhost:${process.env.SLAVIR_WS_PORT || 8090}`;
 
 export default defineConfig(async ({mode}) => {
+    // `npm run itch`: only the single player game, with index.html at the root of itch/, for embedding on itch.io
+    if (mode === "itch") {
+        return {
+            root: resolve(__dirname, "src/play"),
+            publicDir: false,
+            base: "./",
+            define: {
+                CANVAS_RENDERER: JSON.stringify(true),
+                WEBGL_RENDERER: JSON.stringify(true),
+                __ITCH_BUILD__: JSON.stringify(true),
+            },
+            build: {
+                outDir: resolve(__dirname, "itch"),
+                emptyOutDir: true,
+                assetsInlineLimit: 0,
+                sourcemap: false,
+                minify: true,
+                chunkSizeWarningLimit: 2000,
+            },
+        };
+    }
     // The docs and unit wiki pages are generated into src/docs/ and src/wiki/ first, see site/generate.ts
     await generateSite(__dirname);
     return {

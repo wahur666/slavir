@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import {addHomePageLink, SceneRegistry} from "./SceneRegistry.js";
+import {addHomePageLink, IS_ITCH_BUILD, SceneRegistry} from "./SceneRegistry.js";
 import {Images} from "./PreloadScene.js";
 import cursorGauntlet_grey from "../assets/cursorGauntlet_grey.png";
 import {defaultFont} from "../helpers/utils.js";
@@ -29,7 +29,14 @@ export default class MenuScene extends Phaser.Scene {
         this.startButton.on("pointerup", () => {
             this.scene.start(SceneRegistry.GAME);
         });
-        // The network game has its own page with an HTML lobby
+        // The network game has its own page with an HTML lobby, which the itch.io build does not include
+        if (!IS_ITCH_BUILD) {
+            this.addNetworkGameLink();
+        }
+        addHomePageLink(this, defaultFont);
+    }
+
+    private addNetworkGameLink() {
         this.add
             .text(this.config.width / 2, this.config.height / 2 + 270, "Network game", {
                 fontFamily: defaultFont,
@@ -43,6 +50,5 @@ export default class MenuScene extends Phaser.Scene {
             .on("pointerup", () => {
                 window.location.href = "../networkgame/";
             });
-        addHomePageLink(this, defaultFont);
     }
 }

@@ -12,6 +12,12 @@
             "runtimeExecutable": "npm",
             "runtimeArgs": ["run", "server"],
             "port": 8090
+        },
+        {
+            "name": "itch-preview",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": ["vite", "preview", "--mode", "itch", "--port", "8082", "--strictPort"],
+            "port": 8082
         }
     ]
 }
